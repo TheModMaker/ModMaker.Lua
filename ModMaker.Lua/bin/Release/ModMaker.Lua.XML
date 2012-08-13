@@ -1,0 +1,725 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ModMaker.Lua</name>
+    </assembly>
+    <members>
+        <member name="T:ModMaker.Lua.Runtime.LuaMethod">
+            <summary>
+            Defines a method that is given to Lua.  This can contain one or
+            more CLR methods or a single Lua method.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaMethod.Invoke(System.Object[])">
+            <summary>
+            Invokes the method with the specified parameters.
+            </summary>
+            <param name="args">The arguments to pass.</param>
+            <returns>The returned values.</returns>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaMethod.Name">
+            <summary>
+            The name of the method or null if none could be found.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaMethod.IsLua">
+            <summary>
+            Gets whether the current method points to function defined in Lua code.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaEnvironment">
+            <summary>
+            Defines the environment that Lua operates in.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.#ctor(ModMaker.Lua.LuaSettings)">
+            <summary>
+            Creates a new environment with the given settings.
+            </summary>
+            <param name="settings">The settings to give the Environment.</param>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String)">
+            <summary>
+            Saves the environment to disk.
+            </summary>
+            <param name="name">The name/path to save to.</param>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String,System.Boolean)">
+            <summary>
+            Saves the environment to disk, optionally overriting the file if it exists.
+            </summary>
+            <param name="name">The name/path to save to.</param>
+            <param name="_override">True to override the file if it exists, otherwise false.</param>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaEnvironment.Item(System.String)">
+            <summary>
+            Gets or sets the global value with the specified name.
+            </summary>
+            <param name="name">The name of the global variable.</param>
+            <returns>The value of the variable.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Parser.SyntaxException">
+            <summary>
+            When there is an error in the syntax of a Lua chunk.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.MultipleReturnAttribute">
+            <summary>
+            Defines that a method returns more than one value.
+            The method must return a compatible type to
+            IEnumerable.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.LuaLibraries">
+            <summary>
+            Defines which libraries the Lua code will have
+            access to. Use Bitwise-Or to use multiple.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.UseDefaults">
+            <summary>
+            Default value, changed to LuaLibraries.All when
+            given to the Lua object.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.String">
+            <summary>
+            Register the string library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.Table">
+            <summary>
+            Register the table library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.Math">
+            <summary>
+            Register the math library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.IO">
+            <summary>
+            Register the io library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.OS">
+            <summary>
+            Register the os library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.Coroutine">
+            <summary>
+            Register the coroutine library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.Modules">
+            <summary>
+            Register the module library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.Bit32">
+            <summary>
+            Register the bit32 library to Lua.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaLibraries.All">
+            <summary>
+            Register all the libraries to Lua.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.LuaClassAccess">
+            <summary>
+            Defines what types Lua has access to when defining a new type.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaClassAccess.Registered">
+            <summary>
+            Lua can only derrive from types that are registered.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaClassAccess.System">
+            <summary>
+            Lua can derrive from types that are registered and defined in the .NET framework.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.LuaClassAccess.All">
+            <summary>
+            Lua can derrive from any type that is defined in CurrentDomain.GetAssemblies().
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.ExitEventArgs">
+            <summary>
+            The event args for an exit event.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.ExitEventArgs.Code">
+            <summary>
+            Gets the exit code given to os.exit(code[, close]).
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.ExitEventArgs.Close">
+            <summary>
+            Gets or sets whether Lua should call Environment.Exit after returning.  
+            Default: false.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.LuaSettings">
+            <summary>
+            Defines the settings for a Lua object.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.Name">
+            <summary>
+            Gets or sets the name of the Lua object, for use with debugging, can be null.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.Libraries">
+            <summary>
+            Gets or sets the libraries that the Lua code has access too.
+            The library must have Permission to access these and
+            will throw PermissionExceptions if it does not, when the 
+            code is run.  If null, use the defaults, which is all
+            but Debug.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.ClassAccess">
+            <summary>
+            Gets or sets which types Lua defined classes can derrive from.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.Encoding">
+            <summary>
+            Gets or sets the encoding to use for reading/writing to a file.  If null,
+            will use UTF8.  When reading, will try to read using the file encoding.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.ModuleBinder">
+            <summary>
+            Gets or sets the binder to use when loading modules.  Set
+            to null to use the default binder.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.AllowNonSeekStreams">
+            <summary>
+            Gets or sets whether to allow non-seekable streams.
+            Default: false.
+            </summary>
+        </member>
+        <member name="E:ModMaker.Lua.LuaSettings.OnQuit">
+            <summary>
+            Raised when the Lua code calls os.close.  The sender
+            is the Environment that the code is in. If e.Close
+            is true after raising, it will call Environment.Exit.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.Stdin">
+            <summary>
+            Gets or sets the stream to get stdin from.
+            This can be null to use Console.OpenStandardInput().
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.LuaSettings.Stdout">
+            <summary>
+            Gets or sets the stream to send stdout to.
+            This can be null to use Console.OpenStandardOutput().
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.IModuleBinder">
+            <summary>
+            Defines how Lua looks for external modules.  When 'require' is called from
+            Lua, first IModuleBinder.Loaded is called to search for a pre-loaded module,
+            if it returns null, it calls IModuleBinder.Load.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.IModuleBinder.Load(System.String,ModMaker.Lua.Runtime.LuaEnvironment)">
+            <summary>
+            Searches and loads the module acording to the binder.
+            </summary>
+            <param name="name">The name of the module to find.</param>
+            <param name="E">The environment to load to.</param>
+            <returns>The loaded module, or null if it could not be loaded.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.IModuleBinder.Loaded(System.String)">
+            <summary>
+            Searches the binder for a module that has already been loaded.
+            Return null to try to load the module.
+            </summary>
+            <param name="name">The name of the module to find.</param>
+            <returns>The loaded module or null if not loaded.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.ModuleBinder">
+            <summary>
+            Defines the default binding behaviour similar to that of the Lua
+            Language Specification.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.ModuleBinder.#ctor(ModMaker.Lua.Lua)">
+            <summary>
+            Creates a new ModuleBinder with default settings.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.ModuleBinder.Load(System.String,ModMaker.Lua.Runtime.LuaEnvironment)">
+            <summary>
+            Searches and loads the module acording to the settings.
+            </summary>
+            <param name="name">The name of the module to find.</param>
+            <param name="E">The environment to load to.</param>
+            <returns>The loaded module, or null if it could not be loaded.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.ModuleBinder.Loaded(System.String)">
+            <summary>
+            Searches the binder for a module that has already been loaded.
+            Return null to try to load the module.
+            </summary>
+            <param name="name">The name of the module to find.</param>
+            <returns>The loaded module or null if not loaded.</returns>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.ModuleBinder.Path">
+            <summary>
+            Gets or sets the search-path for modules.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.ModuleBinder.AllowCSharp">
+            <summary>
+            Gets or sets whether to allow compiled c# code that impliments IModule that was
+            not generated with this framework. Default: false.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.ModuleBinder.AllowCompiledLua">
+            <summary>
+            Gets or sets whether to allow Lua code that was compiled with this framework.
+            Default: true.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.ModuleBinder.AllowLua">
+            <summary>
+            Gets or sets whether to allow uncompiled(source) Lua code.
+            Default: true.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.ModuleBinder.WhitelistPublicKeys">
+            <summary>
+            Gets or sets the list of public-keys that are allowed
+            to load from.  These must be full public keys.  Set to
+            null to allow any assembly.  Include a null entry to allow
+            weakly-named assemblies.
+            </summary>
+            <remarks>
+            <para>This value overrides ModuleBinder.AllowCompiledLua.</para>
+            
+            <para>To allow any assembly built with this framework, include the
+            following.  Note: it is possible to get this private key from
+            this assembly so it is not guarenteed that the assembly was 
+            built with this framework.</para>
+            
+            <para>0024000004800000940000000602000000240000525341310004000001000100A1D901D065422E6E96435ABA4A4AC6A53107AF554EA558086D55E7C071B96415ECD22803EA06774E9087DE2CC90461B800D700BDA48406EC0120ECCD5BEC5CD2E843203028E398D7B48EA25CB9338E87EE9A05C0861DBC1F25C78EF7DADC67A43CE88EA36E0B9544ED0D680957CA522E095161EB4C3C66D67D19A87390DFCABE</para>
+            </remarks>
+        </member>
+        <member name="T:ModMaker.Lua.ReturnInfo">
+            <summary>
+            When the return type of a method, will create a UserData with
+            the specified options.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.ReturnInfo.#ctor(System.String[],System.Object[])">
+            <summary>
+            Creates a new ReturnInfo object.
+            </summary>
+            <param name="members">The string members that Lua will have access to.</param>
+            <param name="values">The value(s) to pass to Lua.</param>
+        </member>
+        <member name="M:ModMaker.Lua.ReturnInfo.#ctor(System.Boolean,System.Object[])">
+            <summary>
+            Creates a new ReturnInfo object.
+            </summary>
+            <param name="full">True to give full access to the members, otherwise false.</param>
+            <param name="values">The value(s) to pass to Lua.</param>
+        </member>
+        <member name="P:ModMaker.Lua.ReturnInfo.Values">
+            <summary>
+            Gets or sets the values to return.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.ReturnInfo.Full">
+            <summary>
+            Gets or sets whether Lua will have full access to the members of the returned values.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.ReturnInfo.Members">
+            <summary>
+            Gets or sets the members that Lua will have access to, can be null.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.AssertException">
+            <summary>
+            Thrown when an assertion fails.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.AssertException.#ctor">
+            <summary>
+            Creates a new AssertException object.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.AssertException.#ctor(System.String)">
+            <summary>
+            Creates a new AssertException object with the given message.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ModMaker.Lua.AssertException.#ctor(System.String,System.Exception)">
+            <summary>
+            Creates a new AssertException object with the given message and inner exception.
+            </summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="inner">The exception that is the cause of the current exception, or a null reference
+                (Nothing in Visual Basic) if no inner exception is specified.</param>
+        </member>
+        <member name="T:ModMaker.Lua.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.Whitelist">
+            <summary>
+              Looks up a localized string similar to .
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.LuaIgnoreAttribute">
+            <summary>
+            Attach to an type definition or member to make it not visible to Lua code.  This overrides the members specified
+            in <see cref="T:ModMaker.Lua.ReturnInfo"/>.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.IModule">
+            <summary>
+            Defines a module that can be loaded using the Lua
+            function 'require'.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.IModule.Execute(System.Object[])">
+            <summary>
+            Executes the module with the given arguments.
+            </summary>
+            <param name="args">Any arguments to pass.</param>
+            <returns>Any values returned from the module.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaChunk">
+            <summary>
+            A piece of Lua code, this usually is from a file or a byte-stream.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaChunk.Execute(System.Object[])">
+            <summary>
+            Excecutes the lua code in the chunk.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaChunk.Environment">
+            <summary>
+            Gets or sets the environment that the chunk will run in.
+            Cannot be changed while the code is running.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaTable">
+            <summary>
+            A table for use in Lua code.  This is a wraper arround a dictionary.
+            Keys and Values are objects.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaTable.#ctor">
+            <summary>
+            Creates a new LuaTable object.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaTable.GetEnumerator">
+            <summary>
+            Gets a IEnumerable&lt;KeyValuePair&lt;object, object&gt;&gt; to enumerate over
+            each of the keys of the Table.
+            </summary>
+            <returns>An enumerator to enumerate of the keys.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaTable.GetItemRaw(System.Object)">
+            <summary>
+            Gets the item at the specified key without invoking any
+            metamethods.
+            </summary>
+            <param name="key">The key to get.</param>
+            <returns>The value at the specified key.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaTable.SetItemRaw(System.Object,System.Object)">
+            <summary>
+            Sets the item at the specified key without invoking any
+            metamethods.
+            </summary>
+            <param name="key">The key to set.</param>
+            <param name="value">The value to set the key to.</param>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaTable.Item(System.Object)">
+            <summary>
+            Gets or sets the value of the specified key.
+            </summary>
+            <param name="key">The key to search for.</param>
+            <returns>The value of the given key.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaClass">
+            <summary>
+            A class that was defined in Lua.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaClass.CreateType">
+            <summary>
+            Completes the type making it ready to create instances.  If Lua attempts to change
+            this object after this has been called, an exception will be thrown.  This method
+            is called when you call CreateInstance.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaClass.CreateInstance(System.Object[])">
+            <summary>
+            Creates an instance of the given type with the given arguments.  Calls CreateType if it has
+            not been called before.
+            </summary>
+            <param name="args">Any arguments to pass to the constructor.</param>
+            <returns>An instance of the type.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaClass.CreateInstance``1(System.Object[])">
+            <summary>
+            Creates an instance of the given type with the given arguments.  Calls CreateType if it has
+            not been called before.
+            </summary>
+            <param name="args">Any arguments to pass to the constructor.</param>
+            <typeparam name="T">The base-type or interface to cast the object to.  The class must impliment it.</typeparam>
+            <returns>An instance of the type.</returns>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaClass.Name">
+            <summary>
+            Gets the name of the class.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaClass.BaseType">
+            <summary>
+            Gets the base type of the class, or null if none.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaClass.Interfaces">
+            <summary>
+            Gets the interfaces that the class impliments.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaThreadStatus">
+            <summary>
+            Determines the state of a Lua thread.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Running">
+            <summary>
+            The thread is currently running.  This means that the C# code was called from
+            this thread object.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Suspended">
+            <summary>
+            The thread is suspended.  It is either called coroutine.yield, or it has
+            not started yet.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Normal">
+            <summary>
+            The thread is waiting on another thread to complete.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Dead">
+            <summary>
+            The thread has completed execution.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaThread">
+            <summary>
+            Defines a thread in Lua.  Cannot be created in c#, use the coroutine library in Lua
+            to create a thread.  Threads in Lua execute synchronously.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaThread.Finalize">
+            <summary>
+            Disposes the Thread and stops the underlying thread.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaThread.Resume(System.Object[])">
+            <summary>
+            Resumes execution of the thread.  This is the same as calling coroutine.resume in Lua.
+            </summary>
+            <param name="args">Any arguments to pass.</param>
+            <returns>The values returned from the function or passed to coroutine.yield.</returns>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaThread.Status">
+            <summary>
+            Gets the current status of the thread.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaThread.IsLua">
+            <summary>
+            Gets whether the thread was started by Lua.  If false, will throw an error if
+            Resume is called or passed to the Lua coroutine library.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Lua">
+            <summary>
+            The main manager of a Lua state. Manages lua chunks,
+            the environments, and registering types and
+            global methods.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.#ctor">
+            <summary>
+            Creates a new Lua object with default settings.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.#ctor(ModMaker.Lua.LuaSettings)">
+            <summary>
+            Creates a new Lua object with specified settings.
+            </summary>
+            <param name="settings">Settings to use.</param>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Finalize">
+            <summary>
+            Disposes the Lua object.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Register(System.Delegate)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Register(System.Delegate,System.String)">
+            <summary>
+            Registers a delegate with the given _name for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <param name="name">The _name of the delegate.  If null, will use the function _name.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Register(System.Type)">
+            <summary>
+            Registers a type for use within Lua.
+            </summary>
+            <param name="type">The type to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentNullException">When type is null.</exception>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Execute(System.Object[])">
+            <summary>
+            Executes all the chunks in order.
+            </summary>
+            <param name="args">The arguments to pass to each chunk.</param>
+            <returns>The union of the results of each chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Execute(System.Int32,System.Object[])">
+            <summary>
+            Executes one of the chunks.
+            </summary>
+            <param name="args">The arguments to the chunk.</param>
+            <param name="index">The index of the loaded chunk.</param>
+            <returns>The results of the chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Load(System.String)">
+            <summary>
+            Loads a LuaChunk from a specified file.
+            </summary>
+            <param name="path">The path to the file to load.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Load(System.String,System.String)">
+            <summary>
+            Loads a LuaChunk from a specified file.
+            </summary>
+            <param name="path">The path to the file to load.</param>
+            <param name="name">The name to give the chunk.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Load(System.IO.Stream)">
+            <summary>
+            Loads a LuaChunk from a specified stream.
+            </summary>
+            <param name="stream">The stream to load the script from.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Load(System.IO.Stream,System.String)">
+            <summary>
+            Loads a LuaChunk from a specified stream.
+            </summary>
+            <param name="stream">The stream to load the script from.</param>
+            <param name="name">The name to give the chunk.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.LoadText(System.String)">
+            <summary>
+            Loads a LuaChunk from a pre-loaded string.
+            </summary>
+            <param name="chunk">The Lua script to load from.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.LoadText(System.String,System.String)">
+            <summary>
+            Loads a LuaChunk from a pre-loaded string.
+            </summary>
+            <param name="chunk">The Lua script to load from.</param>
+            <param name="name">The name to give the chunk.</param>
+            <returns>The loaded chunk.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.DoFile(System.String,System.Object[])">
+            <summary>
+            Loads and executes the file at the path specified.
+            </summary>
+            <param name="path">The path to the file.</param>
+            <param name="args">The arguments to pass.</param>
+            <returns>The values returned from the file.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.DoText(System.String,System.Object[])">
+            <summary>
+            Loads and executes the specified text.
+            </summary>
+            <param name="chunk">The chunk to execute.</param>
+            <param name="args">The arguments to pass.</param>
+            <returns>The values returned from the file.</returns>
+        </member>
+        <member name="M:ModMaker.Lua.Lua.Dispose">
+            <summary>
+            Disposes the Lua object and any object it created.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Lua.Settings">
+            <summary>
+            Gets the settings for the current environment.  Cannot be changed after initialization.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Lua.Environment">
+            <summary>
+            Gets or sets the global environment.  Value cannot be changed while
+            parsing.
+            </summary>
+            <exception cref="T:System.ArgumentNullException">When trying to set the environment to null.</exception>
+        </member>
+        <member name="P:ModMaker.Lua.Lua.Item(System.Int32)">
+            <summary>
+            Gets the chunk at the specified index.
+            </summary>
+            <param name="index">The zero-based index in the order they were loaded.</param>
+            <returns>The lua chunk at that index.</returns>
+        </member>
+    </members>
+</doc>

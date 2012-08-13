@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8F655E4A-3CE1-4A8B-B641-BF7A12FFB295}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ModMaker.Lua</RootNamespace>
+    <AssemblyName>ModMaker.Lua</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <CodeAnalysisIgnoreGeneratedCode>true</CodeAnalysisIgnoreGeneratedCode>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\ModMaker.Lua.XML</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DelaySign>true</DelaySign>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssertException.cs" />
+    <Compile Include="Extensions\Lua.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="Lua.cs" />
+    <Compile Include="LuaUserData.cs" />
+    <Compile Include="Runtime\ModuleBinder.cs" />
+    <Compile Include="MultipleReturnAttribute.cs" />
+    <Compile Include="Parser\Items\EmptyItem.cs" />
+    <Compile Include="Parser\Items\ReturnItem.cs" />
+    <Compile Include="Parser\Items\TableItem.cs" />
+    <Compile Include="Runtime\LuaChunk.cs" />
+    <Compile Include="LuaIgnoreAttribute.cs" />
+    <Compile Include="LuaSettings.cs" />
+    <Compile Include="Parser\ChunkBuilder.cs" />
+    <Compile Include="Parser\Items\AsyncItem.cs" />
+    <Compile Include="Parser\Items\BinOpItem.cs" />
+    <Compile Include="Parser\Items\BlockItem.cs" />
+    <Compile Include="Parser\Items\ClassDefItem.cs" />
+    <Compile Include="Parser\Items\ForGenItem.cs" />
+    <Compile Include="Parser\Items\ForNumItem.cs" />
+    <Compile Include="Parser\Items\FuncCallItem.cs" />
+    <Compile Include="Parser\Items\FuncDef.cs" />
+    <Compile Include="Parser\Items\GotoItem.cs" />
+    <Compile Include="Parser\Items\IfItem.cs" />
+    <Compile Include="Parser\Items\IndexerItem.cs" />
+    <Compile Include="Parser\IParseItem.cs" />
+    <Compile Include="Parser\Items\LabelItem.cs" />
+    <Compile Include="Parser\Items\LiteralItem.cs" />
+    <Compile Include="Parser\Items\NameItem.cs" />
+    <Compile Include="Parser\Items\RepeatItem.cs" />
+    <Compile Include="Parser\Items\UnOpItem.cs" />
+    <Compile Include="Parser\Items\VarInitItem.cs" />
+    <Compile Include="Parser\Items\WhileItem.cs" />
+    <Compile Include="Parser\LabelTree.cs" />
+    <Compile Include="Parser\CharDecorator.cs" />
+    <Compile Include="Parser\PlainParser.cs" />
+    <Compile Include="Parser\SyntaxException.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Runtime\LuaClass.cs" />
+    <Compile Include="Runtime\LuaEnvironment.cs" />
+    <Compile Include="Runtime\LuaLibraries.cs" />
+    <Compile Include="Runtime\LuaMethod.cs" />
+    <Compile Include="Runtime\LuaParameters.cs" />
+    <Compile Include="Runtime\LuaPointer.cs" />
+    <Compile Include="Runtime\LuaTable.cs" />
+    <Compile Include="Runtime\LuaThread.cs" />
+    <Compile Include="Runtime\MultipleReturn.cs" />
+    <Compile Include="Runtime\RuntimeHelper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Dynamic.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Whitelist.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
