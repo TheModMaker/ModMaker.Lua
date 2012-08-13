@@ -27,47 +27,684 @@
             Gets whether the current method points to function defined in Lua code.
             </summary>
         </member>
-        <member name="T:ModMaker.Lua.Runtime.LuaEnvironment">
+        <member name="T:ModMaker.Lua.Extensions.LuaExt">
             <summary>
-            Defines the environment that Lua operates in.
+            An extension class that defines Action&lt;...&gt; and Func&lt;...&gt; extensions
+            to Lua so you don't have to cast to Delegate to pass.
             </summary>
         </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.#ctor(ModMaker.Lua.LuaSettings)">
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register(ModMaker.Lua.Lua,System.Action)">
             <summary>
-            Creates a new environment with the given settings.
+            Registers a delegate for use with this Lua object.
             </summary>
-            <param name="settings">The settings to give the Environment.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String)">
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``1(ModMaker.Lua.Lua,System.Action{``0})">
             <summary>
-            Saves the environment to disk.
+            Registers a delegate for use with this Lua object.
             </summary>
-            <param name="name">The name/path to save to.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String,System.Boolean)">
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``2(ModMaker.Lua.Lua,System.Action{``0,``1})">
             <summary>
-            Saves the environment to disk, optionally overriting the file if it exists.
+            Registers a delegate for use with this Lua object.
             </summary>
-            <param name="name">The name/path to save to.</param>
-            <param name="_override">True to override the file if it exists, otherwise false.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
-        <member name="P:ModMaker.Lua.Runtime.LuaEnvironment.Item(System.String)">
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``3(ModMaker.Lua.Lua,System.Action{``0,``1,``2})">
             <summary>
-            Gets or sets the global value with the specified name.
+            Registers a delegate for use with this Lua object.
             </summary>
-            <param name="name">The name of the global variable.</param>
-            <returns>The value of the variable.</returns>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
-        <member name="T:ModMaker.Lua.Parser.SyntaxException">
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``4(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3})">
             <summary>
-            When there is an error in the syntax of a Lua chunk.
+            Registers a delegate for use with this Lua object.
             </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``5(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``6(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``7(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``8(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``9(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``10(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``11(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``12(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``13(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``14(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``15(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``16(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``1(ModMaker.Lua.Lua,System.Func{``0})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``2(ModMaker.Lua.Lua,System.Func{``0,``1})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``3(ModMaker.Lua.Lua,System.Func{``0,``1,``2})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``4(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``5(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``6(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``7(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``8(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``9(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``10(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``11(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``12(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``13(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``14(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``15(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``16(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``17(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15,``16})">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register(ModMaker.Lua.Lua,System.Action,System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``1(ModMaker.Lua.Lua,System.Action{``0},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``2(ModMaker.Lua.Lua,System.Action{``0,``1},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``3(ModMaker.Lua.Lua,System.Action{``0,``1,``2},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``4(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``5(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``6(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``7(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``8(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``9(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``10(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``11(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``12(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``13(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``14(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``15(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``16(ModMaker.Lua.Lua,System.Action{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``1(ModMaker.Lua.Lua,System.Func{``0},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``2(ModMaker.Lua.Lua,System.Func{``0,``1},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``3(ModMaker.Lua.Lua,System.Func{``0,``1,``2},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``4(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``5(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``6(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``7(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``8(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``9(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``10(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``11(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``12(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``13(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``14(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``15(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``16(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
+        </member>
+        <member name="M:ModMaker.Lua.Extensions.LuaExt.Register``17(ModMaker.Lua.Lua,System.Func{``0,``1,``2,``3,``4,``5,``6,``7,``8,``9,``10,``11,``12,``13,``14,``15,``16},System.String)">
+            <summary>
+            Registers a delegate for use with this Lua object.
+            </summary>
+            <param name="func">The delegate to register, cannot be null.</param>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
+            <exception cref="T:System.ArgumentNullException">When func is null.</exception>
+            <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
         <member name="T:ModMaker.Lua.MultipleReturnAttribute">
             <summary>
             Defines that a method returns more than one value.
             The method must return a compatible type to
             IEnumerable.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Resources.Whitelist">
+            <summary>
+              Looks up a localized string similar to .
             </summary>
         </member>
         <member name="T:ModMaker.Lua.LuaLibraries">
@@ -315,6 +952,77 @@
             <para>0024000004800000940000000602000000240000525341310004000001000100A1D901D065422E6E96435ABA4A4AC6A53107AF554EA558086D55E7C071B96415ECD22803EA06774E9087DE2CC90461B800D700BDA48406EC0120ECCD5BEC5CD2E843203028E398D7B48EA25CB9338E87EE9A05C0861DBC1F25C78EF7DADC67A43CE88EA36E0B9544ED0D680957CA522E095161EB4C3C66D67D19A87390DFCABE</para>
             </remarks>
         </member>
+        <member name="T:ModMaker.Lua.LuaIgnoreAttribute">
+            <summary>
+            Attach to an type definition or member to make it not visible to Lua code.  This overrides the members specified
+            in <see cref="T:ModMaker.Lua.ReturnInfo"/>.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaEnvironment">
+            <summary>
+            Defines the environment that Lua operates in.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.#ctor(ModMaker.Lua.LuaSettings)">
+            <summary>
+            Creates a new environment with the given settings.
+            </summary>
+            <param name="settings">The settings to give the Environment.</param>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String)">
+            <summary>
+            Saves the environment to disk.
+            </summary>
+            <param name="name">The name/path to save to.</param>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaEnvironment.Save(System.String,System.Boolean)">
+            <summary>
+            Saves the environment to disk, optionally overriting the file if it exists.
+            </summary>
+            <param name="name">The name/path to save to.</param>
+            <param name="_override">True to override the file if it exists, otherwise false.</param>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaEnvironment.Item(System.String)">
+            <summary>
+            Gets or sets the global value with the specified name.
+            </summary>
+            <param name="name">The name of the global variable.</param>
+            <returns>The value of the variable.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Parser.SyntaxException">
+            <summary>
+            When there is an error in the syntax of a Lua chunk.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.IModule">
+            <summary>
+            Defines a module that can be loaded using the Lua
+            function 'require'.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.IModule.Execute(System.Object[])">
+            <summary>
+            Executes the module with the given arguments.
+            </summary>
+            <param name="args">Any arguments to pass.</param>
+            <returns>Any values returned from the module.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaChunk">
+            <summary>
+            A piece of Lua code, this usually is from a file or a byte-stream.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaChunk.Execute(System.Object[])">
+            <summary>
+            Excecutes the lua code in the chunk.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaChunk.Environment">
+            <summary>
+            Gets or sets the environment that the chunk will run in.
+            Cannot be changed while the code is running.
+            </summary>
+        </member>
         <member name="T:ModMaker.Lua.ReturnInfo">
             <summary>
             When the return type of a method, will create a UserData with
@@ -374,62 +1082,6 @@
             <param name="inner">The exception that is the cause of the current exception, or a null reference
                 (Nothing in Visual Basic) if no inner exception is specified.</param>
         </member>
-        <member name="T:ModMaker.Lua.Resources">
-            <summary>
-              A strongly-typed resource class, for looking up localized strings, etc.
-            </summary>
-        </member>
-        <member name="P:ModMaker.Lua.Resources.ResourceManager">
-            <summary>
-              Returns the cached ResourceManager instance used by this class.
-            </summary>
-        </member>
-        <member name="P:ModMaker.Lua.Resources.Culture">
-            <summary>
-              Overrides the current thread's CurrentUICulture property for all
-              resource lookups using this strongly typed resource class.
-            </summary>
-        </member>
-        <member name="P:ModMaker.Lua.Resources.Whitelist">
-            <summary>
-              Looks up a localized string similar to .
-            </summary>
-        </member>
-        <member name="T:ModMaker.Lua.LuaIgnoreAttribute">
-            <summary>
-            Attach to an type definition or member to make it not visible to Lua code.  This overrides the members specified
-            in <see cref="T:ModMaker.Lua.ReturnInfo"/>.
-            </summary>
-        </member>
-        <member name="T:ModMaker.Lua.Runtime.IModule">
-            <summary>
-            Defines a module that can be loaded using the Lua
-            function 'require'.
-            </summary>
-        </member>
-        <member name="M:ModMaker.Lua.Runtime.IModule.Execute(System.Object[])">
-            <summary>
-            Executes the module with the given arguments.
-            </summary>
-            <param name="args">Any arguments to pass.</param>
-            <returns>Any values returned from the module.</returns>
-        </member>
-        <member name="T:ModMaker.Lua.Runtime.LuaChunk">
-            <summary>
-            A piece of Lua code, this usually is from a file or a byte-stream.
-            </summary>
-        </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaChunk.Execute(System.Object[])">
-            <summary>
-            Excecutes the lua code in the chunk.
-            </summary>
-        </member>
-        <member name="P:ModMaker.Lua.Runtime.LuaChunk.Environment">
-            <summary>
-            Gets or sets the environment that the chunk will run in.
-            Cannot be changed while the code is running.
-            </summary>
-        </member>
         <member name="T:ModMaker.Lua.Runtime.LuaTable">
             <summary>
             A table for use in Lua code.  This is a wraper arround a dictionary.
@@ -464,7 +1116,7 @@
             <param name="key">The key to set.</param>
             <param name="value">The value to set the key to.</param>
         </member>
-        <member name="P:ModMaker.Lua.Runtime.LuaTable.Item(System.Object)">
+        <member name="P:ModMaker.Lua.Runtime.LuaTable.Item(System.Object,System.Int32)">
             <summary>
             Gets or sets the value of the specified key.
             </summary>
@@ -515,62 +1167,6 @@
             Gets the interfaces that the class impliments.
             </summary>
         </member>
-        <member name="T:ModMaker.Lua.Runtime.LuaThreadStatus">
-            <summary>
-            Determines the state of a Lua thread.
-            </summary>
-        </member>
-        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Running">
-            <summary>
-            The thread is currently running.  This means that the C# code was called from
-            this thread object.
-            </summary>
-        </member>
-        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Suspended">
-            <summary>
-            The thread is suspended.  It is either called coroutine.yield, or it has
-            not started yet.
-            </summary>
-        </member>
-        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Normal">
-            <summary>
-            The thread is waiting on another thread to complete.
-            </summary>
-        </member>
-        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Dead">
-            <summary>
-            The thread has completed execution.
-            </summary>
-        </member>
-        <member name="T:ModMaker.Lua.Runtime.LuaThread">
-            <summary>
-            Defines a thread in Lua.  Cannot be created in c#, use the coroutine library in Lua
-            to create a thread.  Threads in Lua execute synchronously.
-            </summary>
-        </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaThread.Finalize">
-            <summary>
-            Disposes the Thread and stops the underlying thread.
-            </summary>
-        </member>
-        <member name="M:ModMaker.Lua.Runtime.LuaThread.Resume(System.Object[])">
-            <summary>
-            Resumes execution of the thread.  This is the same as calling coroutine.resume in Lua.
-            </summary>
-            <param name="args">Any arguments to pass.</param>
-            <returns>The values returned from the function or passed to coroutine.yield.</returns>
-        </member>
-        <member name="P:ModMaker.Lua.Runtime.LuaThread.Status">
-            <summary>
-            Gets the current status of the thread.
-            </summary>
-        </member>
-        <member name="P:ModMaker.Lua.Runtime.LuaThread.IsLua">
-            <summary>
-            Gets whether the thread was started by Lua.  If false, will throw an error if
-            Resume is called or passed to the Lua coroutine library.
-            </summary>
-        </member>
         <member name="T:ModMaker.Lua.Lua">
             <summary>
             The main manager of a Lua state. Manages lua chunks,
@@ -599,17 +1195,17 @@
             Registers a delegate for use with this Lua object.
             </summary>
             <param name="func">The delegate to register, cannot be null.</param>
-            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
             <exception cref="T:System.ArgumentNullException">When func is null.</exception>
             <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
         <member name="M:ModMaker.Lua.Lua.Register(System.Delegate,System.String)">
             <summary>
-            Registers a delegate with the given _name for use with this Lua object.
+            Registers a delegate with the given name for use with this Lua object.
             </summary>
             <param name="func">The delegate to register, cannot be null.</param>
-            <param name="name">The _name of the delegate.  If null, will use the function _name.</param>
-            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+            <param name="name">The name of the delegate.  If null, will use the function name.</param>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
             <exception cref="T:System.ArgumentNullException">When func is null.</exception>
             <exception cref="T:System.MulticastNotSupportedException">When func has more than one item in the InvokationList.</exception>
         </member>
@@ -619,7 +1215,7 @@
             </summary>
             <param name="type">The type to register, cannot be null.</param>
             <exception cref="T:System.ArgumentNullException">When type is null.</exception>
-            <exception cref="T:System.ArgumentException">When there is another method or type with the same _name registered.</exception>
+            <exception cref="T:System.ArgumentException">When there is another method or type with the same name registered.</exception>
         </member>
         <member name="M:ModMaker.Lua.Lua.Execute(System.Object[])">
             <summary>
@@ -720,6 +1316,62 @@
             </summary>
             <param name="index">The zero-based index in the order they were loaded.</param>
             <returns>The lua chunk at that index.</returns>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaThreadStatus">
+            <summary>
+            Determines the state of a Lua thread.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Running">
+            <summary>
+            The thread is currently running.  This means that the C# code was called from
+            this thread object.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Suspended">
+            <summary>
+            The thread is suspended.  It is either called coroutine.yield, or it has
+            not started yet.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Normal">
+            <summary>
+            The thread is waiting on another thread to complete.
+            </summary>
+        </member>
+        <member name="F:ModMaker.Lua.Runtime.LuaThreadStatus.Dead">
+            <summary>
+            The thread has completed execution.
+            </summary>
+        </member>
+        <member name="T:ModMaker.Lua.Runtime.LuaThread">
+            <summary>
+            Defines a thread in Lua.  Cannot be created in c#, use the coroutine library in Lua
+            to create a thread.  Threads in Lua execute synchronously.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaThread.Finalize">
+            <summary>
+            Disposes the Thread and stops the underlying thread.
+            </summary>
+        </member>
+        <member name="M:ModMaker.Lua.Runtime.LuaThread.Resume(System.Object[])">
+            <summary>
+            Resumes execution of the thread.  This is the same as calling coroutine.resume in Lua.
+            </summary>
+            <param name="args">Any arguments to pass.</param>
+            <returns>The values returned from the function or passed to coroutine.yield.</returns>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaThread.Status">
+            <summary>
+            Gets the current status of the thread.
+            </summary>
+        </member>
+        <member name="P:ModMaker.Lua.Runtime.LuaThread.IsLua">
+            <summary>
+            Gets whether the thread was started by Lua.  If false, will throw an error if
+            Resume is called or passed to the Lua coroutine library.
+            </summary>
         </member>
     </members>
 </doc>
