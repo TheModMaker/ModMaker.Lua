@@ -103,7 +103,7 @@ namespace ModMaker.Lua.Runtime
                     FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                     _input.Add(item.Method);
-                    // {field} = arg_0[{_input.Count - 1}];
+                    // {field} = arg_0[{input.Count - 1}];
                     ctorgen.Emit(OpCodes.Ldarg_0);
                     ctorgen.Emit(OpCodes.Ldarg_1);
                     ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));
@@ -191,7 +191,7 @@ namespace ModMaker.Lua.Runtime
                             FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                             _input.Add(item.Method);
-                            // {field} = arg_1[{_input.Count - 1}];
+                            // {field} = arg_1[{input.Count - 1}];
                             ctorgen.Emit(OpCodes.Ldarg_0);
                             ctorgen.Emit(OpCodes.Ldarg_1);
                             ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));
@@ -236,7 +236,7 @@ namespace ModMaker.Lua.Runtime
                             FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                             _input.Add(item.MethodSet);
-                            // {field} = arg_1[{_input.Count - 1}];
+                            // {field} = arg_1[{input.Count - 1}];
                             ctorgen.Emit(OpCodes.Ldarg_0);
                             ctorgen.Emit(OpCodes.Ldarg_1);
                             ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));

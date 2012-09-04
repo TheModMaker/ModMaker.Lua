@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection.Emit;
 
 namespace ModMaker.Lua.Parser
 {
@@ -33,10 +29,8 @@ namespace ModMaker.Lua.Parser
     {
         ParseType Type { get; }
 
-        void GenerateILNew(ChunkBuilderNew cb);
+        void GenerateIL(ChunkBuilderNew cb);
         void AddItem(IParseItem item);
-        void WaitOne();
         void ResolveLabels(ChunkBuilderNew cb, LabelTree tree);
-        bool HasNested();
     }
 }

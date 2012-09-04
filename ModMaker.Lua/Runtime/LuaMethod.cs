@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
-using System.Dynamic;
 using System.Reflection.Emit;
 
 namespace ModMaker.Lua.Runtime
@@ -38,7 +38,7 @@ namespace ModMaker.Lua.Runtime
         //      {
         //          object[] args = new[] { ... };
         //          MultipleReturn ret = this.meth.InvokeInternal(args, -1);
-        //          return RuntimeHelper.ConvertReturnType(ret[0], $type$);
+        //          return RuntimeHelper.ConvertType(ret[0], $type$);
         //      }
         // }
         internal class DelegateHelper
@@ -139,10 +139,10 @@ namespace ModMaker.Lua.Runtime
                 gen.Emit(OpCodes.Callvirt, typeof(LuaMethod).GetMethod("InvokeInternal", BindingFlags.NonPublic | BindingFlags.Instance));
                 gen.Emit(OpCodes.Stloc, ret);
 
-                // return RuntimeHelper.ConvertReturnType(ret, {info.Return});
+                // return RuntimeHelper.ConvertType(ret, {info.Return});
                 gen.Emit(OpCodes.Ldloc, ret);
                 gen.Emit(OpCodes.Ldtoken, info.Return);
-                gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ConvertReturnType"));
+                gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ConvertType"));
                 if (info.Return == null || info.Return == typeof(void))
                     gen.Emit(OpCodes.Pop);
                 gen.Emit(OpCodes.Ret);
@@ -200,8 +200,20 @@ namespace ModMaker.Lua.Runtime
         
         internal MultipleReturn InvokeInternal(object[] args, int over)
         {
+            if (args == null)
+                args = new object[0];
+
             if (_func != null)
             {
+                for (int i = 0; i < args.Length; i++)
+                {
+                    if (args[i] is ReturnInfo)
+                        args[i] = (args[i] as ReturnInfo).CreateReturn();
+                    if (args[i] is Byte || args[i] is SByte || args[i] is Int16 || args[i] is UInt16 || args[i] is Int32 ||
+                        args[i] is UInt32 || args[i] is Int64 || args[i] is UInt64 || args[i] is Single || args[i] is Decimal)
+                        args[i] = Convert.ToDouble(args[i]);
+                }
+
                 if (over != -1)
                     throw new ArgumentException("Cannot specify the overload of a Lua function.");
 
@@ -282,12 +294,42 @@ namespace ModMaker.Lua.Runtime
             return ret == null ? null : ret.ToArray();
         }
 
+        /// <summary>
+        /// Provides the implementation for operations that invoke an object. Classes
+        ///     derived from the System.Dynamic.DynamicObject class can override this method
+        ///     to specify dynamic behavior for operations such as invoking an object or
+        ///     a delegate.
+        /// </summary>
+        /// <param name="binder">Provides information about the invoke operation.</param>
+        /// <param name="args">The arguments that are passed to the object during the invoke operation.
+        ///     For example, for the sampleObject(100) operation, where sampleObject is derived
+        ///     from the System.Dynamic.DynamicObject class, args[0] is equal to 100.</param>
+        /// <param name="result">The result of the object invocation.</param>
+        /// <returns>true if the operation is successful; otherwise, false. If this method returns
+        ///     false, the run-time binder of the language determines the behavior. (In most
+        ///     cases, a language-specific run-time exception is thrown.</returns>
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
             var ret = InvokeInternal(args, -1);
             result = ret == null ? null : ret.ToArray();
             return true;
         }
+        /// <summary>
+        /// Provides implementation for type conversion operations. Classes derived from
+        ///     the System.Dynamic.DynamicObject class can override this method to specify
+        ///     dynamic behavior for operations that convert an object from one type to another.
+        /// </summary>
+        /// <param name="binder">Provides information about the conversion operation. The binder.Type property
+        ///     provides the type to which the object must be converted. For example, for
+        ///     the statement (String)sampleObject in C# (CType(sampleObject, Type) in Visual
+        ///     Basic), where sampleObject is an instance of the class derived from the System.Dynamic.DynamicObject
+        ///     class, binder.Type returns the System.String type. The binder.Explicit property
+        ///     provides information about the kind of conversion that occurs. It returns
+        ///     true for explicit conversion and false for implicit conversion.</param>
+        /// <param name="result">The result of the type conversion operation.</param>
+        /// <returns>true if the operation is successful; otherwise, false. If this method returns
+        ///     false, the run-time binder of the language determines the behavior. (In most
+        ///     cases, a language-specific run-time exception is thrown.)</returns>
         public override bool TryConvert(ConvertBinder binder, out object result)
         {
             if (typeof(Delegate).IsAssignableFrom(binder.Type))

@@ -20,29 +20,45 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem ElseBlock { get; set; }
         public ParseType Type { get { return ParseType.Statement; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
             Label next = gen.DefineLabel(), end = gen.DefineLabel();
 
-            Exp.GenerateILNew(eb);
+            // if (!RuntimeHelper.IsTrue({Exp}) goto next;
+            Exp.GenerateIL(eb);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("IsTrue"));
             gen.Emit(OpCodes.Brfalse, next);
-            Block.GenerateILNew(eb);
+
+            // {Block}
+            Block.GenerateIL(eb);
+
+            // goto end;
             gen.Emit(OpCodes.Br, end);
+
+            // next:
             gen.MarkLabel(next);
             foreach (var item in _elses)
             {
+                // if (!RuntimeHelper.IsTrue({item.Item1}) goto next;
                 next = gen.DefineLabel();
-                item.Item1.GenerateILNew(eb);
+                item.Item1.GenerateIL(eb);
                 gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("IsTrue"));
                 gen.Emit(OpCodes.Brfalse, next);
-                item.Item2.GenerateILNew(eb);
+
+                // {item.Item2}
+                item.Item2.GenerateIL(eb);
+
+                // goto end;
                 gen.Emit(OpCodes.Br, end);
+
+                // next:
                 gen.MarkLabel(next);
             }
             if (ElseBlock != null)
-                ElseBlock.GenerateILNew(eb);
+                ElseBlock.GenerateIL(eb);
+
+            // end:
             gen.MarkLabel(end);
         }
         public void AddItem(IParseItem item)
@@ -52,40 +68,6 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseItem exp, IParseItem block)
         {
             _elses.Add(new Tuple<IParseItem, IParseItem>(exp, block));
-        }
-        public void WaitOne()
-        {
-            Block.WaitOne();
-            if (Block is AsyncItem)
-                Block = (Block as AsyncItem).Item;
-            if (ElseBlock != null)
-            {
-                ElseBlock.WaitOne();
-                if (ElseBlock is AsyncItem)
-                    ElseBlock = (ElseBlock as AsyncItem).Item;
-            }
-
-            Exp.WaitOne();
-            if (Exp is AsyncItem)
-                Exp = (Exp as AsyncItem).Item;
-
-            for (int i = 0; i < _elses.Count; i++ )
-            {
-                IParseItem i1, i2;
-                _elses[i].Item1.WaitOne();
-                if (_elses[i].Item1 is AsyncItem)
-                    i1 = (_elses[i].Item1 as AsyncItem).Item;
-                else
-                    i1 = _elses[i].Item1;
-
-                _elses[i].Item2.WaitOne();
-                if (_elses[i].Item2 is AsyncItem)
-                    i2 = (_elses[i].Item2 as AsyncItem).Item;
-                else
-                    i2 = _elses[i].Item2;
-
-                _elses[i] = new Tuple<IParseItem, IParseItem>(i1, i2);
-            }
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
@@ -108,14 +90,6 @@ namespace ModMaker.Lua.Parser.Items
                     ElseBlock.ResolveLabels(cb, tree);
                 tree.EndBlock(b);
             }
-        }
-        public bool HasNested()
-        {
-            bool b = false;
-            foreach (var item in _elses)
-                b = b || item.Item1.HasNested() || item.Item2.HasNested();
-
-            return b || Exp.HasNested() || Block.HasNested() || (ElseBlock != null && ElseBlock.HasNested());
         }
     }
 }

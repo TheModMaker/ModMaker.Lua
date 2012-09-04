@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ModMaker.Lua.Parser.Items;
-using System.Reflection;
 using System.Globalization;
-using System.Reflection.Emit;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using ModMaker.Lua.Parser;
+using ModMaker.Lua.Parser.Items;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -22,8 +22,18 @@ namespace ModMaker.Lua.Runtime
         UserData,
     }
 
-    class RuntimeHelper
+    /// <summary>
+    /// Defines a lot of helper functions for use in the Runtime.
+    /// </summary>
+    static class RuntimeHelper
     {
+        /// <summary>
+        /// Defines arithmetic between two doubles.
+        /// </summary>
+        /// <param name="v1">The first value.</param>
+        /// <param name="v2">The second value.</param>
+        /// <param name="type">The type of operation.</param>
+        /// <returns>The result of the operation.</returns>
         static object NativeArithmetic(double v1, double v2, BinaryOperationType type)
         {
             switch (type)
@@ -62,6 +72,11 @@ namespace ModMaker.Lua.Runtime
                     throw new NotImplementedException();
             }
         }
+        /// <summary>
+        /// Gets the type of a given object.
+        /// </summary>
+        /// <param name="o">The object to check.</param>
+        /// <returns>The type of the given object.</returns>
         static LuaValueType GetType(object o)
         {
             if (o == null)
@@ -82,6 +97,11 @@ namespace ModMaker.Lua.Runtime
             else
                 return LuaValueType.UserData;
         }
+        /// <summary>
+        /// Gets the .NET name of a given operation.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <returns>The name of the operation (e.g. op_Addition).</returns>
         static string GetBinName(BinaryOperationType type)
         {
             switch (type)
@@ -115,16 +135,29 @@ namespace ModMaker.Lua.Runtime
             }
         }
 
+        /// <summary>
+        /// Gets the real value of a given LuaValue by resolving
+        /// any LuaPointers.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The real value of the object.</returns>
         public static object GetValue(object value)
         {
-            LuaPointerNew pointer = value as LuaPointerNew;
+            LuaPointer pointer = value as LuaPointer;
             while (pointer != null)
             {
                 value = pointer.GetValue();
-                pointer = value as LuaPointerNew;
+                pointer = value as LuaPointer;
             }
             return value;
         }
+        /// <summary>
+        /// Attempts to invoke a given object.
+        /// </summary>
+        /// <param name="e">The current environment.</param>
+        /// <param name="value">The object to invoke.</param>
+        /// <param name="args">The arguments passed to the method.</param>
+        /// <returns>The return value of the method.</returns>
         public static MultipleReturn Invoke(LuaEnvironment e, object value, object[] args)
         {
             value = GetValue(value);
@@ -186,13 +219,20 @@ namespace ModMaker.Lua.Runtime
             }
             return o;
         }
+        /// <summary>
+        /// Creates an index of an object (e.g. obj[12] or obj.some).
+        /// </summary>
+        /// <param name="E">The current environment.</param>
+        /// <param name="value">The value of the indexer.</param>
+        /// <param name="index">The index to use.</param>
+        /// <returns>A pointer that points to the result of the index.</returns>
         public static object Indexer(LuaEnvironment E, object value, object index)
         {
             if (value is MultipleReturn)
                 value = GetValue(((MultipleReturn)value)[0]);
 
-            if (value is LuaTable || GetType(value) == LuaValueType.UserData || value is LuaPointerNew)
-                return new LuaPointerNew(value, index, E);
+            if (value is LuaTable || GetType(value) == LuaValueType.UserData || value is LuaPointer)
+                return new LuaPointer(value, index, E);
             else
                 throw new InvalidOperationException("Attempt to index a '" + GetType(value) + "' type.");
         }
@@ -202,17 +242,27 @@ namespace ModMaker.Lua.Runtime
             if (value is MultipleReturn)
                 value = GetValue(((MultipleReturn)value)[0]);
 
-            if (index is LuaPointerNew)
-                (index as LuaPointerNew).SetValue(value);
+            if (index is LuaPointer)
+                (index as LuaPointer).SetValue(value);
             else
                 index = value;
         }
+        /// <summary>
+        /// Determines whether a given object is true according
+        /// to Lua.
+        /// </summary>
+        /// <param name="value">The value to check.</param>
+        /// <returns>False if the object is null or false, otherwise true.</returns>
         public static bool IsTrue(object value)
         {
             object o = GetValue(value);
-            bool ret = !(o == null || o as bool? == false);
-            return ret;
+            return !(o == null || o as bool? == false);
         }
+        /// <summary>
+        /// Tries to convert a given value to a number.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <returns>The value as a double or null on error.</returns>
         public static double? ToNumber(object value)
         {
             object o = GetValue(value);
@@ -222,7 +272,8 @@ namespace ModMaker.Lua.Runtime
                 return (double)o;
             else if (o is string)
             {
-                return RuntimeHelper.ReadNumber(o as string);
+                long pos = 0;
+                return RuntimeHelper.ReadNumber(new StringReader(o as string), null, 0, 0, ref pos);
             }
             else
             {
@@ -238,169 +289,17 @@ namespace ModMaker.Lua.Runtime
             }
         }
 
-        public static double? ReadNumber(string input)
+        /// <summary>
+        /// Reads a number from a text reader.
+        /// </summary>
+        /// <param name="input">The input to read from.</param>
+        /// <param name="name">The name to use with errors.</param>
+        /// <param name="line">The current line number to use with errors.</param>
+        /// <param name="col">The colOffset to use with errors.</param>
+        /// <param name="pos">The current position in the reader, will be increased with reading.</param>
+        /// <returns>The number read.</returns>
+        public static double ReadNumber(TextReader input, string name, long line, long col, ref long pos)
         {
-            if (input == null)
-                return null;
-
-            int cur = 0;
-            bool hex = false;
-            double val = 0, exp = 0, dec = 0;
-            int decC = 0;
-            bool negV = false, negE = false;
-            if (input[cur] == '-')
-            {
-                negV = true;
-                cur++;
-            }
-            if (input[cur] == '0' && (input[cur + 1] == 'x' || input[cur + 1] == 'X'))
-            {
-                hex = true;
-                cur += 2;
-            }
-
-            bool b = true;
-            int stat = 0; // 0-val, 1-dec, 2-exp
-            char c;
-            while (b && cur < input.Length)
-            {
-                switch (c = input[cur])
-                {
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        cur++;
-                        if (stat == 0)
-                        {
-                            val *= (hex ? 16 : 10);
-                            val += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                        }
-                        else if (stat == 1)
-                        {
-                            dec *= (hex ? 16 : 10);
-                            dec += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                            decC++;
-                        }
-                        else
-                        {
-                            exp *= (hex ? 16 : 10);
-                            exp += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'f':
-                        cur++;
-                        if (!hex)
-                        {
-                            b = false; break;
-                        }
-                        if (stat == 0)
-                        {
-                            val *= 16;
-                            val += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                        }
-                        else if (stat == 1)
-                        {
-                            dec *= 16;
-                            dec += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                            decC++;
-                        }
-                        else
-                        {
-                            exp *= 16;
-                            exp += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case 'e':
-                    case 'p':
-                        cur++;
-                        if ((hex && c == 'p') || (!hex && c == 'e'))
-                        {
-                            if (stat == 2)
-                                return null;
-                            stat = 2;
-
-                            if (cur >= input.Length)
-                                return null;
-                            if (input[cur] == '+' || (input[cur] == '-' && (negE = true == true)))
-                            {
-                                cur++;
-                                if (cur >= input.Length)
-                                    return null;
-                            }
-
-                            if ("0123456789".Contains(input[cur]))
-                            {
-                                exp = int.Parse(input[cur++].ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                            else if (hex && "abcdefABCDEF".Contains(input[cur]))
-                            {
-                                exp = int.Parse(input[cur++].ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                            return null;
-                        }
-                        else if (hex && c == 'e')
-                        {
-                            if (stat == 0)
-                            {
-                                val *= 16;
-                                val += 14;
-                            }
-                            else if (stat == 1)
-                            {
-                                dec *= 16;
-                                dec += 14;
-                                decC++;
-                            }
-                            else
-                            {
-                                exp *= 16;
-                                exp += 14;
-                            }
-                        }
-                        else
-                            b = false;
-                        break;
-                    case '.':
-                        cur++;
-                        if (stat == 0)
-                            stat = 1;
-                        else
-                            return null;
-                        break;
-                    default:
-                        b = false;
-                        break;
-                }
-            }
-            while (input[cur] == ' ' || input[cur] == '\t' || input[cur] == '\n') cur++;
-            if (cur < input.Length)
-                return null;
-            while (decC-- > 0) dec *= 0.1;
-            val += dec;
-            if (negV) dec *= -1;
-            val *= Math.Pow((hex ? 2 : 10), (negE ? -exp : exp));
-            if (double.IsInfinity(val))
-                return null;
-            return val;
-        }
-        public static double? ReadNumber(StreamReader input)
-        {
-            if (input == null)
-                return null;
-
             bool hex = false;
             double val = 0, exp = 0, dec = 0;
             int decC = 0;
@@ -408,20 +307,22 @@ namespace ModMaker.Lua.Runtime
             if (input.Peek() == '-')
             {
                 negV = true;
+                pos++;
                 input.Read();
             }
-            if (input.Peek() == '0' && (input.Read() != -1 && (input.Peek() == 'x' || input.Peek() == 'X')))
+            if (input.Peek() == '0' && (input.Read() != -1 && pos <= ++pos && (input.Peek() == 'x' || input.Peek() == 'X')))
             {
                 hex = true;
                 input.Read();
+                pos++;
             }
 
             bool b = true;
             int stat = 0; // 0-val, 1-dec, 2-exp
-            char c;
-            while (b && !input.EndOfStream)
+            int c;
+            while (b && input.Peek() != -1)
             {
-                switch (c = (char)input.Peek())
+                switch (c = input.Peek())
                 {
                     case '0':
                     case '1':
@@ -433,22 +334,23 @@ namespace ModMaker.Lua.Runtime
                     case '7':
                     case '8':
                     case '9':
+                        pos++;
                         input.Read();
                         if (stat == 0)
                         {
                             val *= (hex ? 16 : 10);
-                            val += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
+                            val += int.Parse(((char)c).ToString(), CultureInfo.InvariantCulture);
                         }
                         else if (stat == 1)
                         {
                             dec *= (hex ? 16 : 10);
-                            dec += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
+                            dec += int.Parse(((char)c).ToString(), CultureInfo.InvariantCulture);
                             decC++;
                         }
                         else
                         {
                             exp *= (hex ? 16 : 10);
-                            exp += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
+                            exp += int.Parse(((char)c).ToString(), CultureInfo.InvariantCulture);
                         }
                         break;
                     case 'a':
@@ -456,6 +358,7 @@ namespace ModMaker.Lua.Runtime
                     case 'c':
                     case 'd':
                     case 'f':
+                        pos++;
                         input.Read();
                         if (!hex)
                         {
@@ -464,49 +367,53 @@ namespace ModMaker.Lua.Runtime
                         if (stat == 0)
                         {
                             val *= 16;
-                            val += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                            val += int.Parse(((char)c).ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                         }
                         else if (stat == 1)
                         {
                             dec *= 16;
-                            dec += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                            dec += int.Parse(((char)c).ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                             decC++;
                         }
                         else
                         {
                             exp *= 16;
-                            exp += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                            exp += int.Parse(((char)c).ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                         }
                         break;
                     case 'e':
                     case 'p':
+                        pos++;
                         input.Read();
                         if ((hex && c == 'p') || (!hex && c == 'e'))
                         {
                             if (stat == 2)
-                                return null;
+                                throw new SyntaxException("Can only have exponent designator('e' or 'p') per number.", line, pos - col, name);
                             stat = 2;
 
-                            if (input.EndOfStream)
-                                return null;
+                            if (input.Peek() != -1)
+                                throw new SyntaxException("Must specify at least one number for the exponent.", line, pos - col, name);
                             if (input.Peek() == '+' || (input.Peek() == '-' && (negE = true == true)))
                             {
+                                pos++;
                                 input.Read();
-                                if (input.EndOfStream)
-                                    return null;
+                                if (input.Peek() == -1)
+                                    throw new SyntaxException("Must specify at least one number for the exponent.", line, pos - col, name);
                             }
 
                             if ("0123456789".Contains((char)input.Peek()))
                             {
+                                pos++;
                                 exp = int.Parse(((char)input.Read()).ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                                 break;
                             }
                             else if (hex && "abcdefABCDEF".Contains((char)input.Peek()))
                             {
+                                pos++;
                                 exp = int.Parse(((char)input.Read()).ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                                 break;
                             }
-                            return null;
+                            throw new SyntaxException("Must specify at least one number for the exponent.", line, pos - col, name);
                         }
                         else if (hex && c == 'e')
                         {
@@ -531,26 +438,35 @@ namespace ModMaker.Lua.Runtime
                             b = false;
                         break;
                     case '.':
+                        pos++;
                         input.Read();
                         if (stat == 0)
                             stat = 1;
                         else
-                            return null;
+                            throw new SyntaxException("A number can only have one decimal point(.).", line, pos - col, name);
                         break;
                     default:
                         b = false;
                         break;
                 }
             }
-
             while (decC-- > 0) dec *= 0.1;
             val += dec;
             if (negV) dec *= -1;
             val *= Math.Pow((hex ? 2 : 10), (negE ? -exp : exp));
             if (double.IsInfinity(val))
-                return null;
+                throw new SyntaxException("Number outside range of double.", line, pos - col, name);
             return val;
         }
+        /// <summary>
+        /// Checks whether two types are compatible and gets a conversion
+        /// method if it can be.
+        /// </summary>
+        /// <param name="t1">The resultant type (e.g. the parameter type).</param>
+        /// <param name="t2">The original type (e.g. the argument type).</param>
+        /// <param name="meth">The resulting conversion method, will be static.</param>
+        /// <returns>True if the two types can be implicitly cast, false if not.  If meth is null, the
+        /// two types cannot be converted.</returns>
         public static bool TypesCompatible(Type t1, Type t2, out MethodInfo meth)
         {
             meth = null;
@@ -558,9 +474,13 @@ namespace ModMaker.Lua.Runtime
             if (t1 == t2)
                 return true;
 
+            // NOTE: This only checks for derived classes and interfaces,
+            //  this will not work for implicit/explicit casts.
             if (t1.IsAssignableFrom(t2))
                 return true;
 
+            // all numeric types are explicitly compatible but do not
+            //   define a cast in their type.
             if ((t1 == typeof(SByte) ||
                 t1 == typeof(Int16) ||
                 t1 == typeof(Int32) ||
@@ -586,16 +506,22 @@ namespace ModMaker.Lua.Runtime
                 t2 == typeof(Decimal) ||
                 t2 == typeof(Char)))
             {
+                // although they are compatible, they need to be converted,
+                //  return false and get the Convert.ToXX method.
                 meth = typeof(Convert).GetMethod("To" + t1.Name, new Type[] { t2 });
                 return false;
             }
 
+            // get any methods from t1 that is not marked with LuaIgnoreAttribute
+            //  and has the name 'op_Explicit' or 'op_Implicit' and has a return type
+            //  of t1 and a sole argument that is implicitly compatible with t2.
             meth = t1.GetMethods()
                 .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), false).Length == 0)
                 .Where(m => (m.Name == "op_Explicit" || m.Name == "op_Implicit") && m.ReturnType == t1 &&
                     m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.IsAssignableFrom(t2))
                     .FirstOrDefault();
 
+            // if meth still equals null, check for a cast in t2.
             if (meth == null)
             {
                 meth = t2.GetMethods()
@@ -605,10 +531,24 @@ namespace ModMaker.Lua.Runtime
                         .FirstOrDefault();
             }
 
+            // still return false even if we found a cast
+            //   because the types are not implicitly compatible.
             return false;
         }
+        /// <summary>
+        /// Converts an object to a given type using TypesCompatible.
+        /// </summary>
+        /// <param name="o">The object to convert.</param>
+        /// <param name="t">The type to convert to.</param>
+        /// <returns>An object that can be passed in MethodInfo.Invoke.</returns>
         public static object ConvertType(object o, Type t)
         {
+            // stop now if no type
+            if (t == null || t == typeof(void))
+                return null;
+
+            // if the object is null, any type that is not
+            //  a value type can be used.
             if (o == null)
             {
                 if (t.IsValueType)
@@ -616,20 +556,61 @@ namespace ModMaker.Lua.Runtime
                 return o;
             }
 
-            MethodInfo m;
-            if (!TypesCompatible(t, o.GetType(), out m))
+            // if type is an array, convert according to underlying type
+            if (t.IsArray)
             {
-                if (m != null)
-                    o = m.Invoke(null, new object[] { o });
+                // get the original array.
+                object[] orig;
+                if (o is IEnumerable)
+                    orig = (o as IEnumerable).Cast<object>().ToArray();
                 else
-                    throw new InvalidCastException("Cannot convert type '" + o.GetType() + "' to type '" + t + "'.");
+                    orig = new[] { o };
+
+                // get the underlying type
+                t = t.GetElementType();
+
+                // get the resulting array
+                object[] result = new object[orig.Length];
+                for (int i = 0; i < orig.Length; i++)
+                {
+                    result[i] = ConvertType(orig[i], t);
+                }
+
+                return result;
             }
-            return o;
+            else
+            {
+                // if o is a MultipleReturn, get the first object
+                if (o is MultipleReturn)
+                    o = (o as MultipleReturn)[0];
+
+                // check with TypesCompatible to get whether
+                //  it can be converted.
+                MethodInfo m;
+                if (!TypesCompatible(t, o.GetType(), out m))
+                {
+                    // if there is no conversion method, throw an exception.
+                    if (m != null)
+                        o = m.Invoke(null, new object[] { o });
+                    else
+                        throw new InvalidCastException("Cannot convert type '" + o.GetType() + "' to type '" + t + "'.");
+                }
+                return o;
+            }
         }
-        public static object ConvertReturnType(MultipleReturn ret, Type t)
-        {
-            return ret[0];
-        }
+        /// <summary>
+        /// A runtime version of overload-resolution.  Searches each of the methods
+        /// to find a method with the given arguments while converting the arguments
+        /// to work.
+        /// </summary>
+        /// <param name="meths">The methods to search in.</param>
+        /// <param name="args">The arguments to use, must pass a reference to an array because the
+        /// arguments in this array will be converted to work (i.e. don't use list.ToArray()).</param>
+        /// <returns>The method that will work with the arguments or null if none work.</returns>
+        /// <remarks>
+        /// This currently does not support parrams arrays or optional arguments, this may be
+        /// added in newer releases.
+        /// </remarks>
         public static Tuple<MethodBase, object> GetCompatibleMethod(Tuple<MethodBase, object>[] meths, object[] args)
         {
             Tuple<MethodBase, object> ret = null;
@@ -739,6 +720,13 @@ namespace ModMaker.Lua.Runtime
 
             return ret;
         }
+        /// <summary>
+        /// This is called whenever a binary operation occurs to determine which function to call.
+        /// </summary>
+        /// <param name="lhs">The left-hand operand.</param>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="rhs">The right-hand operand.</param>
+        /// <returns>The result of the operation.</returns>
         public static object ResolveBinaryOperation(object lhs, BinaryOperationType type, object rhs)
         {
             switch (type)
@@ -754,16 +742,19 @@ namespace ModMaker.Lua.Runtime
                 case BinaryOperationType.Gte:
                 case BinaryOperationType.Lte:
                     {
-                        object o1 = lhs is LuaPointerNew ? GetValue(lhs) : lhs;
-                        object o2 = rhs is LuaPointerNew ? GetValue(rhs) : rhs;
+                        // get the operatand's true value.
+                        object o1 = lhs is LuaPointer ? GetValue(lhs) : lhs;
+                        object o2 = rhs is LuaPointer ? GetValue(rhs) : rhs;
                         LuaUserData u1 = o1 as LuaUserData;
                         LuaUserData u2 = o2 as LuaUserData;
 
+                        // check that if one operand is UserData that the operator is visible.
                         if (u1 != null && u1.Members != null && !u1.Members.Contains(GetBinName(type)))
                             throw new InvalidOperationException(type + " operator is inaccessable to Lua code.");
                         if (u2 != null && u2.Members != null && !u2.Members.Contains(GetBinName(type)))
                             throw new InvalidOperationException(type + " operator is inaccessable to Lua code.");
 
+                        // if operand is multiple return, use the first result.
                         if (o1 is MultipleReturn)
                             o1 = GetValue((o1 as MultipleReturn)[0]);
                         if (o2 is MultipleReturn)
@@ -772,6 +763,7 @@ namespace ModMaker.Lua.Runtime
                         if (o1 is LuaClass || o2 is LuaClass)
                             throw new InvalidOperationException("Attempted to perform arithmetic on a 'class definition' object.");
 
+                        // get the type of the operands.
                         LuaValueType t1 = GetType(u1 == null ? o1 : u1), t2 = GetType(u2 != null ? u2 : o2);
 
                         if (t1 == LuaValueType.Number && t2 == LuaValueType.Number)
@@ -858,6 +850,12 @@ namespace ModMaker.Lua.Runtime
                     throw new InvalidOperationException("Unable to resolve BinaryOperation." + type);
             }
         }
+        /// <summary>
+        /// This is called whenever a unary operation occurs to determine which function to call.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="target">The target of the operation.</param>
+        /// <returns>The result of the operation.</returns>
         public static object ResolveUnaryOperation(UnaryOperationType type, object target)
         {
             switch (type)
@@ -949,15 +947,24 @@ namespace ModMaker.Lua.Runtime
             }
             return null;
         }
+        /// <summary>
+        /// Called when the code encounters the 'class' keyword.  Defines a LuaClass
+        /// object with the given name.
+        /// </summary>
+        /// <param name="E">The current environment.</param>
+        /// <param name="types">The types that the class will derive.</param>
+        /// <param name="name">The name of the class.</param>
         public static void DefineClass(LuaEnvironment E, List<string> types, string name)
         {
             if (E._globals.GetItemRaw(name) != null)
                 throw new InvalidOperationException("The name '" + name + "' is already a global variable and cannot be a class name.");
 
+            // resolve each of the types
             Type b = null;
             List<Type> inter = new List<Type>();
             foreach (var item in types)
             {
+                // get the types that this Lua code can access according to the settings.
                 Type[] access;
                 if (E.Settings.ClassAccess == LuaClassAccess.All)
                     access = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes()).ToArray();
@@ -969,19 +976,20 @@ namespace ModMaker.Lua.Runtime
                 else
                     access = E._globals.Where(k => k.Value is LuaType).Select(k => (k.Value as LuaType).Type).ToArray();
 
+                // get the types that match the given name.
                 Type[] typesa = access.Where(t => t.Name == item || t.FullName == item).ToArray();
+                if (typesa == null || typesa.Length == 0)
+                    throw new InvalidOperationException("Unable to locate the type '" + item + "'");
                 if (typesa.Length > 1)
                     throw new InvalidOperationException("More than one type found for name '" + name + "'");
                 Type type = typesa.FirstOrDefault();
-
-                if (type == null)
-                    throw new InvalidOperationException("Unable to locate the type '" + item + "'");
 
                 if (!type.Attributes.HasFlag(TypeAttributes.Public))
                     throw new InvalidOperationException("Base class and interfaces must be public");
 
                 if (type.IsClass)
                 {
+                    // if the type is a class, it will be the base class
                     if (b == null)
                     {
                         if (type.IsSealed)
@@ -1000,6 +1008,7 @@ namespace ModMaker.Lua.Runtime
                     throw new InvalidOperationException("Cannot derive from a value-type.");
             }
 
+            // create and register the LuaClass object.
             LuaClass c = new LuaClass(name, b, inter.ToArray(), E);
             E._globals.SetItemRaw(name, c);
         }
@@ -1008,10 +1017,24 @@ namespace ModMaker.Lua.Runtime
             LuaMethod r = new LuaMethod(t.GetMethod(name), target, name, E);
             return (r);
         }
+        /// <summary>
+        /// Creates a pointer to a global Lua value.
+        /// </summary>
+        /// <param name="E">The current environment.</param>
+        /// <param name="name">The name of the value.</param>
+        /// <returns>A pointer to the value.</returns>
         public static object GetGlobal(LuaEnvironment E, string name)
         {
-            return new LuaPointerNew(E._globals, name, E);
+            return new LuaPointer(E._globals, name, E);
         }
+        /// <summary>
+        /// Used in a VarInitItem to set the values.  It creates an array
+        /// of a given length from the given values.  Expands any MultipleReturns
+        /// and adds nulls as necessary.
+        /// </summary>
+        /// <param name="values">The input values.</param>
+        /// <param name="names">The length of the array.</param>
+        /// <returns>An array of the given length to set the values to.</returns>
         public static object[] SetValues(List<object> values, int names)
         {
             object[] val = new object[names];
@@ -1040,6 +1063,13 @@ namespace ModMaker.Lua.Runtime
 
             return val;
         }
+        /// <summary>
+        /// Used by a ForGenItem to start the loop.
+        /// </summary>
+        /// <param name="exp">The expressions for the intial values.</param>
+        /// <param name="f">The function to call.</param>
+        /// <param name="s">The value to pass to each call.</param>
+        /// <param name="var">The initial value.</param>
         public static void ForGenStart(List<object> exp, ref object f, ref object s, ref object var)
         {
             int j = 0;

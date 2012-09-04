@@ -15,6 +15,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -26,6 +27,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -37,6 +39,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -48,6 +51,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -59,6 +63,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -70,6 +75,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -81,6 +87,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -92,6 +99,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -103,6 +111,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -114,6 +123,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -125,6 +135,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -136,6 +147,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -147,6 +159,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -158,6 +171,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -169,6 +183,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -180,6 +195,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -191,6 +207,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -205,6 +222,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -216,6 +234,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -227,6 +246,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -238,6 +258,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -249,6 +270,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -260,6 +282,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -271,6 +294,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -282,6 +306,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -293,6 +318,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -304,6 +330,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -315,6 +342,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -326,6 +354,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -337,6 +366,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -348,6 +378,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -359,6 +390,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -370,6 +402,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -381,6 +414,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
@@ -395,6 +429,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -407,6 +442,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -419,6 +455,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -431,6 +468,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -443,6 +481,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -455,6 +494,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -467,6 +507,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -479,6 +520,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -491,6 +533,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -503,6 +546,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -515,6 +559,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -527,6 +572,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -539,6 +585,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -551,6 +598,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -563,6 +611,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -575,6 +624,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -587,6 +637,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -602,6 +653,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -614,6 +666,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -626,6 +679,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -638,6 +692,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -650,6 +705,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -662,6 +718,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -674,6 +731,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -686,6 +744,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -698,6 +757,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -710,6 +770,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -722,6 +783,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -734,6 +796,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -746,6 +809,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -758,6 +822,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -770,6 +835,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -782,6 +848,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>
@@ -794,6 +861,7 @@ namespace ModMaker.Lua.Extensions
         /// <summary>
         /// Registers a delegate for use with this Lua object.
         /// </summary>
+        /// <param name="lua">The Lua object to register to.</param>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <param name="name">The name of the delegate.  If null, will use the function name.</param>
         /// <exception cref="System.ArgumentException">When there is another method or type with the same name registered.</exception>

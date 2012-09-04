@@ -26,55 +26,43 @@ namespace ModMaker.Lua.Parser
         string _name;
         bool _glt = false;
         LuaChunk _output;
-        CharDecorator _input;
-        long _line = 0, _colOff = 0;
+        TextReader _reader;
+        long _line = 0, _colOff = 0, _pos = 0;
 
-        public PlainParser(CharDecorator input, string name = null)
+        PlainParser(TextReader reader, string name)
         {
-            this._input = input;
+            this._reader = reader;
             this._name = name;
             this._output = null;
         }
 
-        public LuaChunk Output { get { return _output; } }
-
-        public IParseItem LoadFunc()
+        public static LuaChunk LoadChunk(LuaEnvironment E, TextReader reader, byte[] hash, string name = null)
         {
-            IParseItem ret = null;
-
-
-
-            return ret;
-        }
-        public LuaChunk LoadChunk(LuaEnvironment E)
-        {
-            // check the SHA512 hash.
-            string hash;
+            if (hash == null)
             {
-                byte[] bhash = _input.GetHash();
-                if (bhash == null)
-                {
-                    if (E.Settings.AllowNonSeekStreams)
-                        hash = null;
-                    else
-                        throw new InvalidOperationException("Unable to load given chunk because the stream cannot be seeked, see LuaSettings.AllowNonSeekStreams.");
-                }
+                if (E.Settings.AllowNonSeekStreams)
+                    hash = null;
                 else
-                {
-                    hash = bhash.ToStringBase16().ToUpper(CultureInfo.InvariantCulture);
-                    lock (_loaded)
-                        if (_loaded.ContainsKey(hash))
-                            return _loaded[hash];
-                }
+                    throw new InvalidOperationException("Unable to load given chunk because the stream cannot be seeked, see LuaSettings.AllowNonSeekStreams.");
+            }
+            else
+            {
+                string shash = hash.ToStringBase16().ToUpper(CultureInfo.InvariantCulture);
+                lock (_loaded)
+                    if (_loaded.ContainsKey(shash))
+                        return _loaded[shash].Clone(E);
             }
 
+            return new PlainParser(reader, name).LoadChunk(E, hash.ToStringBase16().ToUpper(CultureInfo.InvariantCulture));
+        }
+
+        LuaChunk LoadChunk(LuaEnvironment E, string hash)
+        {
             _line = 1;
             _colOff = 0;
-            IParseItem chunk = ReadChunk();
+            _pos = 0;
+            IParseItem chunk = ReadChunk().Item1;
             ChunkBuilderNew cb = E.DefineChunkNew(_name);
-
-            /* wait for any running threads */
-            chunk.WaitOne();
             cb.DefineGlobalFunc();
 
             /* resolve labels */
@@ -88,7 +76,7 @@ namespace ModMaker.Lua.Parser
             }
 
             /* generate the chunk */
-            chunk.GenerateILNew(cb);
+            chunk.GenerateIL(cb);
             _output = cb.CreateChunk(E);
             if (hash != null)
                 lock (_loaded)
@@ -96,50 +84,71 @@ namespace ModMaker.Lua.Parser
             return _output;
         }
 
-        IParseItem ReadChunk(IParseItem parrent = null)
+        int Read()
+        {
+            int ret = _reader.Read();
+            if (ret != -1)
+                _pos++;
+            return ret;
+        }
+        bool CanRead
+        {
+            get
+            {
+                return _reader.Peek() != -1;
+            }
+        }
+        Tuple<IParseItem, string> ReadChunk(IParseItem parrent = null)
         {
             IParseItem ret = new BlockItem();
 
-            char? c;
-            while (_input.CanRead)
+            string name = null;
+            bool reuse = false;
+            while (CanRead)
             {
                 ReadWhitespace();
-                c = _input.ReadChar();
-                if (c == null)
-                    break;
-                if (c == '-' && _input.PeekChar() == '-')
+                if (!reuse)
                 {
-                    _input.ReadChar();
-                    if (_input.CanRead)
+                    name = ReadName(true);
+                    if (string.IsNullOrWhiteSpace(name))
+                        name = ((char)Read()).ToString();
+                }
+                reuse = false;
+                if (name == null)
+                    break;
+                if (name[0] == '-' && _reader.Peek() == '-')
+                {
+                    Read();
+                    if (_reader.Peek() != -1)
                         ReadComment();
                 }
-                else if (c == ';' || c == ' ' || c == '\t' || c == '\n')
+                else if (name[0] == ';' || name[0] == ' ' || name[0] == '\t' || name[0] == '\n' || name[0] == '\r')
                 {
-                    if (c == '\n')
+                    if (name[0] == '\n')
                     {
-                        _line++; _colOff = _input.Position + 1;
+                        _line++; _colOff = _pos + 1;
                     }
                     continue;
                 }
-                else if (c == ':' && _input.PeekChar() == ':')
+                else if (name[0] == ':' && _reader.Peek() == ':')
                 {
-                    _input.ReadChar();
-                    if (_input.CanRead)
-                        throw new SyntaxException("Invalid Label definition.", _line, _input.Position - _colOff, _name);
+                    Read();
+                    if (CanRead)
+                        throw new SyntaxException("Invalid Label definition.", _line, _pos - _colOff, _name);
                     string label = ReadName(false);
-                    if (!_input.CanRead || _input.ReadChar() != ':' || _input.ReadChar() != ':')
-                        throw new SyntaxException("Invalid Label definition.", _line, _input.Position - _colOff, _name);
+                    if (!CanRead || Read() != ':' || Read() != ':')
+                        throw new SyntaxException("Invalid Label definition.", _line, _pos - _colOff, _name);
 
                     ret.AddItem(new LabelItem(label));
                 }
-                else if (__nameStartChars.Contains(c.Value))
+                else if (__nameStartChars.Contains(name[0]))
                 {
-                    string name = c.Value + ReadName(true);
+                    Tuple<IParseItem, string> rr;
                     switch (name)
                     {
                         #region case "break"
                         case "break":
-                            ret.AddItem(new GotoItem("<break>", _line, _input.Position - _colOff - 5));
+                            ret.AddItem(new GotoItem("<break>", _line, _pos - _colOff - 5));
                             _glt = true;
                             break;
                         #endregion
@@ -147,59 +156,57 @@ namespace ModMaker.Lua.Parser
                         case "goto":
                             name = ReadName(false);
                             if (__reserved.Contains(name))
-                                throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
-                            ret.AddItem(new GotoItem(name, _line, _input.Position - _colOff - name.Length));
+                                throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
+                            ret.AddItem(new GotoItem(name, _line, _pos - _colOff - name.Length));
                             _glt = true;
                             break;
                         #endregion
                         #region case "do"
                         case "do":
-                            ret.AddItem(ReadChunk(ret));
-                            name = ReadName(false);
-                            if (name != "end")
-                                throw new SyntaxException("Expecting 'end' for end of local block.", _line, _input.Position - _colOff - 3, _name);
+                            rr = ReadChunk(ret);
+                            ret.AddItem(rr.Item1);
+                            if (rr.Item2 != "end")
+                                throw new SyntaxException("Expecting 'end' for end of local block.", _line, _pos - _colOff - 3, _name);
                             break;
                         #endregion
                         #region case "end"
                         case "end":
                             if (parrent == null)
-                                throw new SyntaxException("Invalid token 'end' in global chunk.", _line, _input.Position - _colOff - 3, _name);
-                            _input.Move(-3);
-                            return ret;
+                                throw new SyntaxException("Invalid token 'end' in global chunk.", _line, _pos - _colOff - 3, _name);
+                            return new Tuple<IParseItem,string>(ret, "end");
                         #endregion
                         #region case "else/elseif"
                         case "elseif":
                         case "else":
                             if (parrent == null)
-                                throw new SyntaxException("Invalid token '" + name + "' in global chunk.", _line, _input.Position - _colOff - name.Length, _name);
+                                throw new SyntaxException("Invalid token '" + name + "' in global chunk.", _line, _pos - _colOff - name.Length, _name);
                             else if (!(parrent is IfItem))
-                                throw new SyntaxException("'" + name + "' is only valid in an if block.", _line, _input.Position - _colOff - name.Length, _name);
+                                throw new SyntaxException("'" + name + "' is only valid in an if block.", _line, _pos - _colOff - name.Length, _name);
 
-                            _input.Move(-name.Length);
-                            return ret;
+                            return new Tuple<IParseItem,string>(ret, name);
                         #endregion
                         #region case "until"
                         case "until":
                             if (parrent == null)
-                                throw new SyntaxException("Invalid token 'until' in global chunk.", _line, _input.Position - _colOff - 5, _name);
+                                throw new SyntaxException("Invalid token 'until' in global chunk.", _line, _pos - _colOff - 5, _name);
                             else if (!(parrent is RepeatItem))
-                                throw new SyntaxException("'until' is only valid in an repeat block.", _line, _input.Position - _colOff - 5, _name);
+                                throw new SyntaxException("'until' is only valid in an repeat block.", _line, _pos - _colOff - 5, _name);
                         
-                            _input.Move(-5);
-                            return ret;
+                            return new Tuple<IParseItem,string>(ret, "until");
                         #endregion
                         #region case "while"
                         case "while":
                             {
                                 WhileItem w = new WhileItem();
-                                w.Exp = ReadExp();
-                                name = ReadName(false);
+                                rr = ReadExp();
+                                w.Exp = rr.Item1;
+                                name = rr.Item2 ?? ReadName(false);
                                 if (name != "do")
-                                    throw new SyntaxException("Invalid token '" + name + "' in while definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                w.Block = ReadChunk(w);
-                                name = ReadName(false);
-                                if (name != "end")
-                                    throw new SyntaxException("Invalid token '" + name + "' in while definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                    throw new SyntaxException("Invalid token '" + name + "' in while definition.", _line, _pos - _colOff - name.Length, _name);
+                                rr = ReadChunk(w);
+                                w.Block = rr.Item1;
+                                if (rr.Item2 != "end")
+                                    throw new SyntaxException("Invalid token '" + rr.Item2 + "' in while definition.", _line, _pos - _colOff - name.Length, _name);
                                 ret.AddItem(w);
                             }
                             break;
@@ -208,12 +215,15 @@ namespace ModMaker.Lua.Parser
                         case "repeat":
                             {
                                 RepeatItem r = new RepeatItem();
-                                r.Block = ReadChunk(r);
-                                name = ReadName(false);
-                                if (name != "until")
-                                    throw new SyntaxException("Invalid token '" + name + "' in repeat definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                r.Exp = ReadExp();
+                                rr = ReadChunk(r);
+                                r.Block = rr.Item1;
+                                if (rr.Item2 != "until")
+                                    throw new SyntaxException("Invalid token '" + rr.Item2 + "' in repeat definition.", _line, _pos - _colOff - name.Length, _name);
+                                rr = ReadExp();
+                                r.Exp = rr.Item1;
                                 ret.AddItem(r);
+                                name = rr.Item2;
+                                reuse = name != null;
                             }
                             break;
                         #endregion
@@ -221,31 +231,32 @@ namespace ModMaker.Lua.Parser
                         case "if":
                             {
                                 IfItem i = new IfItem();
-                                i.Exp = ReadExp();
-                                name = ReadName(false);
+                                rr = ReadExp();
+                                i.Exp = rr.Item1;
+                                name = rr.Item2 ?? ReadName(false);
                                 if (name != "then")
-                                    throw new SyntaxException("Invalid token '" + name + "' in if definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                i.Block = ReadChunk(i);
-                                name = ReadName(false);
-                                while (name == "elseif")
+                                    throw new SyntaxException("Invalid token '" + name + "' in if definition.", _line, _pos - _colOff - name.Length, _name);
+                                rr = ReadChunk(i);
+                                i.Block = rr.Item1;
+                                while (rr.Item2 == "elseif")
                                 {
-                                    IParseItem e = ReadExp();
-                                    name = ReadName(false);
+                                    rr = ReadExp();
+                                    IParseItem e = rr.Item1;
+                                    name = rr.Item2 ?? ReadName(false);
                                     if (name != "then")
-                                        throw new SyntaxException("Invalid token '" + name + "' in elseif definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                    IParseItem b = ReadChunk(i);
-                                    i.AddItem(e, b);
-                                    name = ReadName(false);
+                                        throw new SyntaxException("Invalid token '" + name + "' in elseif definition.", _line, _pos - _colOff - name.Length, _name);
+                                    rr = ReadChunk(i);
+                                    i.AddItem(e, rr.Item1);
                                 }
-                                if (name != "else" && name != "end")
-                                    throw new SyntaxException("Invalid token '" + name + "' in if definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                if (name == "else")
+                                if (rr.Item2 != "else" && rr.Item2 != "end")
+                                    throw new SyntaxException("Invalid token '" + rr.Item2 + "' in if definition.", _line, _pos - _colOff - name.Length, _name);
+                                if (rr.Item2 == "else")
                                 {
-                                    i.ElseBlock = ReadChunk(i);
-                                    name = ReadName(false);
+                                    rr = ReadChunk(i);
+                                    i.ElseBlock = rr.Item1;
                                 }
-                                if (name != "end")
-                                    throw new SyntaxException("Invalid token '" + name + "' in if definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                if (rr.Item2 != "end")
+                                    throw new SyntaxException("Invalid token '" + rr.Item2 + "' in if definition.", _line, _pos - _colOff - name.Length, _name);
                                 ret.AddItem(i);
                             }
                             break;
@@ -255,65 +266,70 @@ namespace ModMaker.Lua.Parser
                             {
                                 name = ReadName(false);
                                 if (__reserved.Contains(name))
-                                    throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                    throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
                                 ReadWhitespace();
-                                if (_input.PeekChar() == '=')
+                                if (_reader.Peek() == '=')
                                 {
-                                    _input.ReadChar();
+                                    Read();
                                     ForNumItem i = new ForNumItem(name);
-                                    i.Start = ReadExp();
+                                    rr = ReadExp();
+                                    i.Start = rr.Item1;
                                     ReadWhitespace();
-                                    if (_input.ReadChar() != ',')
-                                        throw new SyntaxException("Invalid token '" + _input.PeekChar() + "' in for definition.", _line, _input.Position - _colOff - 1, _name);
-                                    i.Limit = ReadExp();
+                                    if (rr.Item2 != null || Read() != ',')
+                                        throw new SyntaxException("Invalid token '" + rr.Item2 ?? _reader.Peek() + "' in for definition.", _line, _pos - _colOff - 1, _name);
+                                    rr = ReadExp();
+                                    i.Limit = rr.Item1;
                                     ReadWhitespace();
-                                    if (_input.PeekChar() == ',')
+                                    if (_reader.Peek() == ',')
                                     {
-                                        _input.ReadChar();
-                                        i.Step = ReadExp();
+                                        Read();
+                                        rr = ReadExp();
+                                        i.Step = rr.Item1;
                                     }
-                                    name = ReadName(false);
+                                    name = rr.Item2 ?? ReadName(false);
                                     if (name != "do")
-                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                    i.Block = ReadChunk(i);
-                                    name = ReadName(false);
-                                    if (name != "end")
-                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _pos - _colOff - name.Length, _name);
+                                    rr = ReadChunk(i);
+                                    i.Block = rr.Item1;
+                                    if (rr.Item2 != "end")
+                                        throw new SyntaxException("Invalid token '" + rr.Item2 + "' in for definition.", _line, _pos - _colOff - name.Length, _name);
                                     ret.AddItem(i);
                                 }
                                 else
                                 {
                                     List<string> names = new List<string>();
                                     names.Add(name);
-                                    while (_input.PeekChar() == ',')
+                                    while (_reader.Peek() == ',')
                                     {
-                                        _input.ReadChar();
+                                        Read();
                                         name = ReadName(false);
                                         if (__reserved.Contains(name))
-                                            throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                            throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
                                         names.Add(name);
                                         ReadWhitespace();
                                     }
                                     name = ReadName(false);
                                     if (name != "in")
-                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _pos - _colOff - name.Length, _name);
                                     
                                     ForGenItem f = new ForGenItem(names);
-                                    f.AddItem(ReadExp());
+                                    rr = ReadExp();
+                                    f.AddItem(rr.Item1);
                                     ReadWhitespace();
-                                    while (_input.PeekChar() == ',')
+                                    while (rr.Item2 == null && _reader.Peek() == ',')
                                     {
-                                        f.AddItem(ReadExp());
+                                        rr = ReadExp();
+                                        f.AddItem(rr.Item1);
                                         ReadWhitespace();
                                     }
 
-                                    name = ReadName(false);
+                                    name = rr.Item2 ?? ReadName(false);
                                     if (name != "do")
-                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _input.Position - _colOff - name.Length, _name);
-                                    f.Block = ReadChunk(f);
-                                    name = ReadName(false);
-                                    if (name != "end")
-                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                        throw new SyntaxException("Invalid token '" + name + "' in for definition.", _line, _pos - _colOff - name.Length, _name);
+                                    rr = ReadChunk(f);
+                                    f.Block = rr.Item1;
+                                    if (rr.Item2 != "end")
+                                        throw new SyntaxException("Invalid token '" + rr.Item2 + "' in for definition.", _line, _pos - _colOff - name.Length, _name);
                                     ret.AddItem(f);
                                 }
                             }
@@ -322,25 +338,25 @@ namespace ModMaker.Lua.Parser
                         #region case "function"
                         case "function":
                             {
-                                long l = _line, cc = _input.Position - _colOff - 8;
+                                long l = _line, cc = _pos - _colOff - 8;
                                 name = ReadName(false);
                                 if (__reserved.Contains(name))
-                                    throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                    throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
                                 IParseItem n = new NameItem(name);
                                 string inst = null;
-                                while (_input.PeekChar() == '.')
+                                while (_reader.Peek() == '.')
                                 {
-                                    _input.ReadChar();
+                                    Read();
                                     name = ReadName(false);
                                     n = new IndexerItem(n, new LiteralItem(name));
                                 }
-                                if (_input.PeekChar() == ':')
+                                if (_reader.Peek() == ':')
                                 {
-                                    _input.ReadChar();
+                                    Read();
                                     inst = ReadName(true);
                                 }
                                 ReadWhitespace();
-
+                                
                                 ret.AddItem(ReadFunc(n, inst, l, cc));
                             }
                             break;
@@ -348,26 +364,29 @@ namespace ModMaker.Lua.Parser
                         #region case "local"
                         case "local":
                             {
-                                long l = _line, cc = _input.Position - _colOff - 5;
+                                long l = _line, cc = _pos - _colOff - 5;
                                 name = ReadName(false);
                                 if (name == "function")
                                 {
                                     name = ReadName(false);
                                     if (__reserved.Contains(name))
-                                        throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                        throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
 
                                     FuncDef f = new FuncDef(new NameItem(name), l, cc, true);
                                     bool b = false;
                                     ReadWhitespace();
-                                    if (_input.ReadChar() != '(')
-                                        throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 1, _name);
+                                    if (Read() != '(')
+                                        throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 1, _name);
                                     name = ReadName(false);
                                     if (name.Length == 0)
                                     {
-                                        if (_input.PeekChar() != ')')
+                                        if (_reader.Peek() != ')')
                                         {
-                                            if (_input.Read(3) != "...")
-                                                throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 3, _name);
+                                            char[] temp = new char[3];
+                                            _reader.Read(temp, 0, 3);
+                                            _pos += 3;
+                                            if (temp[0] != '.' || temp[1] != '.' || temp[2] != '.')
+                                                throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 3, _name);
                                             f.AddParam("...");
                                             b = true;
                                         }
@@ -376,14 +395,17 @@ namespace ModMaker.Lua.Parser
                                         f.AddParam(name);
 
                                     ReadWhitespace();
-                                    while (!b && _input.PeekChar() == ',')
+                                    while (!b && _reader.Peek() == ',')
                                     {
-                                        _input.ReadChar();
+                                        Read();
                                         name = ReadName(false);
                                         if (name.Length == 0)
                                         {
-                                            if (_input.Read(3) != "...")
-                                                throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 3, _name);
+                                            char[] temp = new char[3];
+                                            _reader.Read(temp, 0, 3);
+                                            _pos += 3;
+                                            if (temp[0] != '.' || temp[1] != '.' || temp[2] != '.')
+                                                throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 3, _name);
                                             f.AddParam("...");
                                             break;
                                         }
@@ -392,45 +414,49 @@ namespace ModMaker.Lua.Parser
                                         ReadWhitespace();
                                     }
 
-                                    if (_input.ReadChar() != ')')
-                                        throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 1, _name);
-                                    f.Block = ReadChunk(f);
+                                    if (Read() != ')')
+                                        throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 1, _name);
+                                    rr = ReadChunk(f);
+                                    f.Block = rr.Item1;
                                     f.Block.AddItem(new ReturnItem());
-                                    name = ReadName(false);
-                                    if (name != "end")
-                                        throw new SyntaxException("Invalid token '" + name + "' in function definition.", _line, _input.Position - _colOff - name.Length, _name);
+                                    if (rr.Item2 != "end")
+                                        throw new SyntaxException("Invalid token '" + rr.Item2 + "' in function definition.", _line, _pos - _colOff - name.Length, _name);
                                     ret.AddItem(f);
                                 }
                                 else
                                 {
                                     if (__reserved.Contains(name))
-                                        throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                        throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
 
                                     VarInitItem i = new VarInitItem(true);
                                     i.AddName(new NameItem(name));
                                     ReadWhitespace();
-                                    while (_input.PeekChar() == ',')
+                                    while (_reader.Peek() == ',')
                                     {
-                                        _input.ReadChar();
+                                        Read();
                                         name = ReadName(false);
 
                                         if (__reserved.Contains(name))
-                                            throw new SyntaxException("Invalid _name, '" + name + "' is reserved.", _line, _input.Position - _colOff - name.Length, _name);
+                                            throw new SyntaxException("Invalid name, '" + name + "' is reserved.", _line, _pos - _colOff - name.Length, _name);
                                         i.AddName(new NameItem(name));
                                         ReadWhitespace();
                                     }
 
-                                    if (_input.PeekChar() == '=')
+                                    if (_reader.Peek() == '=')
                                     {
-                                        _input.ReadChar();
-                                        i.AddItem(ReadExp());
+                                        Read();
+                                        rr = ReadExp();
+                                        i.AddItem(rr.Item1);
                                         ReadWhitespace();
-                                        while (_input.PeekChar() == ',')
+                                        while (rr.Item2 == null && _reader.Peek() == ',')
                                         {
-                                            _input.ReadChar();
-                                            i.AddItem(ReadExp());
+                                            Read();
+                                            rr = ReadExp();
+                                            i.AddItem(rr.Item1);
                                             ReadWhitespace();
                                         }
+                                        name = rr.Item2;
+                                        reuse = name != null;
                                     }
                                     ret.AddItem(i);
                                 }
@@ -442,23 +468,20 @@ namespace ModMaker.Lua.Parser
                             {
                                 string sname = null;
                                 List<string> imp = new List<string>();
-                                long l = _line, cc = _input.Position - _colOff - 5;
+                                long l = _line, cc = _pos - _colOff - 5;
                                 ReadWhitespace();
-                                if (_input.PeekChar() == '\'' || _input.PeekChar() == '"')
+                                if (_reader.Peek() == '\'' || _reader.Peek() == '"')
                                 {
                                     sname = ReadString();
                                     ReadWhitespace();
-                                    if (_input.PeekChar() == '(')
+                                    if (_reader.Peek() == '(')
                                     {
                                         ReadWhitespace();
-                                        while (_input.PeekChar() != ')')
+                                        while (_reader.Peek() != ')')
                                         {
                                             imp.Add(ReadName(false));
                                             ReadWhitespace();
-                                            if (_input.PeekChar() != ',')
-                                                throw new SyntaxException("Invalid class definition.",
-                                                    _line, _input.Position - _colOff, _name);
-                                            _input.ReadChar();
+                                            Read();
                                             ReadWhitespace();
                                         }
                                     }
@@ -467,21 +490,21 @@ namespace ModMaker.Lua.Parser
                                 {
                                     sname = ReadName(false);
                                     ReadWhitespace();
-                                    if (_input.PeekChar() == ':')
+                                    if (_reader.Peek() == ':')
                                     {
                                         do
                                         {
                                             string n = "";
                                             do
                                             {
-                                                _input.ReadChar();
+                                                Read();
                                                 ReadWhitespace();
                                                 n += (n == "" ? "" : ".") + ReadName(false);
                                                 ReadWhitespace();
-                                            } while (_input.PeekChar() == '.');
+                                            } while (_reader.Peek() == '.');
 
                                             imp.Add(n);
-                                        } while (_input.PeekChar() == ',');
+                                        } while (_reader.Peek() == ',');
                                     }
                                 }
                                 ret.AddItem(new ClassDefItem(sname, imp.ToArray(), l, cc));
@@ -495,37 +518,40 @@ namespace ModMaker.Lua.Parser
                                 name = ReadName(true);
                                 if (name != "end" && name != "until" && name != "elseif" && name != "else")
                                 {
-                                    r.AddItem(ReadExp(name: name));
+                                    rr = ReadExp(name: name);
+                                    r.AddItem(rr.Item1);
                                     ReadWhitespace();
-                                    while (_input.PeekChar() == ',')
+                                    while (rr.Item2 == null && _reader.Peek() == ',')
                                     {
-                                        _input.ReadChar();
-                                        r.AddItem(ReadExp());
+                                        Read();
+                                        rr = ReadExp();
+                                        r.AddItem(rr.Item1);
                                         ReadWhitespace();
                                     }
 
-                                    if (_input.PeekChar() == ';')
+                                    if (rr.Item2 == null && _reader.Peek() == ';')
                                     {
-                                        _input.ReadChar();
+                                        Read();
                                         ReadWhitespace();
                                     }
 
-                                    name = ReadName(false);
+                                    name = rr.Item2 ?? ReadName(false);
                                     if (name != "end" && name != "until" && name != "elseif" && name != "else" && !string.IsNullOrWhiteSpace(name))
                                         throw new SyntaxException("The return statement must be the last statement in a block.",
-                                            _line, _input.Position - _colOff - name.Length, _name);
-                                    _input.Move(-name.Length);
+                                            _line, _pos - _colOff - name.Length, _name);
                                 }
-                                else
-                                    _input.Move(-name.Length);
                                 ret.AddItem(r);
-                                return ret;
+                                return new Tuple<IParseItem,string>(ret, name);
                             }
                         #endregion
                         #region default
                         default:
                             {
-                                IParseItem exp = ReadSimpExp(name);
+                                var re = ReadSimpExp(name);
+                                if (re.Item2)
+                                    throw new SyntaxException("An expression is not a variable.", 
+                                        _line, _pos - _colOff, _name);
+                                IParseItem exp = re.Item1;
                                 if (exp is FuncCallItem)
                                 {
                                     (exp as FuncCallItem).Statement = true;
@@ -534,38 +560,46 @@ namespace ModMaker.Lua.Parser
                                 else if (exp is LiteralItem)
                                 {
                                     throw new SyntaxException("A literal is not a variable.",
-                                        _line, _input.Position - _colOff, _name);
+                                        _line, _pos - _colOff, _name);                                        
                                 }
                                 else
                                 {
                                     VarInitItem i = new VarInitItem(false);
                                     i.AddName(exp);
                                     ReadWhitespace();
-                                    while (_input.PeekChar() != '=')
+                                    while (_reader.Peek() != '=')
                                     {
-                                        if (_input.ReadChar() != ',')
+                                        if (Read() != ',')
                                             throw new SyntaxException("Invalid variable definitions.",
-                                                _line, _input.Position - _colOff, _name);
+                                                _line, _pos - _colOff, _name);
                                         ReadWhitespace();
-                                        exp = ReadSimpExp();
+                                        re = ReadSimpExp();
+                                        if (re.Item2)
+                                            throw new SyntaxException("An expression is not a variable.",
+                                                _line, _pos - _colOff, _name);
+                                        exp = re.Item1;
                                         if (exp is FuncCallItem)
                                             throw new SyntaxException("A function call is not a variable.",
-                                                _line, _input.Position - _colOff, _name);
+                                                _line, _pos - _colOff, _name);
                                         if (exp is LiteralItem)
                                             throw new SyntaxException("A literal is not a variable.",
-                                                _line, _input.Position - _colOff, _name);
+                                                _line, _pos - _colOff, _name);
                                         i.AddName(exp);
                                         ReadWhitespace();
                                     }
 
                                     do
                                     {
-                                        _input.ReadChar();
+                                        Read();
                                         ReadWhitespace();
-                                        i.AddItem(ReadExp());
+                                        rr = ReadExp();
+                                        i.AddItem(rr.Item1);
                                         ReadWhitespace();
-                                    } while (_input.PeekChar() == ',');
+                                    } while (rr.Item2 == null && _reader.Peek() == ',');
                                     ret.AddItem(i);
+
+                                    name = rr.Item2;
+                                    reuse = name != null;
                                 }
                             }
                             break;
@@ -573,73 +607,79 @@ namespace ModMaker.Lua.Parser
                     }
                 }
                 else
-                    throw new SyntaxException("Invalid character '" + c + "', expecting start of statement.",
-                        _line, _input.Position - _colOff, _name);
+                    throw new SyntaxException("Invalid identifier '" + name + "', expecting start of statement.",
+                        _line, _pos - _colOff, _name);
             }
 
             ret.AddItem(new ReturnItem());
-            return ret;
+            return new Tuple<IParseItem,string>(ret, null);
         }
         IParseItem ReadTable()
         {
-            if (_input.PeekChar() == '{')
-                _input.ReadChar();
+            if (_reader.Peek() == '{')
+                Read();
             ReadWhitespace();
 
-            if (_input.PeekChar() == '}')
+            if (_reader.Peek() == '}')
             {
-                _input.ReadChar();
+                Read();
                 return new TableItem();
             }
             TableItem ret = new TableItem();
             do
             {
                 ReadWhitespace();
-                if (_input.PeekChar() == '[')
+                if (_reader.Peek() == '[')
                 {
-                    _input.ReadChar();
-                    IParseItem s = ReadExp();
+                    Read();
+                    var rr = ReadExp();
+                    IParseItem s = rr.Item1;
                     ReadWhitespace();
-                    if (_input.ReadChar() != ']')
+                    if (rr.Item2 != null || Read() != ']')
                         throw new SyntaxException("Invalid table definition, expecting ']'.", 
-                            _line, _input.Position - _colOff, _name);
+                            _line, _pos - _colOff, _name);
                     ReadWhitespace();
-                    if (_input.ReadChar() != '=')
+                    if (Read() != '=')
                         throw new SyntaxException("Invalid table definition, expecting '='.", 
-                            _line, _input.Position - _colOff, _name);
-                    IParseItem p = ReadExp();
+                            _line, _pos - _colOff, _name);
+                    rr = ReadExp();
+                    IParseItem p = rr.Item1;
                     ret.AddItem(s, p);
+                    if (rr.Item2 != null)
+                        throw new SyntaxException("Invalid table definition.", 
+                            _line, _pos - _colOff, _name);
                 }
                 else
                 {
-                    long pos = _input.Position;
+                    long pos = _pos;
                     string name = ReadName(false);
                     ReadWhitespace();
-                    if (string.IsNullOrEmpty(name) || _input.PeekChar() != '=')
+                    if (string.IsNullOrEmpty(name) || _reader.Peek() != '=')
                     {
-                        _input.Move(pos - _input.Position);
-                        IParseItem e = ReadExp();
+                        var rr = ReadExp(name:name);
+                        IParseItem e = rr.Item1;
                         ret.AddItem(null, e);
                     }
                     else
                     {
-                        _input.ReadChar();
-                        IParseItem e = ReadExp();
+                        Read();
+                        var rr = ReadExp();
+                        IParseItem e = rr.Item1;
                         ret.AddItem(new LiteralItem(name), e);
                     }
                 }
 
                 ReadWhitespace();
-                if (_input.PeekChar() != ',' && _input.PeekChar() != ';')
+                if (_reader.Peek() != ',' && _reader.Peek() != ';')
                 {
-                    if (_input.PeekChar() != '}')
+                    if (_reader.Peek() != '}')
                         throw new SyntaxException("Invalid table definition, expecting end of table '}'.",
-                            _line, _input.Position - _colOff, _name);
+                            _line, _pos - _colOff, _name);
                 }
                 else
-                    _input.ReadChar();
-            } while (_input.PeekChar() != '}');
-            _input.ReadChar();
+                    Read();
+            } while (_reader.Peek() != '}');
+            Read();
 
             return ret;
         }
@@ -649,15 +689,17 @@ namespace ModMaker.Lua.Parser
             f.InstanceName = inst;
             bool b = false;
             ReadWhitespace();
-            if (_input.ReadChar() != '(')
+            if (Read() != '(')
                 throw new SyntaxException("Invalid token in function definition.", l, cc, _name);
             string name = ReadName(false);
             if (name.Length == 0)
             {
-                if (_input.PeekChar() != ')')
+                if (_reader.Peek() != ')')
                 {
-                    if (_input.Read(3) != "...")
-                        throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 3, _name);
+                    char[] temp = new char[3];
+                    _reader.Read(temp, 0, 3);
+                    if (temp[0] != '.' || temp[1] != '.' || temp[3] != '.')
+                        throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 3, _name);
                     f.AddParam("...");
                     b = true;
                 }
@@ -666,14 +708,16 @@ namespace ModMaker.Lua.Parser
                 f.AddParam(name);
 
             ReadWhitespace();
-            while (!b && _input.PeekChar() == ',')
+            while (!b && _reader.Peek() == ',')
             {
-                _input.ReadChar();
+                Read();
                 name = ReadName(false);
                 if (name.Length == 0)
                 {
-                    if (_input.Read(3) != "...")
-                        throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 3, _name);
+                    char[] temp = new char[3];
+                    _reader.Read(temp, 0, 3);
+                    if (temp[0] != '.' || temp[1] != '.' || temp[3] != '.')
+                        throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 3, _name);
                     f.AddParam("...");
                     break;
                 }
@@ -682,258 +726,116 @@ namespace ModMaker.Lua.Parser
                 ReadWhitespace();
             }
 
-            if (_input.ReadChar() != ')')
-                throw new SyntaxException("Invalid token in function definition.", _line, _input.Position - _colOff - 1, _name);
-            f.Block = ReadChunk(f);
+            if (Read() != ')')
+                throw new SyntaxException("Invalid token in function definition.", _line, _pos - _colOff - 1, _name);
+            var rr = ReadChunk(f);
+            f.Block = rr.Item1;
             f.Block.AddItem(new ReturnItem());
-            name = ReadName(false);
-            if (name != "end")
-                throw new SyntaxException("Invalid token '" + name + "' in function definition.", _line, _input.Position - _colOff - name.Length, _name);
+            if (rr.Item2 != "end")
+                throw new SyntaxException("Invalid token '" + rr.Item2 + "' in function definition.", _line, _pos - _colOff - name.Length, _name);
 
             return f;
         }
         double ReadNumber()
         {
-            long l = _line, col = _input.Position - _colOff;
-            bool hex = false;
-            double val = 0, exp = 0, dec = 0;
-            int decC = 0;
-            bool negV = false, negE = false;
-            if (_input.PeekChar() == '-')
-            {
-                negV = true;
-                _input.ReadChar();
-            }
-            if (_input.PeekChar() == '0' && (_input.PeekChar(1) == 'x' || _input.PeekChar(1) == 'X'))
-            {
-                hex = true;
-                _input.Move(2);
-            }
-
-            bool b = true;
-            int stat = 0; // 0-val, 1-dec, 2-exp
-            char? c;
-            while (b && _input.CanRead)
-            {
-                switch (c = _input.PeekChar())
-                {
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        _input.ReadChar();
-                        if (stat == 0)
-                        {
-                            val *= (hex ? 16 : 10);
-                            val += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                        }
-                        else if (stat == 1)
-                        {
-                            dec *= (hex ? 16 : 10);
-                            dec += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                            decC++;
-                        }
-                        else
-                        {
-                            exp *= (hex ? 16 : 10);
-                            exp += int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'f':
-                        _input.ReadChar();
-                        if (!hex)
-                        {
-                            b = false; break;
-                        }
-                        if (stat == 0)
-                        {
-                            val *= 16;
-                            val += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                        }
-                        else if (stat == 1)
-                        {
-                            dec *= 16;
-                            dec += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                            decC++;
-                        }
-                        else
-                        {
-                            exp *= 16;
-                            exp += int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                        }
-                        break;
-                    case 'e':
-                    case 'p':
-                        _input.ReadChar();
-                        if ((hex && c == 'p') || (!hex && c == 'e'))
-                        {
-                            if (stat == 2)
-                                throw new SyntaxException("Can only have exponent designator('e' or 'p') per number.", l, col, _name);
-                            stat = 2;
-
-                            if (!_input.CanRead)
-                                throw new SyntaxException("Must specify at least one number for the exponent.", l, col, _name);
-                            if (_input.PeekChar() == '+' || (_input.PeekChar() == '-' && (negE = true == true)))
-                            {
-                                _input.Move(1);
-                                if (!_input.CanRead)
-                                    throw new SyntaxException("Must specify at least one number for the exponent.", l, col, _name);
-                            }
-
-                            if ("0123456789".Contains(_input.PeekChar() ?? '\0'))
-                            {
-                                exp = int.Parse(_input.ReadChar().ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                            else if (hex && "abcdefABCDEF".Contains(_input.PeekChar() ?? '\0'))
-                            {
-                                exp = int.Parse(_input.ReadChar().ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                                break;
-                            }
-                            throw new SyntaxException("Must specify at least one number for the exponent.", l, col, _name);
-                        }
-                        else if (hex && c == 'e')
-                        {
-                            if (stat == 0)
-                            {
-                                val *= 16;
-                                val += 14;
-                            }
-                            else if (stat == 1)
-                            {
-                                dec *= 16;
-                                dec += 14;
-                                decC++;
-                            }
-                            else
-                            {
-                                exp *= 16;
-                                exp += 14;
-                            }
-                        }
-                        else
-                            b = false;
-                        break;
-                    case '.':
-                        _input.ReadChar();
-                        if (stat == 0)
-                            stat = 1;
-                        else
-                            throw new SyntaxException("A number can only have one decimal point(.).", l, col, _name);
-                        break;
-                    default:
-                        b = false;
-                        break;
-                }
-            }
-            while (decC-- > 0) dec *= 0.1;
-            val += dec;
-            if (negV) dec *= -1;
-            val *= Math.Pow((hex ? 2 : 10), (negE ? -exp : exp));
-            if (double.IsInfinity(val))
-                throw new SyntaxException("Number outside range of double.", l, col, _name);
-            return val;
+            return RuntimeHelper.ReadNumber(_reader, _name, _line, _colOff, ref _pos);
         }
         string ReadName(bool allow)
         {
             // allow leading whitespace
             ReadWhitespace();
 
-            if (!__nameStartChars.Contains(_input.PeekChar() ?? '\0'))
+            if (!__nameStartChars.Contains((char)_reader.Peek()))
                 return "";
 
             StringBuilder build = new StringBuilder();
             bool b = false;
-            char? c;
-            while ((c = _input.PeekChar()) != null)
+            int c;
+            while ((c = _reader.Peek()) != -1)
             {
-                if (!__nameChars.Contains(c ?? '\0'))
+                if (!__nameChars.Contains((char)c))
                 {
                     if (c == '`')
                     {
                         if (!allow)
-                            throw new SyntaxException("Cannot use the grave(`) in this context.", _line, _input.Position - _colOff, _name);
+                            throw new SyntaxException("Cannot use the grave(`) in this context.", _line, _pos - _colOff, _name);
 
                         if (b)
                             throw new SyntaxException("Can only have one grave(`) in a name.",
-                                _line, _input.Position - _colOff, _name);
+                                _line, _pos - _colOff, _name);
                         else
                             b = true;
                     }
                     else
                         return build.ToString();
                 }
-                else if (b && !"0123456789".Contains(c ?? '\0'))
+                else if (b && !"0123456789".Contains((char)c))
                 {
-                    _input.ReadChar();
+                    _pos++;
+                    _reader.Read();
                     return build.ToString();
                 }
-                build.Append(c);
-                _input.ReadChar();
+                build.Append((char)c);
+                _pos++;
+                _reader.Read();
             }
             return build.ToString();
         }
         string ReadString()
         {
             int i = 0;
-            if (_input.PeekChar() == '\'')
+            bool read = true;
+            if (_reader.Peek() == '\'')
                 i = -1;
-            else if (_input.PeekChar() == '"')
+            else if (_reader.Peek() == '"')
                 i = -2;
-            else if (_input.PeekChar() == '[')
+            else if (_reader.Peek() == '[')
             {
-                _input.ReadChar();
-                while (_input.PeekChar() == '=')
+                Read();
+                while (_reader.Peek() == '=')
                 {
                     i++;
-                    _input.ReadChar();
+                    Read();
                 }
-                if (_input.PeekChar() != '[')
-                    throw new SyntaxException("Invalid long-string definition.", _line, _input.Position - _colOff, _name);
-                if (_input.PeekChar(1) == '\n')
-                    _input.ReadChar();
+                if (_reader.Peek() != '[')
+                    throw new SyntaxException("Invalid long-string definition.", _line, _pos - _colOff, _name);
+                Read();
+                if (_reader.Peek() == '\n')
+                    Read();
+                read = false;
             }
             else
                 return null;
 
             StringBuilder str = new StringBuilder();
-            _input.ReadChar();
-            while (_input.CanRead)
+            if (read)
+                _reader.Read();
+            while (CanRead)
             {
-                char? c = _input.ReadChar();
+                int c = Read();
                 if (c == '\'' && i == -1)
                     return str.ToString();
                 else if (c == '"' && i == -2)
                     return str.ToString();
                 else if (c == '\n' && i < 0)
-                    throw new SyntaxException("Unfinished string literal.", _line, _input.Position - _colOff, _name);
+                    throw new SyntaxException("Unfinished string literal.", _line, _pos - _colOff, _name);
                 else if (c == ']' && i >= 0)
                 {
                     int j = 0;
-                    while (_input.PeekChar() == '=')
+                    while (_reader.Peek() == '=')
                     {
-                        j++;
-                        _input.ReadChar();
+                        j++; 
+                        Read();
                     }
 
-                    if (_input.PeekChar() != ']' || j != i)
+                    if (_reader.Peek() != ']' || j != i)
                     {
                         str.Append(']');
                         str.Append('=', j);
                     }
                     else
                     {
-                        _input.ReadChar();
+                        Read();
                         return str.ToString();
                     }
                 }
@@ -945,14 +847,14 @@ namespace ModMaker.Lua.Parser
                         continue;
                     }
 
-                    c = _input.ReadChar();
+                    c = Read();
                     if (c == '\'' || c == '"' || c == '\\')
-                        str.Append(c);
+                        str.Append((char)c);
                     else if (c == '\n')
                     {
                         str.Append('\n');
                         _line++;
-                        _colOff = _input.Position;
+                        _colOff = _pos;
                     }
                     else if (c == 'z')
                         ReadWhitespace();
@@ -975,62 +877,67 @@ namespace ModMaker.Lua.Parser
                     else if (c == 'x')
                     {
                         int ii = 0;
-                        c = _input.ReadChar();
-                        if (!"0123456789ABCDEFabcdef".Contains(c.Value))
-                            throw new SyntaxException("Invalid escape sequence '\\x" + c + "'", _line, _input.Position - _colOff, _name);
+                        c = Read();
+                        if (!"0123456789ABCDEFabcdef".Contains((char)c))
+                            throw new SyntaxException("Invalid escape sequence '\\x" + c + "'", _line, _pos - _colOff, _name);
                         ii = int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                        c = _input.ReadChar();
-                        if (!"0123456789ABCDEFabcdef".Contains(c.Value))
-                            throw new SyntaxException("Invalid escape sequence '\\x" + ii.ToString("x") + c + "'", _line, _input.Position - _colOff, _name);
+                        c = Read();
+                        if (!"0123456789ABCDEFabcdef".Contains((char)c))
+                            throw new SyntaxException("Invalid escape sequence '\\x" + ii.ToString("x") + c + "'", _line, _pos - _colOff, _name);
                         ii = (ii >> 16) + int.Parse(c.ToString(), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                         str.Append((char)ii);
                     }
-                    else if ("0123456789".Contains(c.Value))
+                    else if ("0123456789".Contains((char)c))
                     {
                         int ii = 0;
-                        if (!"0123456789".Contains(_input.PeekChar() ?? '\0'))
+                        if (!"0123456789".Contains((char)_reader.Peek()))
                             continue;
-                        c = _input.ReadChar();
+                        c = Read();
                         ii = int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                        if ("0123456789".Contains(_input.PeekChar() ?? '\0'))
+                        if ("0123456789".Contains((char)_reader.Peek()))
                         {
-                            c = _input.ReadChar();
+                            c = Read();
                             ii = (ii * 10) + int.Parse(c.ToString(), CultureInfo.InvariantCulture);
-                            if ("0123456789".Contains(_input.PeekChar() ?? '\0'))
+                            if ("0123456789".Contains((char)_reader.Peek()))
                             {
-                                c = _input.ReadChar();
+                                c = Read();
                                 ii = (ii * 10) + int.Parse(c.ToString(), CultureInfo.InvariantCulture);
                             }
                         }
                         str.Append((char)ii);
                     }
                     else
-                        throw new SyntaxException("Invalid escape sequence '\\" + c + "'.", _line, _input.Position - _colOff, _name);
+                        throw new SyntaxException("Invalid escape sequence '\\" + c + "'.", _line, _pos - _colOff, _name);
                 }
                 else
-                    str.Append(c.ToString());
+                    str.Append((char)c);
             }
 
             return str.ToString();
         }
         void ReadWhitespace()
         {
-            char? c;
-            while ((c = _input.PeekChar()) != null)
+            int c;
+            while ((c = _reader.Peek()) != -1)
             {
-                if (c == '-' && _input.PeekChar(1) == '-')
+                /*if (c == '-')
                 {
-                    _input.Read(2);
-                    ReadComment();
-                    continue;
+                    Read();
+                    if (_reader.Peek() == '-')
+                    {
+                        Read();
+                        ReadComment();
+                        continue;
+                    }
+                    return true;
                 }
-                else if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+                else */if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
                 {
                     if (c == '\n')
                     {
-                        _line++; _colOff = _input.Position + 1;
+                        _line++; _colOff = _pos + 1;
                     }
-                    _input.ReadChar();
+                    Read();
                     continue;
                 }
                 break;
@@ -1038,21 +945,21 @@ namespace ModMaker.Lua.Parser
         }
         void ReadComment()
         {
-            long l = _line, c = _input.Position - _colOff - 2;
+            long l = _line, c = _pos - _colOff - 2;
             int dep = -1;
-            char? cc;
-            if (_input.PeekChar() == '[')
+            int cc;
+            if (_reader.Peek() == '[')
             {
                 dep = 0;
-                _input.ReadChar();
-                while ((cc = _input.ReadChar()) != null)
+                Read();
+                while ((cc = Read()) != -1)
                 {
                     if (cc == '=')
                         dep++;
                     else if (cc == '\n')
                     {
                         _line++;
-                        _colOff = _input.Position + 1;
+                        _colOff = _pos + 1;
                         return;
                     }
                     else
@@ -1065,14 +972,14 @@ namespace ModMaker.Lua.Parser
             }
 
             int cdep = -1;
-            while ((cc = _input.ReadChar()) != null)
+            while ((cc = Read()) != -1)
             {
                 if (dep == -1)
                 {
                     if (cc == '\n')
                     {
                         _line++;
-                        _colOff = _input.Position + 1;
+                        _colOff = _pos + 1;
                         return;
                     }
                 }
@@ -1081,7 +988,7 @@ namespace ModMaker.Lua.Parser
                     if (cc == '\n')
                     {
                         _line++;
-                        _colOff = _input.Position + 1;
+                        _colOff = _pos + 1;
                         cdep = -1;
                     }
                     else if (cdep != -1)
@@ -1104,61 +1011,79 @@ namespace ModMaker.Lua.Parser
                     }
                 }
             }
-            if (!_input.CanRead && dep != -1)
+            if (!CanRead && dep != -1)
                 throw new SyntaxException("Expecting end of long comment that started at:", l, c, _name);
         }
-        IParseItem ReadSimpExp(string name = null)
+        Tuple<IParseItem, bool> ReadSimpExp(string name = null)
         {
             Stack<int> ex = new Stack<int>(); // 1 - neg, 2 - not, 3 - len
             IParseItem o = null;
+            bool b = false;
 
             if (string.IsNullOrWhiteSpace(name))
             {
                 while (true)
                 {
                     ReadWhitespace();
-                    if (_input.PeekChar() == '-')
+                    if (_reader.Peek() == '-')
                     {
-                        _input.ReadChar();
+                        Read();
                         ex.Push(1);
                         continue;
                     }
-                    else if (_input.PeekChar() == 'n' && _input.PeekChar(1) == 'o' && _input.PeekChar(2) == 't' &&
-                        !__nameStartChars.Contains(_input.PeekChar(3) ?? '\0'))
+                    else if (_reader.Peek() == 'n')
                     {
-                        _input.Read(3);
-                        ex.Push(2);
-                        continue;
+                        Read();
+                        name = "n";
+                        if (_reader.Peek() == 'o')
+                        {
+                            Read();
+                            name += "o";
+                            if (_reader.Peek() == 't')
+                            {
+                                Read();
+                                name += "t";
+                                if (!__nameChars.Contains((char)_reader.Peek()))
+                                {
+                                    ex.Push(2);
+                                    name = null;
+                                    continue;
+                                }
+                            }
+                        }
+                        if (__nameChars.Contains((char)_reader.Peek()))
+                            name += ReadName(true);
                     }
-                    else if (_input.PeekChar() == '#')
+                    else if (_reader.Peek() == '#')
                     {
-                        _input.ReadChar();
+                        Read();
                         ex.Push(3);
                         continue;
                     }
                     break;
                 }
 
-                if (".0123456789".Contains(_input.PeekChar() ?? '\0'))
+                if (".0123456789".Contains((char)_reader.Peek()))
                 {
                     double d = ReadNumber();
                     o = new LiteralItem(d);
                 }
-                else if (_input.PeekChar() == '\'' || _input.PeekChar() == '"')
+                else if (_reader.Peek() == '\'' || _reader.Peek() == '"')
                 {
                     o = new LiteralItem(ReadString());
                 }
-                else if (_input.PeekChar() == '{')
+                else if (_reader.Peek() == '{')
                 {
                     o = ReadTable();
                 }
-                else if (_input.PeekChar() == '(')
+                else if (_reader.Peek() == '(')
                 {
-                    _input.ReadChar();
-                    o = ReadExp();
+                    Read();
+                    var rr = ReadExp();
+                    o = rr.Item1;
                     ReadWhitespace();
-                    if (_input.ReadChar() != ')')
-                        throw new SyntaxException("Invalid expression.", _line, _input.Position - _colOff, _name);
+                    if (rr.Item2 != null || Read() != ')')
+                        throw new SyntaxException("Invalid expression.", _line, _pos - _colOff, _name);
                 }
             }
 
@@ -1167,7 +1092,7 @@ namespace ModMaker.Lua.Parser
                 string inst = null;
                 name = name ?? ReadName(true);
                 if (name == "function")
-                    return ReadFunc(null, null, _line, _input.Position - _colOff - 8);
+                    return new Tuple<IParseItem, bool>(ReadFunc(null, null, _line, _pos - _colOff - 8), false);
 
                 if (name == "nil")
                     o = new LiteralItem(null);
@@ -1181,36 +1106,43 @@ namespace ModMaker.Lua.Parser
                 while (true)
                 {
                     ReadWhitespace();
-                    if (_input.PeekChar() == '.' && _input.PeekChar(1) != '.')
+                    if (_reader.Peek() == '.')
                     {
-                        if (inst != null)
-                            throw new SyntaxException("Cannot use an indexer after an instance call.", _line, _input.Position - _colOff, _name);
+                        Read();
+                        b = _reader.Peek() == '.';
+                        if (!b)
+                        {
+                            if (inst != null)
+                                throw new SyntaxException("Cannot use an indexer after an instance call.", _line, _pos - _colOff, _name);
 
-                        _input.ReadChar();
-                        name = ReadName(true);
-                        o = new IndexerItem(o, new LiteralItem(name));
-                        continue;
+                            name = ReadName(true);
+                            o = new IndexerItem(o, new LiteralItem(name));
+                            continue;
+                        }
+                        else
+                            Read();
                     }
-                    else if (_input.PeekChar() == ':')
+                    else if (_reader.Peek() == ':')
                     {
-                        _input.ReadChar();
+                        Read();
                         inst = ReadName(true);
                         continue;
                     }
-                    else if (_input.PeekChar() == '[')
+                    else if (_reader.Peek() == '[')
                     {
                         if (inst != null)
-                            throw new SyntaxException("Cannot use an indexer after an instance call.", _line, _input.Position - _colOff, _name);
+                            throw new SyntaxException("Cannot use an indexer after an instance call.", _line, _pos - _colOff, _name);
 
-                        _input.ReadChar();
-                        IParseItem exp = ReadExp();
+                        Read();
+                        var rr = ReadExp();
+                        IParseItem exp = rr.Item1;
                         o = new IndexerItem(o, exp);
                         ReadWhitespace();
-                        if (_input.ReadChar() != ']')
-                            throw new SyntaxException("Invalid indexer.", _line, _input.Position - _colOff, _name);
+                        if (rr.Item2 != null || Read() != ']')
+                            throw new SyntaxException("Invalid indexer.", _line, _pos - _colOff, _name);
                         continue;
                     }
-                    else if (_input.PeekChar() == '\'' || _input.PeekChar() == '"')
+                    else if (_reader.Peek() == '\'' || _reader.Peek() == '"')
                     {
                         string s = ReadString();
                         o = new FuncCallItem(o, inst);
@@ -1218,7 +1150,7 @@ namespace ModMaker.Lua.Parser
                         o.AddItem(new LiteralItem(s));
                         continue;
                     }
-                    else if (_input.PeekChar() == '{')
+                    else if (_reader.Peek() == '{')
                     {
                         IParseItem t = ReadTable();
                         o = new FuncCallItem(o, inst);
@@ -1226,37 +1158,42 @@ namespace ModMaker.Lua.Parser
                         o.AddItem(t);
                         continue;
                     }
-                    else if (_input.PeekChar() == '(')
+                    else if (_reader.Peek() == '(')
                     {
-                        _input.ReadChar();
+                        Read();
                         ReadWhitespace();
                         o = new FuncCallItem(o, inst);
                         inst = null;
-                        while (_input.PeekChar() != ')')
+                        while (_reader.Peek() != ')')
                         {
-                            IParseItem e = ReadExp();
+                            var rr = ReadExp();
+                            if (rr.Item2 != null)
+                                throw new SyntaxException("Invalid function call.", _line, _pos - _colOff, _name);
+                            IParseItem e = rr.Item1;
                             ReadWhitespace();
                             o.AddItem(e);
-                            if (_input.PeekChar() == ',')
-                                _input.ReadChar();
-                            else if (_input.PeekChar() == ')')
+                            if (_reader.Peek() == ',')
+                                Read();
+                            else if (_reader.Peek() == ')')
                                 break;
                             else
-                                throw new SyntaxException("Invalid function call.", _line, _input.Position - _colOff, _name);
+                                throw new SyntaxException("Invalid function call.", _line, _pos - _colOff, _name);
                         }
-                        _input.ReadChar();
+                        Read();
                         continue;
                     }
                     break;
                 }
                 if (inst != null)
-                    throw new SyntaxException("Invalid instance function call.", _line, _input.Position - _colOff, _name);
+                    throw new SyntaxException("Invalid instance function call.", _line, _pos - _colOff, _name);
             }
 
             ReadWhitespace();
-            if (_input.PeekChar() == '^')
+            if (_reader.Peek() == '^')
             {
-                IParseItem other = ReadSimpExp();
+                var rr = ReadSimpExp();
+                IParseItem other = rr.Item1;
+                b = b || rr.Item2;
                 o = new BinOpItem(o, BinaryOperationType.Power);
                 (o as BinOpItem).Rhs = other;
             }
@@ -1270,7 +1207,7 @@ namespace ModMaker.Lua.Parser
                         {
                             object oo = (o as LiteralItem).Item;
                             if (!(oo is double))
-                                throw new SyntaxException("Cannot use unary minus on a string, bool, or nil.", _line, _input.Position - _colOff, _name);
+                                throw new SyntaxException("Cannot use unary minus on a string, bool, or nil.", _line, _pos - _colOff, _name);
 
                             o = new LiteralItem(-(double)oo);
                         }
@@ -1285,45 +1222,57 @@ namespace ModMaker.Lua.Parser
                         break;
                 }
             }
-            return o;
+            return new Tuple<IParseItem,bool>(o, b);
         }
-        IParseItem ReadExp(int prec = -1, string name = null)
+        Tuple<IParseItem, string> ReadExp(int prec = -1, string name = null)
         {
-            IParseItem cur = ReadSimpExp(name);
+            var rr = ReadSimpExp(name);
+            IParseItem cur = rr.Item1;
             BinOpItem ret = null;
+            string frag = rr.Item2 ? ".." : null;
             while (true)
             {
                 ReadWhitespace();
-                char? c = _input.PeekChar();
+                int c = frag != null ? frag[0] : _reader.Peek();
                 switch (c)
                 {
                     case 'o':
-                        if (_input.PeekChar(1) != 'r' || __nameChars.Contains(_input.PeekChar(2) ?? '\0'))
-                            break;
-                        if (prec == -1)
                         {
-                            _input.Read(2);
-                            ret = new BinOpItem(ret ?? cur, BinaryOperationType.Or);
-                            ret.Rhs = ReadExp(8);
-                            continue;
+                            bool d = false;
+                            if (frag == null)
+                                frag = ReadName(true);
+                            if (frag == "or")
+                                d = true;
+
+                            if (d)
+                            {
+                                ret = new BinOpItem(ret ?? cur, BinaryOperationType.Or);
+                                var rrr = ReadExp(8);
+                                ret.Rhs = rrr.Item1;
+                                frag = rrr.Item2;
+                                continue;
+                            }
                         }
                         break;
                     case 'a':
-                        if (_input.PeekChar(1) != 'n' || _input.PeekChar(2) != 'd' || __nameChars.Contains(_input.PeekChar(3) ?? '\0'))
-                            break;
-                        if (prec == -1)
                         {
-                            _input.Read(3);
-                            ret = new BinOpItem(ret ?? cur, BinaryOperationType.And);
-                            ret.Rhs = ReadExp(7);
-                            continue;
-                        }
-                        else if (prec > 7)
-                        {
-                            _input.Read(3);
-                            ret = new BinOpItem(cur, BinaryOperationType.And);
-                            ret.Rhs = ReadExp(7);
-                            continue;
+                            bool d = false;
+                            if (frag == null)
+                                frag = ReadName(true);
+                            if (frag == "and")
+                                d = true;
+
+                            if (d)
+                            {
+                                if (prec == -1 || prec > 7)
+                                {
+                                    ret = new BinOpItem((prec == -1 ? ret : null) ?? cur, BinaryOperationType.And);
+                                    var rrr = ReadExp(7);
+                                    ret.Rhs = rrr.Item1;
+                                    frag = rrr.Item2;
+                                    continue;
+                                }
+                            }
                         }
                         break;
                     case '>':
@@ -1331,91 +1280,112 @@ namespace ModMaker.Lua.Parser
                     case '=':
                     case '~':
                         {
-                            bool b = _input.PeekChar(1) == '=';
-                            if (c == '~' && !b)
-                                throw new SyntaxException("Invalid token ~ in expression.", 
-                                    _line, _input.Position - _colOff, _name);
-                            if (c == '=' && !b)
-                                break;
+                            bool b;
+                            if (frag == null)
+                            {
+                                frag = "" + (char)c;
+                                Read();
+                                if (_reader.Peek() == '=')
+                                {
+                                    b = true;
+                                    frag += "=";
+                                    Read();
+                                }
+                                else
+                                {
+                                    b = false;
+                                    if (c == '~')
+                                        throw new SyntaxException("Invalid token ~ in expression.", _line, _pos - _colOff, _name);
+                                    if (c == '=')
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                b = frag.Length > 0;
+                            }
+
                             var o = c == '>' ? b ? BinaryOperationType.Gte : BinaryOperationType.Gt :
                                 c == '<' ? b ? BinaryOperationType.Lte : BinaryOperationType.Lt :
                                 c == '=' ? BinaryOperationType.Equals : BinaryOperationType.NotEquals;
-                            if (prec == -1)
+                            if (prec == -1 || prec > 6)
                             {
-                                _input.Read(b ? 2 : 1);
-                                ret = new BinOpItem(ret ?? cur, o);
-                                ret.Rhs = ReadExp(6);
-                                continue;
-                            }
-                            else if (prec > 6)
-                            {
-                                _input.Read(b ? 2 : 1);
-                                ret = new BinOpItem(cur, o);
-                                ret.Rhs = ReadExp(6);
+                                ret = new BinOpItem((prec == -1 ? ret : null) ?? cur, o);
+                                var rrr = ReadExp(6);
+                                ret.Rhs = rrr.Item1;
+                                frag = rrr.Item2;
                                 continue;
                             }
                         }
                         break;
                     case '.':
-                        if (_input.PeekChar(1) != '.')
-                            break;
-                        if (prec == -1)
+                        if (frag == null)
                         {
-                            _input.Read(2);
-                            ret = new BinOpItem(ret ?? cur, BinaryOperationType.Concat);
-                            ret.Rhs = ReadExp(5);
-                            continue;
+                            frag = ".";
+                            Read();
+                            if (_reader.Peek() != '.')
+                                break;
+                            Read();
+                            frag = "..";
                         }
-                        else if (prec >= 5)
+                        else
                         {
-                            _input.Read(2);
-                            ret = new BinOpItem(cur, BinaryOperationType.Concat);
-                            ret.Rhs = ReadExp(5);
+                            if (frag.Length < 2 || frag[1] != '.')
+                                break;
+                        }
+
+                        if (prec == -1 || prec >= 5)
+                        {
+                            ret = new BinOpItem((prec == -1 ? ret : null) ?? cur, BinaryOperationType.Concat);
+                            var rrr = ReadExp(5);
+                            ret.Rhs = rrr.Item1;
+                            frag = rrr.Item2;
                             continue;
                         }
                         break;
                     case '+':
                     case '-':
-                        if (prec == -1)
+                        if (frag == null)
                         {
-                            _input.ReadChar();
-                            ret = new BinOpItem(ret ?? cur, c == '+' ? BinaryOperationType.Add : BinaryOperationType.Subtract);
-                            ret.Rhs = ReadExp(4);
+                            Read();
+                            if (_reader.Peek() == '-')
+                            {
+                                Read();
+                                ReadComment();
+                                continue;
+                            }
+                        }
+                        if (prec == -1 || prec > 4)
+                        {
+                            ret = new BinOpItem((prec == -1 ? ret : null) ?? cur, c == '+' ? BinaryOperationType.Add : BinaryOperationType.Subtract);
+                            var rrr = ReadExp(4);
+                            ret.Rhs = rrr.Item1;
+                            frag = rrr.Item2;
                             continue;
                         }
-                        else if (prec > 4)
-                        {
-                            _input.ReadChar();
-                            ret = new BinOpItem(cur, c == '+' ? BinaryOperationType.Add : BinaryOperationType.Subtract);
-                            ret.Rhs = ReadExp(4);
-                            continue;
-                        }
+                        frag = ((char)c).ToString();
                         break;
                     case '*':
                     case '/':
                     case '%':
-                        if (prec == -1)
+                        if (prec == -1 || prec > 3)
                         {
-                            _input.ReadChar();
-                            ret = new BinOpItem(ret ?? cur, 
+                            if (frag == null)
+                                Read();
+                            ret = new BinOpItem((prec == -1 ? ret : null) ?? cur, 
                                 c == '*' ? BinaryOperationType.Multiply : c == '%' ? BinaryOperationType.Modulo : BinaryOperationType.Divide);
-                            ret.Rhs = ReadExp(3);
+                            var rrr = ReadExp(3);
+                            ret.Rhs = rrr.Item1;
+                            frag = rrr.Item2;
                             continue;
                         }
-                        else if (prec > 3)
-                        {
-                            _input.ReadChar();
-                            ret = new BinOpItem(cur,
-                                c == '*' ? BinaryOperationType.Multiply : c == '%' ? BinaryOperationType.Modulo : BinaryOperationType.Divide);
-                            ret.Rhs = ReadExp(3);
-                            continue;
-                        }
+                        frag = ((char)c).ToString();
                         break;
                 }
                 break;
             }
 
-            return ret ?? cur;
+            return new Tuple<IParseItem, string>(ret ?? cur, frag);
         }
     }
 }

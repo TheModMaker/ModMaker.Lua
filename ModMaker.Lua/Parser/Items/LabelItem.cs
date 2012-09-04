@@ -20,7 +20,7 @@ namespace ModMaker.Lua.Parser.Items
 
         public ParseType Type { get { return ParseType.Statement; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
             if (label == null)
@@ -31,18 +31,10 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to LabelItem.");
         }
-        public void WaitOne()
-        {
-            // Do nothing.
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             label = cb.CurrentGenerator.DefineLabel();
             tree.DefineLabel(name, label.Value);
-        }
-        public bool HasNested()
-        {
-            return false;
         }
     }
 }

@@ -21,21 +21,13 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to NameItem.");
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             eb.ResolveName(Name, Set);
-        }
-        public void WaitOne()
-        {
-            // Do nothing
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             // Do nothing.
-        }
-        public bool HasNested()
-        {
-            return false;
         }
     }
 }

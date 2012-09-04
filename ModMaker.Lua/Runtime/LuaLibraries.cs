@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -1787,7 +1788,8 @@ namespace ModMaker.Lua.Runtime
                                 ret.Add(null);
                             else
                             {
-                                double? d = RuntimeHelper.ReadNumber(s);
+                                long pos = 0;
+                                double? d = RuntimeHelper.ReadNumber(s, null, 0, 0, ref pos);
                                 if (d.HasValue)
                                     ret.Add(d.Value);
                                 else
@@ -1837,9 +1839,9 @@ namespace ModMaker.Lua.Runtime
                     throw new FileNotFoundException("Unable to locate file at '" + file + "'.");
 
                 string chunk = File.ReadAllText(file);
-                using (var c = new CharDecorator(chunk))
+                using (var c = new StringReader(chunk))
                 {
-                    var r = new PlainParser(c).LoadChunk(o.Environment);
+                    var r = PlainParser.LoadChunk(o.Environment, c, SHA512.Create().ComputeHash(Encoding.Unicode.GetBytes(chunk)));
                     return new MultipleReturn((IEnumerable)r.Execute());
                 }
             }
@@ -1876,11 +1878,11 @@ namespace ModMaker.Lua.Runtime
                 else
                     throw new ArgumentException("First argument to 'load' must be a string or a method.");
 
-                using (var c = new CharDecorator(chunk))
+                using (var c = new StringReader(chunk))
                 {
                     try
                     {
-                        return new MultipleReturn(new PlainParser(c).LoadChunk(o.Environment).ToMethod());
+                        return new MultipleReturn(PlainParser.LoadChunk(o.Environment, c, SHA512.Create().ComputeHash(Encoding.Unicode.GetBytes(chunk))).ToMethod());
                     }
                     catch (Exception e)
                     {
@@ -1906,11 +1908,11 @@ namespace ModMaker.Lua.Runtime
                     throw new ArgumentException("The only mode supported by loadfile is 't'.");
 
                 string chunk = File.ReadAllText(file);
-                using (var c = new CharDecorator(chunk))
+                using (var c = new StringReader(chunk))
                 {
                     try
                     {
-                        return new MultipleReturn(new PlainParser(c).LoadChunk(o.Environment).ToMethod());
+                        return new MultipleReturn(PlainParser.LoadChunk(o.Environment, c, SHA512.Create().ComputeHash(Encoding.Unicode.GetBytes(chunk))).ToMethod());
                     }
                     catch (Exception e)
                     {

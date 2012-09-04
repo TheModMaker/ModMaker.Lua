@@ -30,21 +30,13 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to ClassDefItem.");
         }
-        public void WaitOne()
-        {
-            // Do nothing.
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             // Do nothing.
         }
-        public void GenerateILNew(ChunkBuilderNew cb)
+        public void GenerateIL(ChunkBuilderNew cb)
         {
             cb.DefineClass(Name, impliments.ToArray(), line, col);
-        }
-        public bool HasNested()
-        {
-            return false;
         }
     }
 }

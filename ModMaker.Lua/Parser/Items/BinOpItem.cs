@@ -47,40 +47,20 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to BinOpItem.");
         }
-        public void WaitOne()
-        {
-            Lhs.WaitOne();
-            if (Lhs is AsyncItem)
-                Lhs = ((AsyncItem)Lhs).Item;
-            Rhs.WaitOne();
-            if (Rhs is AsyncItem)
-                Rhs = ((AsyncItem)Rhs).Item;
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             Lhs.ResolveLabels(cb, tree);
             Rhs.ResolveLabels(cb, tree);
         }
-        public void GenerateILNew(ChunkBuilderNew cb)
+        public void GenerateIL(ChunkBuilderNew cb)
         {
-            ILGenerator gen = cb.CurrentGenerator;/*
-            if (OperationType == BinaryOperationType.Add)
-            {
-                Lhs.GenerateILNew(cb);
-                Rhs.GenerateILNew(cb);
-                gen.Emit(OpCodes.Call, typeof(LuaValueNew).GetMethod("op_Addition", BindingFlags.Public | BindingFlags.Static));
-            }
-            else*/
-            {
-                Lhs.GenerateILNew(cb);
-                gen.Emit(OpCodes.Ldc_I4, (int)OperationType);
-                Rhs.GenerateILNew(cb);
-                gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ResolveBinaryOperation", BindingFlags.Public | BindingFlags.Static));
-            }
-        }
-        public bool HasNested()
-        {
-            return Lhs.HasNested() || Rhs.HasNested();
+            ILGenerator gen = cb.CurrentGenerator;
+
+            //! push RuntimeHelper.ResolveBinaryOperation({Lhs}, {OperationType}, {Rhs})
+            Lhs.GenerateIL(cb);
+            gen.Emit(OpCodes.Ldc_I4, (int)OperationType);
+            Rhs.GenerateIL(cb);
+            gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ResolveBinaryOperation", BindingFlags.Public | BindingFlags.Static));
         }
     }
 }

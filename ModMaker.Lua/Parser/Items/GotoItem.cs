@@ -25,24 +25,16 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to GotoItem.");
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
             if (Label == null)
                 throw new InvalidOperationException("Must call IParseItem.ResolveLabels before calling IParseItem.GenerateIL.");
             gen.Emit(OpCodes.Br, Label.Value);
         }
-        public void WaitOne()
-        {
-            // Do nothing
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             tree.GotoLabel(Name, this);
-        }
-        public bool HasNested()
-        {
-            return false;
         }
     }
 }

@@ -24,7 +24,7 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to LiteralItem.");
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
             if (Item == null)
@@ -49,17 +49,9 @@ namespace ModMaker.Lua.Parser.Items
             else
                 throw new InvalidOperationException("A literal must be of type bool, double, string, or be null.");
         }
-        public void WaitOne()
-        {
-            // Do nothing
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             // Do nothing.
-        }
-        public bool HasNested()
-        {
-            return false;
         }
     }
 }

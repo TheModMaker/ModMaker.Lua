@@ -22,12 +22,12 @@ namespace ModMaker.Lua.Runtime
         }
     }
 
-    class LuaPointerNew
+    class LuaPointer
     {
         object pref, ind;
         LuaEnvironment E;
 
-        public LuaPointerNew(object pref, object ind, LuaEnvironment E)
+        public LuaPointer(object pref, object ind, LuaEnvironment E)
         {
             this.pref = pref;
             this.ind = ind;
@@ -36,7 +36,7 @@ namespace ModMaker.Lua.Runtime
 
         public object GetValue()
         {
-            object o = pref is LuaPointerNew ? RuntimeHelper.GetValue(pref) : pref;
+            object o = pref is LuaPointer ? RuntimeHelper.GetValue(pref) : pref;
             if (o == null)
                 throw new InvalidOperationException("Attempt to index a nil value.");
             if (o is MultipleReturn)
@@ -59,7 +59,7 @@ namespace ModMaker.Lua.Runtime
             }
             else if (o is LuaParameters)
             {
-                return (o as LuaParameters).GetArg(Convert.ToInt32(ind, CultureInfo.InvariantCulture));
+                return (o as LuaParameters)[Convert.ToInt32(ind, CultureInfo.InvariantCulture)];
             }
             else if (o is LuaClass)
             {
@@ -76,7 +76,7 @@ namespace ModMaker.Lua.Runtime
         }
         public void SetValue(object value)
         {
-            object o = pref is LuaPointerNew ? RuntimeHelper.GetValue(pref) : pref;
+            object o = pref is LuaPointer ? RuntimeHelper.GetValue(pref) : pref;
             if (o == null)
                 throw new InvalidOperationException("Attempt to index a nil value.");
             if (o is double)
@@ -94,7 +94,7 @@ namespace ModMaker.Lua.Runtime
             }
             else if (o is LuaParameters)
             {
-                (o as LuaParameters).SetArg(Convert.ToInt32(ind, CultureInfo.InvariantCulture), value);
+                (o as LuaParameters)[Convert.ToInt32(ind, CultureInfo.InvariantCulture)] = value;
             }
             else if (o is LuaClass)
             {

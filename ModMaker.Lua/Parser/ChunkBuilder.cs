@@ -163,14 +163,14 @@ namespace ModMaker.Lua.Parser
             {
                 FieldBuilder field = nest.DefineField(args[i]);
 
-                // {nest.ChildInst}.{field} = arg_1.GetArg({i});
+                // {nest.ChildInst}.{field} = arg_1[{i}];
                 CurrentGenerator.Emit(OpCodes.Ldloc, nest.ChildInst);
                 CurrentGenerator.Emit(OpCodes.Ldarg_1);
                 CurrentGenerator.Emit(OpCodes.Ldc_I4, i);
-                CurrentGenerator.Emit(OpCodes.Callvirt, typeof(LuaParameters).GetMethod("GetArg"));
+                CurrentGenerator.Emit(OpCodes.Callvirt, typeof(LuaParameters).GetMethod("get_Item"));
                 CurrentGenerator.Emit(OpCodes.Stfld, field);
             }
-            block.GenerateILNew(this);
+            block.GenerateIL(this);
 /*EndBlock*/nest.Locals.RemoveAt(nest.Locals.Count - 1);
             nest.Type.CreateType();
             _types.RemoveAt(_types.Count - 1);
