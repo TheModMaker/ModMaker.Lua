@@ -3,10 +3,10 @@
 
 === 0.9 Alpha ===
 * Added BaseAccessor to allow for access to the base type when defining a new type in Lua.
-* Added ability to override the LuaChunk cache while loading files.
 * Added LuaIgnoreAttribute to Lua and LuaChunk.
 * Added support for params array and optional arguments in C# functions.
 * Added support for converting a sequence table to an array.
+* Added ability to override the LuaChunk cache while loading files.
 * Changed PlainParser to use a Tokenizer.  Also uses TextElementEnumerator to allow for Globalization.  Also uses CurentCulture
   to define the number format.  Now reads the entire file into memory before parsing.
 * Changed LuaTable length to return the Math.Floor of the largest number key in the table.
