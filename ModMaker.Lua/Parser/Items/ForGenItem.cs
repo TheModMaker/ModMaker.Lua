@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class ForGenItem : IParseItem
     {
@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Block { get; set; }
         public ParseType Type { get { return ParseType.Statement; } }
 
-        public void GenerateILNew(ChunkBuilderNew cb)
+        public void GenerateIL(ChunkBuilderNew cb)
         {
             ILGenerator gen = cb.CurrentGenerator;
             Label start = gen.DefineLabel();
@@ -36,14 +36,19 @@ namespace ModMaker.Lua.Parser.Items
                 end = gen.DefineLabel();
 
         cb.StartBlock();
+            // temp = new List<object>();
             gen.Emit(OpCodes.Newobj, typeof(List<object>).GetConstructor(new Type[0]));
             gen.Emit(OpCodes.Stloc, temp);
+
             foreach (var item in _exps)
             {
+                // temp.Add({item});
                 gen.Emit(OpCodes.Ldloc, temp);
-                item.GenerateILNew(cb);
+                item.GenerateIL(cb);
                 gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("Add"));
             }
+
+            // RuntimeHelper.ForGenStart(temp, ref f, ref s, ref var);
             gen.Emit(OpCodes.Ldloc, temp);
             gen.Emit(OpCodes.Ldloca, f);
             gen.Emit(OpCodes.Ldloca, s);
@@ -94,6 +99,7 @@ namespace ModMaker.Lua.Parser.Items
 
             for (int i = 1; i < _names.Count; i++)
             {
+                // RuntimeHelper.SetValue(ref {_names[i]}, ret[{i}]);
                 cb.DefineLocal(_names[i], true);
                 gen.Emit(OpCodes.Ldloc, ret);
                 gen.Emit(OpCodes.Ldc_I4, i);
@@ -101,28 +107,19 @@ namespace ModMaker.Lua.Parser.Items
                 gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("SetValue"));
             }
 
-            Block.GenerateILNew(cb);
+            // {Block}
+            Block.GenerateIL(cb);
+
+            // goto start;
             gen.Emit(OpCodes.Br, start);
 
+            // end:
             gen.MarkLabel(end.Value);
         cb.EndBlock();
         }
         public void AddItem(IParseItem item)
         {
             _exps.Add(item);
-        }
-        public void WaitOne()
-        {
-            Block.WaitOne();
-            if (Block is AsyncItem)
-                Block = (Block as AsyncItem).Item;
-
-            for (int i = 0; i < _exps.Count; i++)
-            {
-                _exps[i].WaitOne();
-                if (_exps[i] is AsyncItem)
-                    _exps[i] = (_exps[i] as AsyncItem).Item;
-            }
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
@@ -134,10 +131,6 @@ namespace ModMaker.Lua.Parser.Items
                     item.ResolveLabels(cb, tree);
                 tree.DefineLabel("<break>", end.Value);
             tree.EndBlock(b);
-        }
-        public bool HasNested()
-        {
-            throw new NotImplementedException();            
         }
     }
 }

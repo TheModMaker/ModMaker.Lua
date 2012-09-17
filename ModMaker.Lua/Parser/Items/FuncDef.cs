@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class FuncDef : IParseItem
     {
@@ -30,7 +30,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Block { get; set; }
         public ParseType Type { get { return ParseType.Statement | ParseType.Expression; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             string name = null;
             if (Local)
@@ -47,12 +47,15 @@ namespace ModMaker.Lua.Parser.Items
             {
                 if (InstanceName != null)
                 {
-                    eb.PushEnv();
-                    _name.GenerateILNew(eb);
+                    // loc = RuntimeHelper.Indexer({_E}, {_name}, {InstanceName})
                     LocalBuilder loc = eb.CurrentGenerator.DeclareLocal(typeof(object));
+                    eb.PushEnv();
+                    _name.GenerateIL(eb);
                     eb.CurrentGenerator.Emit(OpCodes.Ldstr, InstanceName);
                     eb.CurrentGenerator.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("Indexer"));
                     eb.CurrentGenerator.Emit(OpCodes.Stloc, loc);
+
+                    //! push loc
                     eb.CurrentGenerator.Emit(OpCodes.Ldloca, loc);
 
                     if (_name is NameItem)
@@ -68,7 +71,7 @@ namespace ModMaker.Lua.Parser.Items
                     else
                         (_name as IndexerItem).Set = true;
 
-                    _name.GenerateILNew(eb);
+                    _name.GenerateIL(eb);
                     if (_name is NameItem)
                         name = (_name as NameItem).Name;
                     else
@@ -86,12 +89,6 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseItem item)
         {
             throw new NotSupportedException("Cannot add items to FuncDef.");
-        }
-        public void WaitOne()
-        {
-            Block.WaitOne();
-            if (Block is AsyncItem)
-                Block = (Block as AsyncItem).Item;
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
@@ -113,10 +110,6 @@ namespace ModMaker.Lua.Parser.Items
                 gen = cb.CurrentGenerator;
                 Block.ResolveLabels(cb, tree);
             tree.EndBlock(b);
-        }
-        public bool HasNested()
-        {
-            return true;
         }
     }
 }

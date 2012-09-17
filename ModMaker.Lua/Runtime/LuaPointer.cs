@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Globalization;
+using System.Reflection.Emit;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -22,12 +23,12 @@ namespace ModMaker.Lua.Runtime
         }
     }
 
-    class LuaPointerNew
+    class LuaPointer
     {
         object pref, ind;
         LuaEnvironment E;
 
-        public LuaPointerNew(object pref, object ind, LuaEnvironment E)
+        public LuaPointer(object pref, object ind, LuaEnvironment E)
         {
             this.pref = pref;
             this.ind = ind;
@@ -36,7 +37,7 @@ namespace ModMaker.Lua.Runtime
 
         public object GetValue()
         {
-            object o = pref is LuaPointerNew ? RuntimeHelper.GetValue(pref) : pref;
+            object o = pref is LuaPointer ? RuntimeHelper.GetValue(pref) : pref;
             if (o == null)
                 throw new InvalidOperationException("Attempt to index a nil value.");
             if (o is MultipleReturn)
@@ -59,11 +60,15 @@ namespace ModMaker.Lua.Runtime
             }
             else if (o is LuaParameters)
             {
-                return (o as LuaParameters).GetArg(Convert.ToInt32(ind, CultureInfo.InvariantCulture));
+                return (o as LuaParameters)[Convert.ToInt32(ind, CultureInfo.InvariantCulture)];
             }
             else if (o is LuaClass)
             {
                 return new LuaUserData((o as LuaClass).GetItem(ind), new string[0], false);
+            }
+            else if (o is BaseAccessor)
+            {
+                return (o as BaseAccessor).GetValue(ind, E);
             }
             else if (o is LuaType)
             {
@@ -76,7 +81,7 @@ namespace ModMaker.Lua.Runtime
         }
         public void SetValue(object value)
         {
-            object o = pref is LuaPointerNew ? RuntimeHelper.GetValue(pref) : pref;
+            object o = pref is LuaPointer ? RuntimeHelper.GetValue(pref) : pref;
             if (o == null)
                 throw new InvalidOperationException("Attempt to index a nil value.");
             if (o is double)
@@ -94,7 +99,7 @@ namespace ModMaker.Lua.Runtime
             }
             else if (o is LuaParameters)
             {
-                (o as LuaParameters).SetArg(Convert.ToInt32(ind, CultureInfo.InvariantCulture), value);
+                (o as LuaParameters)[Convert.ToInt32(ind, CultureInfo.InvariantCulture)] = value;
             }
             else if (o is LuaClass)
             {
@@ -103,6 +108,10 @@ namespace ModMaker.Lua.Runtime
             else if (o is LuaUserData && (o as LuaUserData).Value is LuaClassItem)
             {
                 ((o as LuaUserData).Value as LuaClassItem).SetItem(ind, value);
+            }
+            else if (o is BaseAccessor)
+            {
+                (o as BaseAccessor).SetValue(ind, value, E);
             }
             else if (o is LuaType)
             {
@@ -116,8 +125,6 @@ namespace ModMaker.Lua.Runtime
 
         object GetSetItem(object o, bool stat, object value = null)
         {
-            object ind = this.ind;
-
             LuaUserData userDat = o as LuaUserData;
             o = userDat == null ? o : userDat.Value;
             Type t = stat ? o as Type : o.GetType();
@@ -137,9 +144,11 @@ namespace ModMaker.Lua.Runtime
                 }
                 else
                 {
-                    foreach (var item in (ind as LuaTable))
+                    LuaTable table = ind as LuaTable;
+                    double len = table.GetLength();
+                    for (double d = 1; d <= len; d++)
                     {
-                        object oo = RuntimeHelper.GetValue(item.Value);
+                        object oo = RuntimeHelper.GetValue(table[d]);
                         if (oo is LuaTable)
                             throw new InvalidOperationException("Arguments to indexer cannot be a table.");
                         param.Add(oo);
@@ -170,13 +179,13 @@ namespace ModMaker.Lua.Runtime
                     param.Add(value);
 
                 object[] args = param.ToArray();
-                Tuple<MethodBase, object> meth = RuntimeHelper.GetCompatibleMethod(
+                Tuple<MethodInfo, object> meth = RuntimeHelper.GetCompatibleMethod(
                     t.GetMethods()
                         .Where(m => m.Name == (value == null ? "get_Item" : "set_Item"))
                         .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), false).Length == 0)
-                        .Select(m => new Tuple<MethodBase, object>(m, o))
+                        .Select(m => new Tuple<MethodInfo, object>(m, o))
                         .ToArray(), 
-                    args);
+                    ref args);
 
                 if (meth == null || (userDat != null && userDat.Members != null && !userDat.Members.Contains("Item") && !userDat.Members.Contains(value == null ? "Item+" : "Item-")))
                     throw new InvalidOperationException("Unable to find an indexer that matches the provided arguments for type '" +

@@ -151,32 +151,50 @@ namespace ModMaker.Lua.Parser
             CurrentGenerator = gen;
             _types.Add(nest);
 
-/*StartBlock*/nest.Locals.Add(new Dictionary<string,FieldBuilder>());
+            // start block
+            nest.Locals.Add(new Dictionary<string,FieldBuilder>());
             nest.ChildInst = CurrentGenerator.DeclareLocal(nest.Type);
+
             // {nest.ChildInst} = new {nest.Constructor}(this, this.{E});
             CurrentGenerator.Emit(OpCodes.Ldarg_0);
             CurrentGenerator.Emit(OpCodes.Ldarg_0);
             CurrentGenerator.Emit(OpCodes.Ldfld, nest.Parrent.Env);
             CurrentGenerator.Emit(OpCodes.Newobj, nest.Constructor);
             CurrentGenerator.Emit(OpCodes.Stloc, nest.ChildInst);
+
             for (int i = 0; i < args.Length; i++)
             {
                 FieldBuilder field = nest.DefineField(args[i]);
 
-                // {nest.ChildInst}.{field} = arg_1.GetArg({i});
+                // {nest.ChildInst}.{field} = arg_1[{i}];
                 CurrentGenerator.Emit(OpCodes.Ldloc, nest.ChildInst);
                 CurrentGenerator.Emit(OpCodes.Ldarg_1);
                 CurrentGenerator.Emit(OpCodes.Ldc_I4, i);
-                CurrentGenerator.Emit(OpCodes.Callvirt, typeof(LuaParameters).GetMethod("GetArg"));
+                CurrentGenerator.Emit(OpCodes.Callvirt, typeof(LuaParameters).GetMethod("get_Item"));
                 CurrentGenerator.Emit(OpCodes.Stfld, field);
             }
-            block.GenerateILNew(this);
-/*EndBlock*/nest.Locals.RemoveAt(nest.Locals.Count - 1);
+
+            if (instance)
+            {
+                FieldBuilder field = nest.DefineField("base");
+
+                // {nest.ChildInst}.base = new BaseAcccessor(arg_1[0]);
+                CurrentGenerator.Emit(OpCodes.Ldloc, nest.ChildInst);
+                CurrentGenerator.Emit(OpCodes.Ldarg_1);
+                CurrentGenerator.Emit(OpCodes.Ldc_I4, 0);
+                CurrentGenerator.Emit(OpCodes.Callvirt, typeof(LuaParameters).GetMethod("get_Item"));
+                CurrentGenerator.Emit(OpCodes.Newobj, typeof(BaseAccessor).GetConstructor(new[] { typeof(object) }));
+                CurrentGenerator.Emit(OpCodes.Stfld, field);
+            }
+            block.GenerateIL(this);
+
+            // end block
+            nest.Locals.RemoveAt(nest.Locals.Count - 1);
             nest.Type.CreateType();
             _types.RemoveAt(_types.Count - 1);
 
             CurrentGenerator = old;
-            // RuntimeHelper.GetFunction(this.{E}, {nest.Parrent.Type}, {name}, {nest.Parrent.ChildInst != null ? nest.Parrent.ChildInst : arg_0});
+            // RuntimeHelper.GetFunction({E}, {nest.Parrent.Type}, {name}, {nest.Parrent.ChildInst != null ? nest.Parrent.ChildInst : arg_0});
             PushEnv();
             old.Emit(OpCodes.Ldtoken, nest.Parrent.Type);
             old.Emit(OpCodes.Call, typeof(Type).GetMethod("GetTypeFromHandle", new Type[] { typeof(RuntimeTypeHandle) }));

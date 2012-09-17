@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class ForNumItem : IParseItem
     {
@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Block { get; set; }
         public ParseType Type { get { return ParseType.Statement; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
             Label start = gen.DefineLabel();
@@ -35,54 +35,75 @@ namespace ModMaker.Lua.Parser.Items
                 end = gen.DefineLabel();
 
         eb.StartBlock();
-            /* get the start */
-            Start.GenerateILNew(eb);
+
+            // d = RuntimeHelper.ToNumber({Start});
+            Start.GenerateIL(eb);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ToNumber"));
             gen.Emit(OpCodes.Stloc, d);
+
+            // if (d.HasValue) goto sj;
             gen.Emit(OpCodes.Ldloca, d);
             gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
             gen.Emit(OpCodes.Brtrue, sj);
+
+            // err:
             gen.MarkLabel(err);
+            
+            // throw new InvalidOperationException("The Start, Limit, and Step of a for loop must result in numbers.");
             gen.Emit(OpCodes.Ldstr, "The Start, Limit, and Step of a for loop must result in numbers.");
             gen.Emit(OpCodes.Newobj, typeof(InvalidOperationException).GetConstructor(new Type[] { typeof(string) }));
             gen.Emit(OpCodes.Throw);
+
+            // sj:
             gen.MarkLabel(sj);
+
+            // val = d.Value;
             gen.Emit(OpCodes.Ldloca, d);
             gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
             gen.Emit(OpCodes.Stloc, val);
 
-            /* get the step */
             if (Step != null)
             {
-                Step.GenerateILNew(eb);
+                // d = RuntimeHelper.ToNumber({Step});
+                Step.GenerateIL(eb);
                 gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ToNumber"));
                 gen.Emit(OpCodes.Stloc, d);
+
+                // if (!d.HasValue) goto err;
                 gen.Emit(OpCodes.Ldloca, d);
                 gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
                 gen.Emit(OpCodes.Brfalse, err);
+
+                // step = d.Value;
                 gen.Emit(OpCodes.Ldloca, d);
                 gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
             }
             else
             {
+                // step = 1.0;
                 gen.Emit(OpCodes.Ldc_R8, 1.0);
             }
             gen.Emit(OpCodes.Stloc, step);
 
-            /* get the limit */
-            Limit.GenerateILNew(eb);
+            // d = RuntimeHelper.ToNumber({Limit});
+            Limit.GenerateIL(eb);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ToNumber"));
             gen.Emit(OpCodes.Stloc, d);
+
+            // if (!d.HasValue) goto err;
             gen.Emit(OpCodes.Ldloca, d);
             gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
             gen.Emit(OpCodes.Brfalse, err);
+
+            // limit = d.Value;
             gen.Emit(OpCodes.Ldloca, d);
             gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
             gen.Emit(OpCodes.Stloc, limit);
 
+            // start:
             gen.MarkLabel(start);
 
-            // if ((step > 0) ^ (val > limit)) goto end
+            // if (!((step > 0) & (val <= limit)) | ((step <= 0) & (val >= limit))) goto end;
             gen.Emit(OpCodes.Ldloc, step);
             gen.Emit(OpCodes.Ldc_R8, 0.0);
             gen.Emit(OpCodes.Cgt);
@@ -106,18 +127,22 @@ namespace ModMaker.Lua.Parser.Items
             gen.Emit(OpCodes.Or);
             gen.Emit(OpCodes.Brfalse, end.Value);
 
+            // RuntimeHelper.SetValue(ref {name}, (object)val);
             eb.DefineLocal(name, true);
             gen.Emit(OpCodes.Ldloc, val);
             gen.Emit(OpCodes.Box, typeof(double));
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("SetValue"));
 
-            Block.GenerateILNew(eb);
+            // {Block}
+            Block.GenerateIL(eb);
 
-            // _E.ForLoopInc
+            // val += step;
             gen.Emit(OpCodes.Ldloc, val);
             gen.Emit(OpCodes.Ldloc, step);
             gen.Emit(OpCodes.Add);
             gen.Emit(OpCodes.Stloc, val);
+
+            // goto start;
             gen.Emit(OpCodes.Br, start);
 
             // end:
@@ -128,27 +153,6 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseItem item)
         {
             throw new NotSupportedException("Cannot add items to ForNumItem.");
-        }
-        public void WaitOne()
-        {
-            Block.WaitOne();
-            if (Block is AsyncItem)
-                Block = (Block as AsyncItem).Item;
-
-            Start.WaitOne();
-            if (Start is AsyncItem)
-                Start = (Start as AsyncItem).Item;
-
-            Limit.WaitOne();
-            if (Limit is AsyncItem)
-                Limit = (Limit as AsyncItem).Item;
-
-            if (Step != null)
-            {
-                Step.WaitOne();
-                if (Step is AsyncItem)
-                    Step = (Step as AsyncItem).Item;
-            }
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
@@ -164,10 +168,6 @@ namespace ModMaker.Lua.Parser.Items
                     Step.ResolveLabels(cb, tree);
                 tree.DefineLabel("<break>", end.Value);
             tree.EndBlock(b);
-        }
-        public bool HasNested()
-        {
-            return Start.HasNested() || Limit.HasNested() || (Step != null && Step.HasNested()) || Block.HasNested();
         }
     }
 }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class WhileItem : IParseItem
     {
@@ -20,35 +20,34 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Block { get; set; }
         public ParseType Type { get { return ParseType.Statement; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             if (end == null)
                 end = eb.CurrentGenerator.DefineLabel();
 
             ILGenerator gen = eb.CurrentGenerator;
             Label start = gen.DefineLabel();
+                
+            // start:
             gen.MarkLabel(start);
-                Exp.GenerateILNew(eb);
-                gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("IsTrue"));
-                gen.Emit(OpCodes.Brfalse, end.Value);
-            
-                Block.GenerateILNew(eb);
-                gen.Emit(OpCodes.Br, start);
+
+            // if (!RuntimeHelper.IsTrue({Exp}) goto end;
+            Exp.GenerateIL(eb);
+            gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("IsTrue"));
+            gen.Emit(OpCodes.Brfalse, end.Value);
+                
+            // {Block}
+            Block.GenerateIL(eb);
+
+            // goto start;
+            gen.Emit(OpCodes.Br, start);
+
+            // end:
             gen.MarkLabel(end.Value);
         }
         public void AddItem(IParseItem item)
         {
             throw new NotSupportedException("Cannot add items to WhileItem.");
-        }
-        public void WaitOne()
-        {
-            Exp.WaitOne();
-            if (Exp is AsyncItem)
-                Exp = (Exp as AsyncItem).Item;
-
-            Block.WaitOne();
-            if (Block is AsyncItem)
-                Block = (Block as AsyncItem).Item;
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
@@ -58,10 +57,6 @@ namespace ModMaker.Lua.Parser.Items
                 end = cb.CurrentGenerator.DefineLabel();
                 tree.DefineLabel("<break>", end.Value);
             tree.EndBlock(b);
-        }
-        public bool HasNested()
-        {
-            return Exp.HasNested() || Block.HasNested();
         }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security;
-using System.Security.Permissions;
 using System.IO;
-using ModMaker.Lua.Runtime;
+using System.Linq;
+using System.Security;
+using System.Security.Cryptography;
+using System.Security.Permissions;
+using System.Text;
 using ModMaker.Lua.Parser;
+using ModMaker.Lua.Runtime;
 
 namespace ModMaker.Lua
 {
@@ -15,6 +16,7 @@ namespace ModMaker.Lua
     /// the environments, and registering types and
     /// global methods.
     /// </summary>
+    [LuaIgnore]
     public sealed class Lua : IDisposable
     {
         bool _disposed = false;
@@ -198,9 +200,36 @@ namespace ModMaker.Lua
             {
                 lock (this)
                 {
-                    using (CharDecorator c = new CharDecorator(fs))
+                    using (TextReader c = new StreamReader(fs))
                     {
-                        LuaChunk ret = new PlainParser(c, Path.GetFileNameWithoutExtension(path)).LoadChunk(Environment);
+                        LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), Path.GetFileNameWithoutExtension(path));
+
+                        if (!_chunks.Contains(ret))
+                            _chunks.Add(ret);
+                        return ret;
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a specified file.
+        /// </summary>
+        /// <param name="path">The path to the file to load.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <returns>The loaded chunk.</returns>
+        [SecuritySafeCritical]
+        public LuaChunk Load(string path, bool @override)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            using (FileStream fs = File.Open(path, FileMode.Open))
+            {
+                lock (this)
+                {
+                    using (TextReader c = new StreamReader(fs))
+                    {
+                        LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), Path.GetFileNameWithoutExtension(path), @override);
 
                         if (!_chunks.Contains(ret))
                             _chunks.Add(ret);
@@ -225,9 +254,37 @@ namespace ModMaker.Lua
             {
                 lock (this)
                 {
-                    using (CharDecorator c = new CharDecorator(fs))
+                    using (TextReader c = new StreamReader(fs))
                     {
-                        LuaChunk ret = new PlainParser(c, name).LoadChunk(Environment);
+                        LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), name);
+
+                        if (!_chunks.Contains(ret))
+                            _chunks.Add(ret);
+                        return ret;
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a specified file.
+        /// </summary>
+        /// <param name="path">The path to the file to load.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <param name="name">The name to give the chunk.</param>
+        /// <returns>The loaded chunk.</returns>
+        [SecuritySafeCritical]
+        public LuaChunk Load(string path, string name, bool @override)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            using (FileStream fs = File.Open(path, FileMode.Open))
+            {
+                lock (this)
+                {
+                    using (TextReader c = new StreamReader(fs))
+                    {
+                        LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), name, @override);
 
                         if (!_chunks.Contains(ret))
                             _chunks.Add(ret);
@@ -245,9 +302,9 @@ namespace ModMaker.Lua
         {
             lock (this)
             {
-                using (CharDecorator c = new CharDecorator(stream))
+                using (TextReader c = new StreamReader(stream))
                 {
-                    LuaChunk ret = new PlainParser(c).LoadChunk(Environment);
+                    LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd());
 
                     if (!_chunks.Contains(ret))
                         _chunks.Add(ret);
@@ -265,9 +322,50 @@ namespace ModMaker.Lua
         {
             lock (this)
             {
-                using (CharDecorator c = new CharDecorator(stream))
+                using (TextReader c = new StreamReader(stream))
                 {
-                    LuaChunk ret = new PlainParser(c, name).LoadChunk(Environment);
+                    LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), name);
+
+                    if (!_chunks.Contains(ret))
+                        _chunks.Add(ret);
+                    return ret;
+                }
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a specified stream.
+        /// </summary>
+        /// <param name="stream">The stream to load the script from.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <returns>The loaded chunk.</returns>
+        public LuaChunk Load(Stream stream, bool @override)
+        {
+            lock (this)
+            {
+                using (TextReader c = new StreamReader(stream))
+                {
+                    LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), force: @override);
+
+                    if (!_chunks.Contains(ret))
+                        _chunks.Add(ret);
+                    return ret;
+                }
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a specified stream.
+        /// </summary>
+        /// <param name="stream">The stream to load the script from.</param>
+        /// <param name="name">The name to give the chunk.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <returns>The loaded chunk.</returns>
+        public LuaChunk Load(Stream stream, string name, bool @override)
+        {
+            lock (this)
+            {
+                using (TextReader c = new StreamReader(stream))
+                {
+                    LuaChunk ret = PlainParser.LoadChunk(Environment, c.ReadToEnd(), name, @override);
 
                     if (!_chunks.Contains(ret))
                         _chunks.Add(ret);
@@ -284,14 +382,11 @@ namespace ModMaker.Lua
         {
             lock (this)
             {
-                using (CharDecorator c = new CharDecorator(chunk))
-                {
-                    LuaChunk ret = new PlainParser(c).LoadChunk(Environment);
+                LuaChunk ret = PlainParser.LoadChunk(Environment, chunk);
 
-                    if (!_chunks.Contains(ret))
-                        _chunks.Add(ret);
-                    return ret;
-                }
+                if (!_chunks.Contains(ret))
+                    _chunks.Add(ret);
+                return ret;
             }
         }
         /// <summary>
@@ -304,14 +399,46 @@ namespace ModMaker.Lua
         {
             lock (this)
             {
-                using (CharDecorator c = new CharDecorator(chunk))
-                {
-                    LuaChunk ret = new PlainParser(c, name).LoadChunk(Environment);
+                LuaChunk ret = PlainParser.LoadChunk(Environment, chunk, name);
 
-                    if (!_chunks.Contains(ret))
-                        _chunks.Add(ret);
-                    return ret;
-                }
+                if (!_chunks.Contains(ret))
+                    _chunks.Add(ret);
+                return ret;
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a pre-loaded string.
+        /// </summary>
+        /// <param name="chunk">The Lua script to load from.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <returns>The loaded chunk.</returns>
+        public LuaChunk LoadText(string chunk, bool @override)
+        {
+            lock (this)
+            {
+                LuaChunk ret = PlainParser.LoadChunk(Environment, chunk, force: @override);
+
+                if (!_chunks.Contains(ret))
+                    _chunks.Add(ret);
+                return ret;
+            }
+        }
+        /// <summary>
+        /// Loads a LuaChunk from a pre-loaded string.
+        /// </summary>
+        /// <param name="chunk">The Lua script to load from.</param>
+        /// <param name="name">The name to give the chunk.</param>
+        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
+        /// <returns>The loaded chunk.</returns>
+        public LuaChunk LoadText(string chunk, string name, bool @override)
+        {
+            lock (this)
+            {
+                LuaChunk ret = PlainParser.LoadChunk(Environment, chunk, name, @override);
+
+                if (!_chunks.Contains(ret))
+                    _chunks.Add(ret);
+                return ret;
             }
         }
 
@@ -361,6 +488,106 @@ namespace ModMaker.Lua
                 _E = null;
                 _disposed = true;
             }
+        }
+
+        /// <summary>
+        /// Gets a variable from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="name">The name of the variable to get.</param>
+        /// <returns>The value of the variable or null if not found.</returns>
+        public static dynamic GetVariable(string path, string name)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(new LuaSettings());
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return E[name];
+        }
+        /// <summary>
+        /// Gets a variable from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="name">The name of the variable to get.</param>
+        /// <param name="settings">The settings used to load the chunk.</param>
+        /// <returns>The value of the variable or null if not found.</returns>
+        public static dynamic GetVariable(LuaSettings settings, string path, string name)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(settings);
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return E[name];
+        }
+        /// <summary>
+        /// Gets variables from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="names">The names of the variables to get.</param>
+        /// <returns>The value of the variables.</returns>
+        public static dynamic[] GetVariables(string path, params string[] names)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(new LuaSettings());
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return names.Select(s => E[s]).ToArray();
+        }
+        /// <summary>
+        /// Gets variables from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="names">The names of the variables to get.</param>
+        /// <param name="settings">The settings used to load the chunk.</param>
+        /// <returns>The value of the variables.</returns>
+        public static dynamic[] GetVariables(LuaSettings settings, string path, params string[] names)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(settings);
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return names.Select(s => E[s]).ToArray();
+        }
+        /// <summary>
+        /// Gets a variable from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="name">The name of the variable to get.</param>
+        /// <returns>The value of the variable or null if not found.</returns>
+        public static T GetVariable<T>(string path, string name)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(new LuaSettings());
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return (T)RuntimeHelper.ConvertType((object)E[name], typeof(T));
+        }
+        /// <summary>
+        /// Gets a variable from a given Lua file.
+        /// </summary>
+        /// <param name="path">The path to the Lua file.</param>
+        /// <param name="name">The name of the variable to get.</param>
+        /// <param name="settings">The settings used to load the chunk.</param>
+        /// <returns>The value of the variable or null if not found.</returns>
+        public static T GetVariable<T>(string path, string name, LuaSettings settings)
+        {
+            path = Path.GetFullPath(path);
+            new FileIOPermission(FileIOPermissionAccess.Read, path).Demand();
+
+            LuaEnvironment E = new LuaEnvironment(settings);
+            LuaChunk ret = PlainParser.LoadChunk(E, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
+            ret.Execute();
+            return (T)RuntimeHelper.ConvertType((object)E[name], typeof(T));
         }
     }
 }

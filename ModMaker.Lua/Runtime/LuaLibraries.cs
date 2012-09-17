@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Collections;
 using System.Threading;
 using System.Text.RegularExpressions;
+using System.Security.Cryptography;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -471,20 +472,24 @@ namespace ModMaker.Lua.Runtime
                 if (table == null)
                     throw new ArgumentException("First argument to function 'table.concat' must be a table.");
 
-                double len = table.GetSequenceLen();
-                if (len == -1)
-                    throw new ArgumentException("Table given to function 'table.concat' is not a valid sequence.");
+                double len = table.GetLength();
                 double j = (RuntimeHelper.GetValue(o[3]) as double? ?? len);
 
                 if (j > i)
                     return new MultipleReturn((object)"");
 
                 StringBuilder str = new StringBuilder();
-                str.Append(table.GetItemRaw(i));
+                object temp = table.GetItemRaw(i);
+                if (temp == null)
+                    throw new ArgumentException("Invalid 'nil' value for function 'table.concat'.");
+                str.Append(temp);
                 for (double ii = i + 1; ii < j; ii++)
                 {
+                    temp = table.GetItemRaw(ii);
+                    if (temp == null)
+                        throw new ArgumentException("Invalid 'nil' value for function 'table.concat'.");
                     str.Append(sep);
-                    str.Append(table.GetItemRaw(ii));
+                    str.Append(temp);
                 }
 
                 return new MultipleReturn((object)str.ToString());
@@ -498,9 +503,7 @@ namespace ModMaker.Lua.Runtime
                 if (table == null)
                     throw new ArgumentException("First argument to function 'table.insert' must be a table.");
 
-                double len = table.GetSequenceLen();
-                if (len == -1)
-                    throw new ArgumentException("Table given to function 'table.insert' is not a valid sequence.");
+                double len = table.GetLength();
 
                 object value;
                 double pos;
@@ -552,9 +555,7 @@ namespace ModMaker.Lua.Runtime
                 if (table == null)
                     throw new ArgumentException("First argument to function 'table.remove' must be a table.");
 
-                double len = table.GetSequenceLen();
-                if (len == -1)
-                    throw new ArgumentException("Table given to function 'table.remove' is not a valid sequence.");
+                double len = table.GetLength();
 
                 double pos;
                 if (o.Count == 1)
@@ -589,9 +590,7 @@ namespace ModMaker.Lua.Runtime
                 if (table == null)
                     throw new ArgumentException("First argument to function 'table.sort' must be a table.");
 
-                double len = table.GetSequenceLen();
-                if (len == -1)
-                    throw new ArgumentException("Table given to function 'table.sort' is not a valid sequence.");
+                double len = table.GetLength();
 
                 IComparer<object> comp;
                 if (o.Count > 1)
@@ -624,9 +623,7 @@ namespace ModMaker.Lua.Runtime
                 if (table == null)
                     throw new ArgumentException("First argument to function 'table.unpack' must be a table.");
 
-                double len = table.GetSequenceLen();
-                if (len == -1)
-                    throw new ArgumentException("Table given to function 'table.unpack' is not a valid sequence.");
+                double len = table.GetLength();
                 double j = (RuntimeHelper.GetValue(o[2]) as double? ?? len);
 
                 return new MultipleReturn(
@@ -1787,7 +1784,8 @@ namespace ModMaker.Lua.Runtime
                                 ret.Add(null);
                             else
                             {
-                                double? d = RuntimeHelper.ReadNumber(s);
+                                long pos = 0;
+                                double? d = RuntimeHelper.ReadNumber(s, null, 0, 0, ref pos);
                                 if (d.HasValue)
                                     ret.Add(d.Value);
                                 else
@@ -1837,11 +1835,8 @@ namespace ModMaker.Lua.Runtime
                     throw new FileNotFoundException("Unable to locate file at '" + file + "'.");
 
                 string chunk = File.ReadAllText(file);
-                using (var c = new CharDecorator(chunk))
-                {
-                    var r = new PlainParser(c).LoadChunk(o.Environment);
-                    return new MultipleReturn((IEnumerable)r.Execute());
-                }
+                var r = PlainParser.LoadChunk(o.Environment, chunk);
+                return new MultipleReturn((IEnumerable)r.Execute());
             }
             public static MultipleReturn load(LuaParameters o)
             {
@@ -1876,16 +1871,13 @@ namespace ModMaker.Lua.Runtime
                 else
                     throw new ArgumentException("First argument to 'load' must be a string or a method.");
 
-                using (var c = new CharDecorator(chunk))
+                try
                 {
-                    try
-                    {
-                        return new MultipleReturn(new PlainParser(c).LoadChunk(o.Environment).ToMethod());
-                    }
-                    catch (Exception e)
-                    {
-                        return new MultipleReturn(null, e.Message);
-                    }
+                    return new MultipleReturn(PlainParser.LoadChunk(o.Environment, chunk).ToMethod());
+                }
+                catch (Exception e)
+                {
+                    return new MultipleReturn(null, e.Message);
                 }
             }
             public static MultipleReturn loadfile(LuaParameters o)
@@ -1906,16 +1898,13 @@ namespace ModMaker.Lua.Runtime
                     throw new ArgumentException("The only mode supported by loadfile is 't'.");
 
                 string chunk = File.ReadAllText(file);
-                using (var c = new CharDecorator(chunk))
+                try
                 {
-                    try
-                    {
-                        return new MultipleReturn(new PlainParser(c).LoadChunk(o.Environment).ToMethod());
-                    }
-                    catch (Exception e)
-                    {
-                        return new MultipleReturn(null, e.Message);
-                    }
+                    return new MultipleReturn(PlainParser.LoadChunk(o.Environment, chunk).ToMethod());
+                }
+                catch (Exception e)
+                {
+                    return new MultipleReturn(null, e.Message);
                 }
             }
         }

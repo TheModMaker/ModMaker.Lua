@@ -7,7 +7,7 @@ using ModMaker.Lua.Runtime;
 using System.Reflection.Emit;
 using System.Reflection;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     [DebuggerDisplay("Count = {_fields.Count}")]
     class TableItem : IParseItem
@@ -22,20 +22,25 @@ namespace ModMaker.Lua.Parser.Items
 
         public ParseType Type { get { return ParseType.Expression | ParseType.Args; } }
 
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             var gen = eb.CurrentGenerator;
             var loc = gen.DeclareLocal(typeof(LuaTable));
 
+            // loc = new LuaTable();
             gen.Emit(OpCodes.Newobj, typeof(LuaTable).GetConstructor(new Type[0]));
             gen.Emit(OpCodes.Stloc, loc);
+
             foreach (var item in _fields)
             {
+                // loc.SetItemRaw({item.Item1}, {item.Item2});
                 gen.Emit(OpCodes.Ldloc, loc);
-                item.Item1.GenerateILNew(eb);
-                item.Item2.GenerateILNew(eb);
+                item.Item1.GenerateIL(eb);
+                item.Item2.GenerateIL(eb);
                 gen.Emit(OpCodes.Callvirt, typeof(LuaTable).GetMethod("SetItemRaw"));
             }
+
+            //! push loc;
             gen.Emit(OpCodes.Ldloc, loc);
         }
         public void AddItem(IParseItem index, IParseItem exp)
@@ -48,21 +53,6 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to TableItem.");
         }
-        public void WaitOne()
-        {
-            for (int ind = 0; i < _fields.Count; i++)
-            {
-                IParseItem i1 = _fields[ind].Item1;
-                IParseItem i2 = _fields[ind].Item2;
-
-                if (i1 is AsyncItem)
-                    i1 = (i1 as AsyncItem).Item;
-                if (i2 is AsyncItem)
-                    i2 = (i2 as AsyncItem).Item;
-
-                _fields[ind] = new Tuple<IParseItem, IParseItem>(i1, i2);
-            }
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             foreach (var item in _fields)
@@ -70,14 +60,6 @@ namespace ModMaker.Lua.Parser.Items
                 item.Item1.ResolveLabels(cb, tree);
                 item.Item2.ResolveLabels(cb, tree);
             }
-        }
-        public bool HasNested()
-        {
-            bool b = false;
-            foreach (var item in _fields)
-                b = b || item.Item1.HasNested() || item.Item2.HasNested();
-
-            return b;
         }
     }
 }

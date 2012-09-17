@@ -103,7 +103,7 @@ namespace ModMaker.Lua.Runtime
                     FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                     _input.Add(item.Method);
-                    // {field} = arg_0[{_input.Count - 1}];
+                    // {field} = arg_0[{input.Count - 1}];
                     ctorgen.Emit(OpCodes.Ldarg_0);
                     ctorgen.Emit(OpCodes.Ldarg_1);
                     ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));
@@ -162,14 +162,7 @@ namespace ModMaker.Lua.Runtime
                             FieldBuilder field = tb.DefineField(name, item.Type, FieldAttributes.Private);
                             if (item.Default != null)
                             {
-                                MethodInfo meth;
-                                if (!RuntimeHelper.TypesCompatible(item.Type, item.Default.GetType(), out meth))
-                                {
-                                    if (meth != null)
-                                        item.Default = meth.Invoke(null, new[] { item.Default });
-                                    else
-                                        throw new InvalidCastException("Cannot cast an object of type '" + item.Default.GetType() + "' to type '" + item.Type + "'.");
-                                }
+                                item.Default = RuntimeHelper.ConvertType(item.Default, item.Type);
 
                                 _input2.Add(item.Default);
                                 // {field} = arg_2[{_input2.Count - 1}];
@@ -191,7 +184,7 @@ namespace ModMaker.Lua.Runtime
                             FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                             _input.Add(item.Method);
-                            // {field} = arg_1[{_input.Count - 1}];
+                            // {field} = arg_1[{input.Count - 1}];
                             ctorgen.Emit(OpCodes.Ldarg_0);
                             ctorgen.Emit(OpCodes.Ldarg_1);
                             ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));
@@ -236,7 +229,7 @@ namespace ModMaker.Lua.Runtime
                             FieldBuilder field = tb.DefineField("<>_field_" + (fid++), typeof(LuaMethod), FieldAttributes.Private);
 
                             _input.Add(item.MethodSet);
-                            // {field} = arg_1[{_input.Count - 1}];
+                            // {field} = arg_1[{input.Count - 1}];
                             ctorgen.Emit(OpCodes.Ldarg_0);
                             ctorgen.Emit(OpCodes.Ldarg_1);
                             ctorgen.Emit(OpCodes.Ldc_I4, (_input.Count - 1));
@@ -277,14 +270,7 @@ namespace ModMaker.Lua.Runtime
                     FieldBuilder field = tb.DefineField(name, item.Type, FieldAttributes.Public);
                     if (item.Default != null)
                     {
-                        MethodInfo meth;
-                        if (!RuntimeHelper.TypesCompatible(item.Type, item.Default.GetType(), out meth))
-                        {
-                            if (meth != null)
-                                item.Default = meth.Invoke(null, new[] { item.Default });
-                            else
-                                throw new InvalidCastException("Cannot cast an object of type '" + item.Default.GetType() + "' to type '" + item.Type + "'.");
-                        }
+                        item.Default = RuntimeHelper.ConvertType(item.Default, item.Type);
 
                         _input2.Add(item.Default);
                         // {field} = ({item.Type})arg_2[{_input2.Count - 1}];
@@ -335,7 +321,7 @@ namespace ModMaker.Lua.Runtime
             {
                 // call base ctor
                 ctorgen.Emit(OpCodes.Ldarg_0);
-                ctorgen.Emit(OpCodes.Call, _base.GetConstructor(new Type[0]));
+                ctorgen.Emit(OpCodes.Call, _base.GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[0], null));
 
                 // impliment all abstract members
                 foreach (var item in _base.GetMethods().Where(m => m.Attributes.HasFlag(MethodAttributes.Abstract)))

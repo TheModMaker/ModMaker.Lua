@@ -5,7 +5,7 @@ using System.Text;
 using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class BlockItem : IParseItem
     {
@@ -35,22 +35,6 @@ namespace ModMaker.Lua.Parser.Items
 
             this.children.Add(child);
         }
-        public void WaitOne()
-        {
-            if (Return != null)
-            {
-                Return.WaitOne();
-                if (Return is AsyncItem)
-                    Return = ((AsyncItem)Return).Item;
-            }
-
-            for (int i = 0; i < children.Count; i++)
-            {
-                children[i].WaitOne();
-                if (children[i] is AsyncItem)
-                    children[i] = ((AsyncItem)children[i]).Item;
-            }
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             foreach (var item in children)
@@ -59,27 +43,19 @@ namespace ModMaker.Lua.Parser.Items
             if (Return != null)
                 Return.ResolveLabels(cb, tree);
         }
-        public void GenerateILNew(ChunkBuilderNew cb)
+        public void GenerateIL(ChunkBuilderNew cb)
         {
         cb.StartBlock();
             foreach (IParseItem child in children)
-                child.GenerateILNew(cb);
+                child.GenerateIL(cb);
 
             if (Return != null)
             {
-                Return.GenerateILNew(cb);
-
+                // return {Return};
+                Return.GenerateIL(cb);
                 cb.CurrentGenerator.Emit(OpCodes.Ret);
             }
         cb.EndBlock();
-        }
-        public bool HasNested()
-        {
-            bool b = false;
-            foreach (var item in children)
-                b = b || item.HasNested();
-
-            return b || (Return != null && Return.HasNested());
         }
     }
 }

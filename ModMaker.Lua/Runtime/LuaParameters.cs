@@ -35,19 +35,14 @@ namespace ModMaker.Lua.Runtime
             this.Environment = e;
         }
 
-        public object this[int i] { get { return GetArg(i); } }
+        public object this[int i] 
+        {
+            get { return i < args.Length ? RuntimeHelper.GetValue(args[i]) : null; }
+            set { if (i < args.Length) args[i] = value; }
+        }
         public int Count { get { return args.Length; } }
         public LuaEnvironment Environment { get; private set; }
 
-        public object GetArg(int i)
-        {
-            return i < args.Length ? RuntimeHelper.GetValue(args[i]) : null;
-        }
-        public void SetArg(int i, object value)
-        {
-            if (i < args.Length)
-                args[i] = value;
-        }
         public IEnumerator GetEnumerator()
         {
             return args.GetEnumerator();

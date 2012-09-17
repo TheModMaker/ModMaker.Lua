@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 using System.Reflection;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class IndexerItem : IParseItem
     {
@@ -38,37 +38,29 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to IndexerItem.");
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
+
+            //! push RuntimeHelper.Indexer({_E}, {Prefix}, {Expression})
             eb.PushEnv();
-            Prefix.GenerateILNew(eb);
-            Expression.GenerateILNew(eb);
+            Prefix.GenerateIL(eb);
+            Expression.GenerateIL(eb);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("Indexer"));
+
             if (Set)
             {
+                // store locally and push the address
+                //  for use with 'ref' and 'out' keyword
                 LocalBuilder loc = gen.DeclareLocal(typeof(object));
                 gen.Emit(OpCodes.Stloc, loc);
                 gen.Emit(OpCodes.Ldloca, loc);
             }
         }
-        public void WaitOne()
-        {
-            Prefix.WaitOne();
-            if (Prefix is AsyncItem)
-               Prefix = ((AsyncItem)Prefix).Item;
-            Expression.WaitOne();
-            if (Expression is AsyncItem)
-                Expression = ((AsyncItem)Expression).Item;
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             Prefix.ResolveLabels(cb, tree);
             Expression.ResolveLabels(cb, tree);
-        }
-        public bool HasNested()
-        {
-            return Prefix.HasNested() || Expression.HasNested();
         }
     }
 }

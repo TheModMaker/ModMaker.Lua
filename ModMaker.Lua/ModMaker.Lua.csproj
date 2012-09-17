@@ -65,16 +65,16 @@
     <Compile Include="Helper.cs" />
     <Compile Include="Lua.cs" />
     <Compile Include="LuaUserData.cs" />
+    <Compile Include="Parser\Parser.cs" />
+    <Compile Include="Runtime\BaseAccessor.cs" />
     <Compile Include="Runtime\ModuleBinder.cs" />
     <Compile Include="MultipleReturnAttribute.cs" />
-    <Compile Include="Parser\Items\EmptyItem.cs" />
     <Compile Include="Parser\Items\ReturnItem.cs" />
     <Compile Include="Parser\Items\TableItem.cs" />
     <Compile Include="Runtime\LuaChunk.cs" />
     <Compile Include="LuaIgnoreAttribute.cs" />
     <Compile Include="LuaSettings.cs" />
     <Compile Include="Parser\ChunkBuilder.cs" />
-    <Compile Include="Parser\Items\AsyncItem.cs" />
     <Compile Include="Parser\Items\BinOpItem.cs" />
     <Compile Include="Parser\Items\BlockItem.cs" />
     <Compile Include="Parser\Items\ClassDefItem.cs" />
@@ -94,8 +94,6 @@
     <Compile Include="Parser\Items\VarInitItem.cs" />
     <Compile Include="Parser\Items\WhileItem.cs" />
     <Compile Include="Parser\LabelTree.cs" />
-    <Compile Include="Parser\CharDecorator.cs" />
-    <Compile Include="Parser\PlainParser.cs" />
     <Compile Include="Parser\SyntaxException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources.Designer.cs">

@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 using System.Reflection;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     class FuncCallItem : IParseItem
     {
@@ -35,56 +35,68 @@ namespace ModMaker.Lua.Parser.Items
 
             _args.Add(item);
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             /* load the args into an array */
             ILGenerator gen = eb.CurrentGenerator;
-            LocalBuilder args = gen.DeclareLocal(typeof(List<object>));
             LocalBuilder f = gen.DeclareLocal(typeof(object));
 
-            // args = new List<object>();
-            gen.Emit(OpCodes.Newobj, typeof(List<object>).GetConstructor(new Type[0]));
-            gen.Emit(OpCodes.Stloc, args);
-
-            /* add 'self' if instance call */
-            if (instance != null)
+            // only need to create args array if there are aruments
+            if (_args.Count > 0 || instance != null)
             {
-                // f = {Prefix};
-                Prefix.GenerateILNew(eb);
-                gen.Emit(OpCodes.Stloc, f);
+                // args = new List<object>();
+                LocalBuilder args = gen.DeclareLocal(typeof(List<object>));
+                gen.Emit(OpCodes.Newobj, typeof(List<object>).GetConstructor(new Type[0]));
+                gen.Emit(OpCodes.Stloc, args);
 
-                // args.Add(f);
-                gen.Emit(OpCodes.Ldloc, args);
-                gen.Emit(OpCodes.Ldloc, f);
-                gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("Add"));
+                /* add 'self' if instance call */
+                if (instance != null)
+                {
+                    // f = {Prefix};
+                    Prefix.GenerateIL(eb);
+                    gen.Emit(OpCodes.Stloc, f);
 
-                // f = RuntimeHelper.Indexer({E}, f, {instance});
+                    // args.Add(f);
+                    gen.Emit(OpCodes.Ldloc, args);
+                    gen.Emit(OpCodes.Ldloc, f);
+                    gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("Add"));
+
+                    // f = RuntimeHelper.Indexer({E}, f, {instance});
+                    eb.PushEnv();
+                    gen.Emit(OpCodes.Ldloc, f);
+                    gen.Emit(OpCodes.Ldstr, instance);
+                    gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("Indexer"));
+                    gen.Emit(OpCodes.Stloc, f);
+                }
+                else
+                {
+                    // f = {Prefix};
+                    Prefix.GenerateIL(eb);
+                    gen.Emit(OpCodes.Stloc, f);
+                }
+
+                foreach (var item in _args)
+                {
+                    // args.Add({item});
+                    gen.Emit(OpCodes.Ldloc, args);
+                    item.GenerateIL(eb);
+                    gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("Add"));
+                }
+
+                // RumtimeHelper.Invoke({_E}, f, args.ToArray());
                 eb.PushEnv();
                 gen.Emit(OpCodes.Ldloc, f);
-                gen.Emit(OpCodes.Ldstr, instance);
-                gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("Indexer"));
-                gen.Emit(OpCodes.Stloc, f);
+                gen.Emit(OpCodes.Ldloc, args);
+                gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("ToArray"));
             }
             else
             {
-                // f = {Prefix};
-                Prefix.GenerateILNew(eb);
-                gen.Emit(OpCodes.Stloc, f);
-            }
-            
-            foreach (var item in _args)
-            {
-                // args.Add({item});
-                gen.Emit(OpCodes.Ldloc, args);
-                item.GenerateILNew(eb);
-                gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("Add"));
+                // RumtimeHelper.Invoke({_E}, {Prefix}, null);
+                eb.PushEnv();
+                Prefix.GenerateIL(eb);
+                gen.Emit(OpCodes.Ldnull);
             }
 
-            // RumtimeHelper.Invoke({E}, f, args.ToArray());
-            eb.PushEnv();
-            gen.Emit(OpCodes.Ldloc, f);
-            gen.Emit(OpCodes.Ldloc, args);
-            gen.Emit(OpCodes.Callvirt, typeof(List<object>).GetMethod("ToArray"));
             if (TailCall)
                 gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("Invoke"));
@@ -92,32 +104,11 @@ namespace ModMaker.Lua.Parser.Items
             if (Statement)
                 gen.Emit(OpCodes.Pop);
         }
-        public void WaitOne()
-        {
-            Prefix.WaitOne();
-            if (Prefix is AsyncItem)
-                Prefix = ((AsyncItem)Prefix).Item;
-
-            for (int i = 0; i < _args.Count; i++)
-            {
-                _args[i].WaitOne();
-                if (_args[i] is AsyncItem)
-                    _args[i] = ((AsyncItem)_args[i]).Item;
-            }
-        }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             foreach (var item in _args)
                 item.ResolveLabels(cb, tree);
             Prefix.ResolveLabels(cb, tree);
-        }
-        public bool HasNested()
-        {
-            bool b = false;
-            foreach (var item in _args)
-                b = b || item.HasNested();
-
-            return b || Prefix.HasNested();
         }
     }
 }

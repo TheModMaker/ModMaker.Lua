@@ -6,7 +6,7 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Runtime;
 using System.Reflection;
 
-namespace ModMaker.Lua.Parser.Items
+namespace ModMaker.Lua.Parser
 {
     enum UnaryOperationType
     {
@@ -34,26 +34,18 @@ namespace ModMaker.Lua.Parser.Items
         {
             throw new NotSupportedException("Cannot add items to UnOpItem.");
         }
-        public void GenerateILNew(ChunkBuilderNew eb)
+        public void GenerateIL(ChunkBuilderNew eb)
         {
             ILGenerator gen = eb.CurrentGenerator;
+
+            // RuntimeHelper.ResolveUnaryOperation({OperationType}, {Target})
             gen.Emit(OpCodes.Ldc_I4, (int)OperationType);
-            Target.GenerateILNew(eb);
+            Target.GenerateIL(eb);
             gen.Emit(OpCodes.Call, typeof(RuntimeHelper).GetMethod("ResolveUnaryOperation", BindingFlags.Public | BindingFlags.Static));
-        }
-        public void WaitOne()
-        {
-            Target.WaitOne();
-            if (Target is AsyncItem)
-                Target = ((AsyncItem)Target).Item;
         }
         public void ResolveLabels(ChunkBuilderNew cb, LabelTree tree)
         {
             Target.ResolveLabels(cb, tree);
-        }
-        public bool HasNested()
-        {
-            return Target.HasNested();
         }
     }
 }

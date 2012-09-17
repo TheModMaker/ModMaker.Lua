@@ -1,0 +1,16 @@
+=== Known Bugs ===
+* Coroutines are twitchy when they are nested.
+
+=== 0.9 Alpha ===
+* Added BaseAccessor to allow for access to the base type when defining a new type in Lua.
+* Added ability to override the LuaChunk cache while loading files.
+* Added LuaIgnoreAttribute to Lua and LuaChunk.
+* Added support for params array and optional arguments in C# functions.
+* Added support for converting a sequence table to an array.
+* Changed PlainParser to use a Tokenizer.  Also uses TextElementEnumerator to allow for Globalization.  Also uses CurentCulture
+  to define the number format.  Now reads the entire file into memory before parsing.
+* Changed LuaTable length to return the Math.Floor of the largest number key in the table.
+* Changed LuaTable to convert any input numbers to double.
+* Changed LuaPointer to use the table length (now will ignore non-numeric keys in indexers).
+* Fixed inline comments.
+* Moved ModMaker.Lua.Parser.Items to the ModMaker.Lua.Parser namespace as to remove the empty 'ModMaker.Lua.Parser.Items' namespace for the developer.
