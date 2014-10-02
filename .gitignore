@@ -15,7 +15,8 @@ x64/
 x86/
 build/
 bld/
-[Bb]in/
+bin/
+Bin/
 [Oo]bj/
 
 # Roslyn cache directories
@@ -52,8 +53,8 @@ dlldata.c
 *.tmp
 *.tmp_proj
 *.log
-*.vspscc
 *.vssscc
+*.vspscc
 .builds
 *.pidb
 *.svclog

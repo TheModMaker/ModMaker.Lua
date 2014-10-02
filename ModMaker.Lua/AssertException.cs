@@ -5,7 +5,6 @@ namespace ModMaker.Lua
     /// <summary>
     /// Thrown when an assertion fails.
     /// </summary>
-    [Serializable]
     public sealed class AssertException : Exception
     {
         /// <summary>
