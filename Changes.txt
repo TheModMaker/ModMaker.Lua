@@ -1,0 +1,124 @@
+=== 0.9.3.1 ===
+* Added ToString, Equals, and GetHashCode implementations to LuaTable.
+* Created new type LuaTableNet, which should be used over LuaTable.
+* Made all of ModMaker.Lua.Net use new type LuaTableNet or the interface ILuaTable.
+* Made Lua.UseDynamicTypes public.
+* Made the version numbers reflect the correct version.
+* Moved the following to ModMaker.Lua:
+	* ModMaker.Lua.AssertException.
+	* ModMaker.Lua.Compiler.ICodeCompiler.
+	* ModMaker.Lua.LuaIgnoreAttribute.
+	* ModMaker.Lua.MultipleReturnAttribute.
+	* ModMaker.Lua.Parser.*.
+	* ModMaker.Lua.Runtime.IIndexable.
+	* ModMaker.Lua.Runtime.ILuaRuntime.
+	* ModMaker.Lua.Runtime.IMethod.
+	* ModMaker.Lua.Runtime.LuaTable.
+	* ModMaker.Lua.Runtime.MultipleReturn.
+	* ModMaker.Lua.Runtime.OverloadAttribute.
+* LuaSettings.OnQuit no longers calls Environment.Exit.
+* LuaSettings no longer gets stdin and stdout if null.
+* Renamed LuaEnvironments to LuaEnvironmentNet.
+* Renamed LuaRuntime to LuaRuntimeNet.
+* Removed default support for caching in the parser.
+* Removed ExitEventArgs.Close.
+* Removed Lua.Save.
+* General cleanup.
+
+=== Changeset 31696(0.9.3) ===
+* Added project ModMaker.Lua.Portable.
+* Renamed project ModMaker.Lua to ModMaker.Lua.Net.
+
+=== Changeset 31695(0.9.3) ===
+* Upgraded the solution to Visual Studio 2012.
+
+=== 0.9.3 ===
+* Added LuaLibraries.Standard to include the standard libraries.
+* Made LuaSettings a sealed class.
+* Made ExitEventArgs sealed.
+* Removed LuaLibraries.Bit32, now that library is registered with LuaLibraries.Math.
+* Removed LuaLibraries.UseDefault and made 0 mean to use none of the libraries.
+* Renamed LuaSettings.OnQuit to Quit.
+* Changed LuaSettings to allow for read-only mode.
+* Moved many of the string constants to the Resources.
+* Fixed possible bug when disposing ThreadFactory and WorkerThread multiple times.
+* Fixed possible bug when using ThreadFactory after it has been disposed.
+* Fixed possible leak when decreasing the size of the ThreadFactory pool.
+
+=== 0.9.2 ===
+* Added OverloadAttribute to allow for explicit overload numbering in user-defined types.
+* Added support for 'A:Foo()' calls on .NET objects.
+* Added LuaSettings.EnsureReturnType which can ensure that Lua only has access to the type of the return of a method.
+* Added ITokenizer and made the IParser use this.
+* Changed by-reference to use indicies rather than boolean flags.
+* Made LuaMethod.AddInvokableImpl protected.
+* Made the constructor method name '__ctor'.
+* Modified PlainParser to be more functional and seperated code into many functions.
+* Removed many unused dependencies.
+* Fixed specifying overloads.
+* Fixed a bug when using a function call as an argument with by-reference.
+* Fixed a bug when defining a field of a Lua-defined type to a table.
+* Fixed a bug when calling LuaOverloadMethod with only one target.
+
+=== 0.9.1 ===
+* Added a test project and several testing types and methods.
+* Added a new framework for extending this library.
+	* Added ICodeCompiler which is in charge of compiling code.
+	* Added IParser which is in charge of parsing text.
+	* Added ILuaEnvironment which holds the Lua environment.
+	* Added ILuaRuntime which is in charge of how Lua executes.
+* Added IMethod that can be used to modify how Lua invokes objects.
+* Added IIndexable that can be used to modify how Lua indexes objects.
+* Added several version of LuaMethod to recieve only certain method types.
+* Added DebugInfo to inject debug info into IParseItem trees.
+* Added a thread pool to reuse Lua coroutine threads.
+* Added a cache when compiling to reuse temporary variables.
+* Added a tokenizer to read from an input and convert to a sequence of tokens.
+* Added different interfaces for the different item types, allowing for static type safety.
+* Added IParseItemVisitor to support the visitor pattern to traverse an IParseItem tree.
+* Added LuaSettings.AllowReflection to restrict Lua's ability to access .NET reflection.
+* Added support for passing arguments from Lua by-reference.
+* Added support for using IEnumerable objects as arguments for generic for loops.
+* Defined FuncDefItem.FunctionInfo that holds information about the function to reduce the size of the generated code.
+* Moved ChunkBuilder to ModMaker.Lua.Compiler and altered it's behaviour.
+* Moved the code from IParseItem.GenerateIL into CompilerVisitor.
+* Moved the code from IParseItem.ResolveLabels into GetInfoVisitor.
+* Moved the parse items into ModMaker.Lua.Parser.Items.
+* Moved RuntimeHelper into the default ILuaRuntime.
+* Made LuaIgnoreAttribute inheritable.
+* Made Lua.GetVariable(s) accept ILuaEnvironment and added argument checking.
+* Made LuaUserData public and added a generic version.
+* Split LuaLibraries across several files.
+* Renamed Life.lua to Tests.lua and added several tests to the Lua code.
+* Removed LuaChunk, uses LuaGlobalMethod instead.
+* Removed LuaParameters, uses object[] directly.
+* Removed LuaPointer, uses methods in ILuaRuntime directly.
+* Removed IModuleBinder.Loaded, simply calls IModuleBinder.Load directly.
+* Remove IModule, uses IMethod instead.
+* Fixed coroutines.
+* Fixed calling special name functions directly (e.g. foo.op_Addition).
+* Fixed several bugs durring parsing.
+* Fixed possible bug when defining labels and nested functions.
+* Fixed bug when a get/set method on a property is marked with LuaIgnoreAttribute and the property is not.
+* Fixed bug when Lua sets a property to nil, it would bind to the get method.
+* Fixed assigning indexers.
+* Fixed local function definitions.
+* Fixed calling expressions.
+* Fixed when assigning expressions that assign part of the expression.
+* Fixed setting metatable.__index to a table.
+* Fixed invoking a lua defined type.
+* Fixed proper tail calls.
+
+=== 0.9 Alpha ===
+* Added BaseAccessor to allow for access to the base type when defining a new type in Lua.
+* Added ability to override the LuaChunk cache while loading files.
+* Added LuaIgnoreAttribute to Lua and LuaChunk.
+* Added support for params array and optional arguments in C# functions.
+* Added support for converting a sequence table to an array.
+* Changed PlainParser to use a Tokenizer.  Also uses TextElementEnumerator to allow for Globalization.  Also uses CurentCulture
+  to define the number format.  Now reads the entire file into memory before parsing.
+* Changed LuaTable length to return the Math.Floor of the largest number key in the table.
+* Changed LuaTable to convert any input numbers to double.
+* Changed LuaPointer to use the table length (now will ignore non-numeric keys in indexers).
+* Fixed inline comments.
+* Moved ModMaker.Lua.Parser.Items to the ModMaker.Lua.Parser namespace as to remove the empty 'ModMaker.Lua.Parser.Items' namespace for the developer.

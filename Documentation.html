@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>ModMaker.Lua v0.9.2 Alpha</title>
+		<style type="text/css">
+		#overallcontent {
+			width: 1024px;
+			margin: auto;
+			padding: 20px;
+			background-color: #F5F5DC;
+			font-family: Helvetica, Arial, sans-serif;
+			font-weight: normal;
+			text-align: justify;
+		}
+
+		#maintitle {
+			background-color: #DDDDDD;
+			text-align: center;
+			padding: 10px;
+			font-style: italic;
+			border: 2px black solid;
+		}
+
+		#maintitle h1 {
+			font-size: 24pt;
+		}
+		#maintitle h2 {
+			font-size: 18pt;
+		}
+
+		#overallcontent > h2 {
+			background-color: #E0E0FF;
+			padding: 15px;
+			font-size: 22px;
+			border: 2px solid grey;
+		}
+
+		.code, .code-header {
+			border: 0.1em dashed #BC8F8F;
+			white-space: pre;
+			margin-left: 20px;
+			padding: 10px;
+			background-color: rgb(236, 236, 236);
+			font-family: "Courier New", Courier, monospace;
+		}
+
+		.code-header {
+			margin-bottom: -20px;
+			font-weight: bold;
+		}
+
+		.code-keyword {
+			color: blue;
+		}
+
+		.code-class {
+			color: rgb(43, 145, 175);
+		}
+
+		.code-comment {
+			color: green;
+		}
+
+		.code-string {
+			color: red;
+		}
+
+		.code-number {
+			color: blue;
+		}
+
+		dt {
+			font-weight: bold;
+			font-style: italic
+		}
+
+		.back {
+			font-size: 10px;
+			font-weight: lighter;
+			font-style: italic;
+			margin-top: -15px;
+			padding-left: 15px;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="overallcontent">
+			<div id="maintitle">
+				<h1>ModMaker.Lua v0.9.2 Alpha</h1>
+				<h2>By: ModMaker Productions</h2>
+				<p>Copyright &copy; 2013 ModMaker Productions</p>
+			</div>
+
+			<h2>Content</h2>
+			<ul>
+				<li><a href="#1">1 &dash; Introduction</a></li>
+				<li>
+					<a href="#2">2 &dash; Getting Started</a>
+					<ul>
+						<li><a href="#2.1">2.1 &dash; Hello World</a></li>
+						<li><a href="#2.2">2.2 &dash; Registering Types and Delegates</a></li>
+						<li><a href="#2.3">2.3 &dash; Types and Visibility</a></li>
+						<li><a href="#2.4">2.4 &dash; Loading and Executing Code</a></li>
+						<li>
+							<a href="#2.5">2.5 &dash; IMethod and LuaMethod</a>
+							<ul>
+								<li><a href="#2.5.1">2.5.1 &dash; IMethod</a></li>
+								<li><a href="#2.5.2">2.5.2 &dash; LuaMethod</a></li>
+								<li><a href="#2.5.3">2.5.3 &dash; Defining Your Own Method</a></li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<a href="#3">3 &dash; Framework Features</a>
+					<ul>
+						<li>
+							<a href="#3.1">3.1 &dash; Overload Resolution</a>
+							<ul>
+								<li><a href="#3.1.1">3.1.1 &dash; Method Overloads</a></li>
+								<li><a href="#3.1.2">3.1.2 &dash; Specifying an Overload</a></li>
+								<li><a href="#3.1.3">3.1.3 &dash; By-Reference Arguments</a></li>
+							</ul>
+						</li>
+						<li>
+							<a href="#3.2">3.2 &dash; Lua Defined Types</a>
+							<ul>
+								<li><a href="#3.2.1">3.2.1 &dash; Defining the Type</a></li>
+								<li><a href="#3.2.2">3.2.2 &dash; Extending Other Types</a></li>
+								<li><a href="#3.2.3">3.2.3 &dash; Defining Fields</a></li>
+								<li><a href="#3.2.4">3.2.4 &dash; Defining Functions</a></li>
+							</ul>
+						</li>
+						<li>
+							<a href="#3.3">3.3 &dash; Controlling Visibility</a>
+							<ul>
+								<li><a href="#3.3.1">3.3.1 &dash; LuaIgnoreAttribute</a></li>
+								<li><a href="#3.3.2">3.3.2 &dash; LuaUserData</a></li>
+								<li><a href="#3.3.3">3.3.3 &dash; Behaves-As</a></li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				<li>
+					<a href="#4">4 &dash; Changes to Lua</a>
+					<ul>
+						<li><a href="#4.1">4.1 &dash; Standard Library</a></li>
+						<li><a href="#4.2">4.2 &dash; String</a></li>
+						<li><a href="#4.3">4.3 &dash; Math</a></li>
+						<li><a href="#4.4">4.4 &dash; IO</a></li>
+						<li><a href="#4.5">4.5 &dash; OS</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#5">5 &dash; The General Framework</a>
+					<ul>
+						<li><a href="#5.1">5.1 &dash; Overview</a></li>
+						<li><a href="#5.2">5.2 &dash; The Environment (ILuaEnvironment)</a></li>
+						<li><a href="#5.3">5.3 &dash; The Parser (IParser)</a></li>
+						<li><a href="#5.4">5.4 &dash; The Compiler (ICodeCompiler)</a></li>
+						<li><a href="#5.5">5.5 &dash; The Runtime (ILuaRuntime)</a></li>
+					</ul>
+				</li>
+				<li>
+					<a href="#6">6 &dash; Extending the Framework</a>
+					<ul>
+						<li>
+							<a href="#6.1">6.1 &dash; The Parser</a>
+							<ul>
+								<li><a href="#6.1.1">6.1.1 &dash; The Tokenizer</a></li>
+								<li><a href="#6.1.2">6.1.2 &dash; The Parser</a></li>
+							</ul>
+						</li>
+						<li><a href="#6.2">6.2 &dash; The Compiler</a></li>
+						<li><a href="#6.3">6.3 &dash; The Runtime</a></li>
+						<li><a href="#6.4">6.4 &dash; Proper Tail Calls</a></li>
+					</ul>
+				</li>
+			</ul>
+
+			<h2 id="1">1 &dash; Introduction</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<p>
+				ModMaker.Lua is an framework library for .NET that parses, compiles, and runs Lua code.  This was written from scratch according to
+				the <a href="http://www.lua.org/manual/5.2/" target="_blank">Lua 5.2 Language Definition</a>.  This manages all the work for registering
+				functions, managing the stack, and manipulating user-defined types.  This is designed to be easy to use and manipulate. This library 
+				has few dependencies and only requires .NET 4.0.  Most of the behavior can be modified to suit your needs.
+			</p>
+			<p>
+				This framework makes a few changes to the Lua language to support new features; however all Lua 5.2 code is compatible with this 
+				framework and there are alternates so your code can work with native Lua.  This framework allows many of the familiar C# language 
+				features like classes (<a href="#3.2">&sect;3.1</a>), method overloads (<a href="#3.1">&sect;3.1</a>), by-reference parameters 
+				(<a href="#3.1.3">&sect;3.1.3</a>), and automatic casting. This also manages user-defined types , registering methods, and controlling visibility 
+				(<a href="#3.3">&sect;3.3</a>). The framework requires no special permissions except the default IO and OS libraries may require some
+				when invoked, (<a href="#4">&sect;4</a>). 
+			</p>
+
+
+
+
+			<h2 id="2">2 &dash; Getting Started</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<h3 id="2.1">2.1 &dash; Hello World</h3>
+			<p>
+				The main managing object is <em>Lua</em>.  You can specify a <em>LuaSettings</em> object to modify the default
+				environment.  It is suggested that you pass an instance when using the default environment (<a href="#5">&sect;5</a>).  Once you have an instance
+				of Lua, call <em>Lua.DoFile(string)</em> and pass a file name, in this case "world.lua".  This method will load the file and execute it.
+			</p>
+			<p class="code-header">program.cs</p>
+			<p class="code"><span class="code-keyword">using</span> ModMaker.Lua;
+
+<span class="code-keyword">namespace</span> MyProgram
+{
+	<span class="code-keyword">public static class</span> Program
+	{
+	    <span class="code-keyword">public static void</span> Main(<span class="code-keyword">string</span>[] args)
+	    {
+	        <span class="code-class">Lua</span> lua = new <span class="code-class">Lua</span>();
+	        lua.DoFile(<span class="code-string">"world.lua"</span>);
+	    }
+	}
+}</p>
+
+			<p>Now we need the Lua code file.  The syntax for Lua has not changed (<a href="#3">&sect;3</a>) so simply use normal Lua code:</p>
+
+			<p class="code-header">world.lua</p>
+			<p class="code"><span class="code-keyword">print</span> <span class="code-string">"Hello World"</span></p>
+
+			<h3 id="2.2">2.2 &dash; Registering Types and Delegates</h3>
+			<p>
+				This framework does all the work when registering types and delegates for use in Lua code.  To register one, simply pass it
+				to Lua.Register.  You can also specify a different name.  If no name is given, the simple name of the type is used or the name
+				of the method.  After you call this method, the type or delegate is visible to Lua code.  Note that this overrides the behavior
+				of LuaIgnore (<a href="#3.3.1">&sect;3.3.1</a>).  If you do not want to use an explicit cast when registering delegates, include 
+				<code>'using&nbsp;ModMaker.Lua.Extensions'</code>.When a method is invoked from within Lua, overload resolution 
+				(<a href="#3.1">&sect;3.1</a>) is used to determine the version to invoke.  If the arguments cannot be converted to any overload,
+				or if there is two methods that match the given arguments, an exception will be thrown.
+			</p>
+			<p class="code">lua.Register(<span class="code-keyword">typeof</span>(<span class="code-keyword">T</span>));
+lua.Register((<span class="code-class">Action</span>&lt;<span class="code-keyword">int</span>&gt;)Foo);</p>
+
+			<h3 id="2.3">2.3 &dash; Types and Visibility</h3>
+			<p>
+				There is a difference between a type being visible to Lua code and registering a type.  If a method returns an object, it can
+				be used within Lua even if the type is not registered.  When you register a type with Lua, you give access to two things: (1)
+				the visible constructors, and (2) the visible static members.  An object that is returned from a method is not affected by whether
+				it is registered. By default, all public members of types are visible to Lua code.  Also, optionally the framework will respect 
+				return types by making only the public members of the returned type visible.  There are two ways to change this behavior: 
+				LuaIgnoreAttribute (<a href="#3.3.1">&sect;3.3.1</a>), and LuaUserData(<a href="#3.3.2">&sect;3.3.2</a>).  If there is a conflict, a member 
+				will not be visible.
+			</p>
+
+			<h3 id="2.4">2.4 &dash; Loading and Executing Code</h3>
+			<p>
+				There are several ways to load and execute Lua code.  Initially, we used <em>DoFile</em>.  This will automatically parse and the given
+				path.  There is also a similar method called <em>DoText</em> that will do the same thing except the argument is the loaded plain-text
+				code.  These methods will use the Parser and Compiler specified by the current environment (<a href="#5">&sect;5</a>).  If you
+				want to simply parse the code, you can call Load.  This will parse and compile the given code.  There are overloads to specify a
+				name, path or stream, and an environment to compile with.  If you specify an environment, it will not change the current environment
+				and will only use the given one to load.  You can also load code using <em>LoadText</em> if you have the plain-text code.
+			</p>
+			<p>
+				When the code is loaded, it is returned as an IMethod object.  When <em>Invoke</em> is called on this object, the code will execute in the
+				current environment.  The object is returned by each of the methods and is also stored in the Lua object.  The loaded objects can
+				be retrieved using the indexer.  The loaded code can also be executed using <em>Execute</em>.  Execute will execute all the loaded code
+				in the order that they were loaded and pass the given arguments to each one.  It will then return an array of the returns.  You can also
+				specify an index to execute only a single chunk.
+			</p>
+
+			<h3 id="2.5">2.5 &dash; IMethod and LuaMethod</h3>
+			<p>
+				There are several types regarding invokable objects in this framework.  This section will describe the differences between the types and 
+				how they should be used.  This only describes how the default environment does it and how it is assumed to work, if you change the 
+				environment, it may not be the same.  The most likely use of the different types is when you want to accept an argument to a C# defined 
+				method and you only want a certain kind of method.
+			</p>
+			<h4 id="2.5.1">2.5.1 &dash; IMethod</h4>
+			<p>
+				IMethod simply describes an invokable object.  This may be a method or delegate, or it can be a user-defined object that supports being 
+				invoked.  You can implement this interface and it will allow Lua to invoke your object like a method.  This interface is the base type of
+				 an invokable object.  LuaMethod implements this interface, but its use is slightly different.  This is intended for an object that 
+				 supports invoking.
+			</p>
+			<h4 id="2.5.2">2.5.2 &dash; LuaMethod</h4>
+			<p>
+				This is the base class of all functions that are used in Lua.  There are several different derived classes that are used in different 
+				circumstances.  This class is meant for an object that is only a function such as a delegate.  This should not be used if your objects 
+				simply can be invoked.  This distinction is not important as the framework simply will call _IMethod.Invoke_; however other users can 
+				make this assumption when accepting arguments.
+			</p>
+			<dl>
+				<dt>LuaOverloadMethod</dt>
+				<dd>
+					This class is used when Lua code needs to determine which of several overload choices.  This is used both for explicitly registered 
+					functions using _Lua.Register_ and for member methods.  Internally it stores the MethodInfo and the object target.  It then uses 
+					reflection to determine which overload is better.
+				</dd>
+				<dt>LuaGlobalMethod</dt>
+				<dd>
+					This defines a global method defined in Lua.  There is only one for a code file and this is the object returned by the default 
+					compiler.  Internally, it stores a dynamic type object that defines the global method and creates a new instance each call to _Invoke_.
+				</dd>
+				<dt>LuaDefinedMethod</dt>
+				<dd>
+					This is similar to LuaGlobalMethod except that it is defined for a function nested in code.  This is the type of any function that is 
+					defined in Lua, even local functions and nested functions.  These store an instance of the, global type and the MethodInfo for the 
+					generated method for the function.
+				</dd>
+				<dt>LuaFramework Method</dt>
+				<dd>
+					This is the base type of the framework functions.  These are the functions like _toStirng_ and _assert.  Each of these functions are 
+					defined in the library and are subclasses of this type.  This ignores by-reference arguments and overloads.
+				</dd>
+			</dl>
+			<h4 id="2.5.3">2.5.3 &dash; Defining Your Own Method</h4>
+			<p>
+				If you want to define your own method, you should select the best object to subclass.  If it is simply an object that can be invoked, 
+				or if you want another base type, you can implement IMethod; otherwise you should derive from LuaMethod.  When you do, you need to 
+				pass the current environment and a string name to the constructor.  The name can be null, it is only used for error messages.  Then 
+				you need to implement the abstract member InvokeInternal.  This is what does the work of invoking your object.  The args and byref 
+				will never be null.  'overload' may be negative if an overload is not specified.  You do not need to use the overload and will most 
+				likely ignore it.
+			</p>
+
+
+
+			<h2 id="3">3 &dash; Framework Features</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<p>
+				This section describes many of the features that this framework provides in addition to traditional Lua features.  Some
+				of these features are optional and may not be supported if using another environment.  If you are using the default environment,
+				then all these features are implemented.  This also describes the changes to the Lua language.  These are changes to the syntax
+				and make the Lua code invalid in other compilers.  In many cases, there are alternates to use.
+			</p>
+
+			<h3 id="3.1">3.1 &dash; Overload Resolution</h3>
+			<h4 id="3.1.1">3.1.1 &dash; Method Overloads</h4>
+			<p>
+				You can register multiple (.NET) delegates to a single name and the runtime will automatically select the best one based on
+				the runtime types of the arguments.  This allows for C# style overloading.  The overloads only work if they are all .NET
+				delegates and there is not another with the same signature registered with that name.
+			</p>
+			<p>
+				The behavior of overload resolution is not specified, so it may differ when using a different environment.  The default 
+				overload resolution works in a similar manner than in C#.  First an overload is searched for that has the least number of
+				conversions needed to make the arguments work.  If there is ambiguity, it favors more explicit arguments over optional
+				and params arrays.  Otherwise it throws an ambiguous match exception.
+			</p>
+
+			<h4 id="3.1.2">3.1.2 &dash; Specifying an Overload</h4>
+			<p>
+				When there are two methods that both match the given arguments, it may be needed to specify which overload to chose from.
+				You can specify an overload with the function <em>overload</em>.  The function accepts a LuaMethod object and a zero-based
+				index of the method to invoke.  You can also by adding a grave (`) to the name of the method and then the zero-based index of
+				the method to invoke.  If the invoking object was registered with Lua.Register, the indexes are the order that they were added.
+				For user-defined objects, it is the order returned from Type.GetMethods, this is usually the order that they appear in the
+				source file (but not necessarily).
+			</p>
+			<p class="code">overload(Foo, 2, <span class="code-string">"Arguments..."</span>)
+Foo`2(<span class="code-string">"Arguments..."</span>)
+<span class="code-comment">-- this also works for member methods</span>
+obj.ToString`1(12)</p>
+
+			<h4 id="3.1.3">3.1.3 &dash; By-Reference Arguments</h4>
+			<p>
+				When passing arguments to .NET, some methods may accept arguments by-reference (e.g. 'ref' and 'out' in c#).  This framework
+				supports passing arguments to these methods and altering Lua values to match.  This means that your C# code can modify Lua
+				variables with no alteration of C# code.  However, there are some changes that need to be made to Lua code to support 
+				by-reference.  First, only variables can be passed by-reference.  Second, the arguments need to be marked as by-reference. 
+				This can  be done in two ways: (1) prefixing the variable with '@', or (2) using the new 'ref' keyword.  Here is an example:
+			</p>
+			<p class="code">i = 12
+t = { [23] = <span class="code-string">"Pie"</span> }
+
+<span class="code-comment">-- the '@' has the highest precedence and must come first</span>
+Foo(@i, @t[23])
+<span class="code-comment">-- the 'ref' can be specified with optional parentheses</span>
+Foo(<span class="code-keyword">ref</span> i, <span class="code-keyword">ref</span>(t[23]))</p>
+			<p>
+				Note that 'ref' is a keyword and cannot be used as a name.  Also note this is not a method, it can only be used in a
+				function call.  This is used so by-reference code can be used as valid Lua code using the native compiler.  If ref
+				is used anywhere else, it contains more than one argument, or the argument is not a variable, then a syntax exception
+				will be thrown.
+			</p>
+			<p>
+				An overload that accepts a by-reference parameter is not compatible if the given argument is not passed by-reference.
+				However, if a variable is passed by-reference and the argument is not, then it will have no effect.  Overload resolution
+				favors methods with more by-reference arguments over those without.  If passing an argument by-reference to a Lua or
+				framework method has no effect also.
+			</p>
+
+			<h3 id="3.2">3.2 &dash; Lua Defined Types</h3>
+			<p>
+				This framework allows you to define new types within Lua code.  This uses similar syntax to LuaBind.  It uses the new
+				<em>'class'</em> keyword to define the new type.  The types defined in Lua can be initialized within Lua or can be loaded
+				into .NET and used there.  This framework also supports inheriting from .NET types so you can use static binding.
+			</p>
+			<h4 id="3.2.1">3.2.1 &dash; Defining the Type</h4>
+			<p>
+				There is two syntaxes for defining a new class.  One is similar to the syntax of LuaBind, and the other is similar to 
+				the syntax in C#.  Classes are defined as a new object in the globals table so a class can be defined in a function.
+				The class definition must come before any member definitions and there cannot be an object in the globals table with
+				that name already.  To add members, simply index a variable with that name (see below).  When the object is invoked it
+				will create an instance of the created type; however, it will generate the type and any changes to the type after that
+				point will throw an exception.  The type will be generated if <em>CreateInstance</em> is called on the object from .NET.
+			</p>
+			<p class="code"><span class="code-comment">-- similar to C#, the name of the class and 
+-- optionally a colin followed by the names of the base type or interfaces</span>
+<span class="code-keyword">class</span> MyClass : IDisposable
+<span class="code-comment">-- similar to LuaBind, the name is in a string and 
+-- optionally a parrentheses and the base type or interfaces</span>
+<span class="code-keyword">class</span> <span class="code-string">"MyClass"</span> (IDisposable)</p>
+			<h4 id="3.2.2">3.2.2 &dash; Extending Other Types</h4>
+			<p>
+				The types that are defined in Lua can extend another type or implement interfaces.  To do this, the type must be visible
+				according to <em>LuaSettings.ClassAccess</em>.  The types are stored as a string and are resolved when the code is executed.
+				Any abstract member or interface method that is not defined when the class is instantiated will be generated and throw
+				a <em>NotImplementedException</em>.  Due to .NET, the class may only derive from a single base class.  The order of
+				implementations does not matter and the base class does not need to be first.
+			</p>
+			<h4 id="3.2.3">3.2.3 &dash; Defining Fields</h4>
+			<p>
+				You can define new fields or properties from within Lua.  The field or properties that are defined are defined as Public,
+				unless you are changing a virtual member.  The type of the field depends on the type of the first object that it is set to.
+				To define a field or property, you simply set a member of the class to an initial value.  
+				If set to function, see below.  If set to anything else, it will be defined as a field with that initial value.  You can set
+				a field to a type (if it is registered) to define that field as the given type.  If the base type defines a member with that
+				name and the type is not compatible, it will throw an exception.
+			</p>
+			<p>
+				If the base class or interface defines a property with the name of a field you set, the behavior is different.  If set to
+				a table, then it must define only a 'get' and 'set' and they must be the get/set functions for the property respectively.
+				If set to a value, then it will create a get method that will always return the given value and (if needed) a set method
+				that will throw an <em>InvalidOperationException</em>.
+			</p>
+			<p class="code"><span class="code-comment">-- define a field with type of 'int'.</span>
+MyClass.MyField = int;
+<span class="code-comment">-- define an initial value for the field.</span>
+MyClass.MyField = 25;
+
+<span class="code-comment">-- define a field of type 'LuaTable'.</span>
+MyClas.MyProperty = { }</p>
+			<h4 id="3.2.4">3.2.4 &dash; Defining Functions</h4>
+			<p>
+				When a function is defined in Lua for the class, the base class and interfaces are searched for a function with the given name
+				(see below).  The return values are converted as needed and an exception is thrown if there is an error.  Make sure to define
+				methods with a colon ':' otherwise it will mess up the arguments because the first argument will be <em>'this'</em>.  There is also
+				a pseudo-argument called <em>'base'</em> that is defined for member functions that allows access to the base type the same was as
+				in C#.  If you define a method with the name <em>'__ctor'</em> it will be called inside the constructor.  Any arguments passed to
+				the constructor will be passed to this method.
+			</p>
+			<p>
+				If a method is defined in the base class, it must be defined as virtual/abstract; otherwise an exception will be thrown.  Any
+				interfaces that define methods with that name are ignored.  If it is marked with virtual/abstract but there are multiple overloads,
+				then you must specify an overload (<a href="#3.1">&sect;3.1</a>) or an exception will be thrown.  Otherwise the method will be
+				overridden.  If an interface defines a method with that name and there is only one overload, then it is implemented implicitly.
+				If there is multiple overloads, an exception is thrown unless the overload is specified.  If there is more than one interface
+				that defines method(s) with that name, it they are ignored.  You can also define a method explicitly using similar syntax
+				as C#.
+			</p>
+			<p class="code"><span class="code-comment">-- make sure to use the colon ':' otherwise the 'self' argument will not be defined</span>
+<span class="code-keyword">function</span> MyClass:Foobar() { }
+
+<span class="code-comment">-- this will implicitly implement IDisposable.Dispose 
+-- (if IDisposable is implemented and no other conflict).</span>
+<span class="code-keyword">function</span> MyClass:Dispose() { }
+
+<span class="code-comment">-- this will explicitly implement IEnumerable.GetEnumerator.</span>
+<span class="code-keyword">function</span> MyClass.IEnumerable:GetEnumerator() { }</p>
+
+			<h3 id="3.3">3.3 &dash; Controlling Visibility</h3>
+			<h4 id="3.3.1">3.3.1 &dash; LuaIgnoreAttribute</h4>
+			<p>
+				LuaIgnoreAttribute is used to control visibility for all variables of a given type.  This is an attribute that can be
+				attached to a member or type to alter what members are visible.  The exact behavior depends on what the attribute is
+				attached to and what arguments are passed.  This attribute is inherited.
+			</p>
+			<p>
+				When LuaIgnoreAttribute is attached directly to a member, the given member is not visible to Lua code.  There is no way
+				to modify this behavior.  Any arguments passed to the attribute will be ignored.  If this is attached to a member of
+				an interface, than it will only have affect if the type is behaving-as (<a href="#3.3.3">&sect;3.3.3</a>) the given type.
+			</p>
+			<p>
+				If the attribute is attached to a type there are several cases that it can be depending on the arguments that are passed.
+				If the class is inherited, this attribute will come with it, however it can be overridden by attaching the attribute to a 
+				derived class.  If the sole argument is <em>'true'</em> then it behaves the same as no arguments; if it is <em>'false'</em> then all members
+				are visible (same as without the attribute).  If the sole argument is a Type object, then a variable of this type will
+				behave-as (<a href="#3.3.3">&sect;3.3.3</a>) the given type.
+			</p>
+			<p>
+				You can change the behavior beyond these defaults.  To start, call the constructor with 'false' as the first argument.
+				Then you can add members either to AccessMembers or IgnoreMembers.  If AccessMembers is not null, a member must
+				be in that array to be visible.  If IgnoreMembers is not null, then a member must not be in that array to be visible.
+				If DefinedOnly is true, than only members that are explicitly defined in this type are visible.  If BehavesAs is not
+				null, than the type will behave-as (<a href="#3.3.3">&sect;3.3.3</a>) the given type.
+			</p>
+
+			<h4 id="3.3.2">3.3.2 &dash; LuaUserData</h4>
+			<p>
+				LuaUserData is a special variable type that is used to control visibility for a single variable.  There are two versions
+				of this type, the generic and non-generic versions.  The generic version derives from the non-generic version and only
+				the non-generic version is used internally.  The generic version should be used by users to ensure type-safety with
+				arguments.  When a variable is passed back to Lua code, it sometimes is stored as a LuaUserData variable.  If a variable
+				is passed to Lua through a return value or a by-reference argument, then it is usually stored in a LuaUserData variable
+				to ensure that it is treated as the given type.
+			</p>
+			<p>
+				When a LuaUserData object is passed as an argument to a function, it is valid to convert it to it's backing type.  However,
+				it may be helpful to accept a variable of type LuaUserData to ensure that the visibility rules are not lost or violated.
+				The generic version ensures that a variable of the given type is passed.  The non-generic version is the same as accepting
+				a variable of any type (type object).
+			</p>
+			<p>
+				The behavior of this object is the same as for LuaIgnoreAttribute (<a href="#3.3.1">&sect;3.1.1</a>), except that it is for
+				a single variable.  Also, there is a field called CanPass, This ensures that special variables are not passed back to
+				C# code.
+			</p>
+
+			<h4 id="3.3.3">3.3.3 &dash; Behaves-As</h4>
+			<p>
+				Behaves-as is used in both LuaUserData and in LuaIgnoreAttribute.  This means that a variable or type will behave as if it
+				was the given type.  This is the same as storing a variable of one type in a variable of a base type or interface.  This
+				is used in LuaUserData to ensure that Lua cannot violate accessibility when return types do not match the backing object
+				type.  This can also be used with LuaIgnoreAttribute when attached to a type.  This means that variables of that type always
+				behave as if they were the given type.  This can be used if you define a class as the default implementation of an interface
+				that you want to expose to Lua.  The default environment is marked in this way to ensure that Lua cannot access the method on
+				DynamicObject.
+			</p>
+			<p>
+				When an object is behaving as another type, that other type entirely defines what members are visible to Lua.  The members
+				are still invoked virtually, however new members defined in the derived type will not be visible.  When a member of an
+				interface is marked with LuaIgnore, it does not effect the visibility of that member unless the type is behaving as the
+				interface type.  This is because attributes are not inherited from interfaces unless the member is implemented explicitly
+				and that would mean that the member is not public and then cannot be accessed by Lua.
+			</p>
+
+
+
+
+			<h2 id="4">4 &dash; Changes to Lua</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<p>
+				There were several changes to both the Lua language and the framework methods.  Due to the behavior of .NET and how
+				the Lua code is compiled, there were some changes that needed to be made to make it work better.  The only language
+				changes were described in Framework Features (<a href="#3">&sect;3</a>), this section describes the changes to the
+				framework functions.
+			</p>
+			<h3 id="4.1">4.1 &dash; Standard Library</h3>
+			<dl>
+				<dt>assert</dt>
+				<dd>The function throws a System.Exception when the first argument is <strong>false</strong> or <strong>nil</strong>.</dd>
+				<dt>collectgarbage</dt>
+				<dd>
+					If the first argument is <em>'collect'</em>, the second argument can be the number
+					0, 1, or 2 and will call GC.Collect with the respective argument, if missing will call GC.Collect().  If the first argument 
+					is <em>'count'</em> will return GC.GetTotalMemory and that value modulo 1024.  This represents the total memory, in bytes
+					by the hosting application.  If the first argument is <em>'isrunning'</em> the function will return true.  Any other option 
+					will throw a System.NotSupportedException.
+				</dd>
+				<dt>dofile</dt>
+				<dd>Moved to IO.  No longer accepts zero arguments.  Demands IOPermissions in the specified directory.</dd>
+				<dt>error</dt>
+				<dd>Throws a System.Exception with the specified message. Ignores the optional second argument.</dd>
+				<dt>load</dt>
+				<dd>Moved to IO. Ignores the second argument.  Mode can only be <strong>nil</strong> or the string <em>'t'</em>, cannot be 
+					binary.  New argument, number 5, specifies whether the new environment should also have the user-defined functions and 
+					types of the current environment, can be <strong>true</strong> or <strong>false</strong>.
+				</dd>
+				<dt>loadfile</dt>
+				<dd>
+					Moved to IO. Demands IOPermission in specified directory. Mode can only be <strong>nil</strong> or the string <em>'t'</em>,
+					cannot be binary. New argument, number 5, specifies whether the new environment should also have the user-defined functions 
+					and types of the current environment, can be <strong>true</strong> or <strong>false</strong>.
+				</dd>
+				<dt>pcall</dt>
+				<dd>
+					Catches any thrown exceptions in specified function. If there is an error, returns false, the exception's message, and the
+					exception object as UserData.
+				</dd>
+				<dt>xpcall</dt>
+				<dd>Removed, not supported.</dd>
+			</dl>
+			
+			<h3 id="4.2">4.2 &dash; String</h3>
+			<p>
+				This library uses System.String to manipulate strings, so it supports Unicode characters and assumes multi-byte chars.  
+				Indexes are the same as in the Language Definition, 1 is the first letter and negative incidies count from the end of the 
+				string (i.e. -1 is the last char).  Indicies also refer to the char index, not the byte index. If you do not include 
+				LuaLibraries.String in LuaSettings, the global string will point to System.String and will allow you to call the static 
+				members in it.
+			</p>
+			<dl>
+				<dt>string.char</dt>
+				<dd>Allows surrogate pairs by specifying them as an integer as in char.</dd>
+				<dt>string.dump</dt>
+				<dd>Removed, not supported.</dd>
+				<dt>string.find</dt>
+				<dd>Uses System.Text.RegularExpressions.Regex to get the matches.</dd>
+				<dt>string.format</dt>
+				<dd>Uses CLR format specification.</dd>
+				<dt>string.gmatch</dt>
+				<dd>Uses System.Text.RegularExpressions.Regex to get the matches.</dd>
+				<dt>string.gsub</dt>
+				<dd>Uses System.Text.RegularExpressions.Regex to get the matches.</dd>
+				<dt>string.lower</dt>
+				<dd>Uses CultureInfo.CurrentCulture to make the conversion.</dd>
+				<dt>string.match</dt>
+				<dd>Uses System.Text.RegularExpressions.Regex to get the matches.</dd>
+				<dt>string.upper</dt>
+				<dd>Uses CultureInfo.CurrentCulture to make the conversion.</dd>
+			</dl>
+			
+			<h3 id="4.3">4.3 &dash; Math</h3>
+			<p>
+				This library simply converts the arguments and passes them to the respective function in System.Math. There are no changes
+				to this library, but there is something to be aware of for <em>math.random</em> and <em>math.randomseed</em>.  This 
+				library uses a static System.Random field to get random values. An exclusive lock is acquired each call to ensure thread 
+				safety. Calling <em>math.randomseed</em> will create a new System.Random object with the specified seed, must be an integer.
+				Also, <em>math.huge</em> returns double.PositiveInfinity.
+			</p>
+			
+			<h3 id="4.4">4.4 &dash; IO</h3>
+			<p>
+				This library requires the respective System.IOPermissions to work. Permissions are Demand'ed by System.IO.File.  The 
+				stream object returned by the functions here are a table with a key of <em>"Stream"</em> that contains the System.IO.Stream 
+				object.  All functions will accept a table with that member or a System.IO.Stream object.
+			</p>
+			<dl>
+				<dt>io.popen</dt>
+				<dd>Removed, not supported.  Expose System.Diagnostics.Process to create processes.</dd>
+				<dt>io.lines</dt>
+				<dt>file:lines</dt>
+				<dd>
+					If first argument is a string that does not start with '*', a System.IO.Stream object, or a table with a 'Stream' it will
+					use that as the stream, otherwise it will use io.input().  Make sure to use file:lines because file.lines will work and will 
+					use io.input() as the stream.
+				</dd>
+				<dt>io.type</dt>
+				<dd>No longer returns "closed file" cannot determine if the file has been closed.</dd>
+				<dt>file:setvbuf</dt>
+				<dd>Removed, not supported.  Uses the buffering specified in the given System.IO.Stream object.</dd>
+			</dl>
+			
+			<h3 id="4.5">4.5 &dash; OS</h3>
+			<dl>
+				<dt>os.clock</dt>
+				<dd>Starts a System.Diagnostics.Stopwatch when the first <em>Lua</em> is created, returns the time in seconds since then.</dd>
+				<dt>os.date</dt>
+				<dd>Does not support the '%U' or the '%W' format specifiers.</dd>
+				<dt>os.execute</dt>
+				<dd>Removed, not supported.</dd>
+				<dt>os.rename</dt>
+				<dd>Uses <em>File.Move</em> or <em>Directory.Move</em> to rename the file/directory.  Can be used to move as well to rename.</dd>
+				<dt>os.setlocale</dt>
+				<dd>
+					Ignores optional second argument, sets <i>Thread.CurrentThread.CurrentCulture</i> to the culture specified by the first 
+					argument. Returns that value if the first argument is <b>nil</b>.  Make sure to call on main thread and not in a coroutine.
+				</dd>
+				<dt>os.time</dt>
+				<dd>
+					Returns the DateTime.Ticks that represents the specified time.  Argument can be a table with the required fields, a DateTime 
+					structure, or a DateTimeOffset structure.
+				</dd>
+			</dl>
+		
+
+
+			<h2 id="5">5 &dash; The General Framework</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<h3 id="5.1">5.1 &dash; Overview</h3>
+			<p>
+				The environment defines how this framework will behave.  It is set in the Lua object and is passed around by the framework.  The
+				environment simply contains a LuaTable for the global variables and an instance of each of the other fundamental types.  The table
+				defines the global variables and can never be null.  The parser object is in charge of converting input text into a DOM code tree.
+				The compiler then converts that into an IMethod object that can then be executed.  The runtime defines the behavior of the executed
+				code.
+			</p>
+			<p>
+				Each of the fundamental types can be changed to alter its behavior.  The environment in the Lua object
+				is used by its methods to parse and compile code.  This is the object that is passed to the created objects, unless a different
+				environment is passed.  Each object that is created may store an environment.  Any time that an object stores the environment it can
+				be changed.  If it does not store the environment, then it either does not use it or is passed by another object.
+			</p>
+
+			<h3 id="5.2">5.2 &dash; The Environment (ILuaEnvironment)</h3>
+			<p>
+				The environment is the main type and defines how the framework will behave.  This object simply contains a reference to the global
+				table and one of the other three types.  It also contains an IThreadFactory object that will create LuaThread objects.  This type
+				does little actual work and simply contains each of the other types.  This framework assumes that any property will never return
+				a null value and it will be a valid reference.  The default implementation is LuaEnvironment and can be extended to alter its
+				behavior.
+			</p>
+
+			<h3 id="5.3">5.3 &dash; The Parser (IParser)</h3>
+			<p>
+				The parser is in charge of converting input code into a DOM (Document Object Model) tree.  This tree is represented as a tree of
+				IParseItem objects.  Each item is defined in <em>ModMaker.Lua.Parser.Items</em>.  There is also an IParseItemVisitor
+				that can be used with the visitor pattern to traverse the tree.  The only method defined is the one that will parse the code.  It can
+				throw an exception if there is a syntax error or if there is an invalid argument.  If the method returns, it must return a valid
+				IParseItem tree.  This object can also optionally use a cache to reduce the time it takes to parse the same code twice.  The default
+				implementation is PlainParser and can be extended to alter its behavior.
+			</p>
+
+			<h3 id="5.4">5.4 &dash; The Compiler (ICodeCompiler)</h3>
+			<p>
+				The compiler is in charge of converting an IParseItem tree into an invokable object (IMethod).  The exact
+				object that is returned is not important; however calling invoke on the object should execute the given code.  There is a helper
+				visitor object GetInfoVisitor that will traverse a tree and get information about it and store it in the
+				objects.  It is important to use this so labels and goto's are resolved.  Also, this will get information about captured variables.
+				This object also creates delegate objects from an IMethod object.  This is used for dynamic binding so IMethod objects can be
+				stored as delegates.  The default implementation is CodeCompiler and cannot be extended.
+			</p>
+
+			<h3 id="5.5">5.5 &dash; The Runtime (ILuaRuntime)</h3>
+			<p>
+				The runtime defines how the code executes.  The methods in the runtime are invoked by the generated code when certain operations
+				are performed.  Most of the complicated logic is performed by the runtime allowing users to alter the behavior of Lua code by
+				changing the runtime object.  The default runtime is LuaRuntime and can be extended to alter its behavior.
+			</p>
+
+
+
+			<h2 id="6">6 &dash; Extending the Framework</h2>
+			<p class="back"><a href="#overallcontent">Back to top.</a></p>
+			<p>
+				This library is simply a framework for defining the behavior of Lua code.  With the four fundamental types, you can change
+				the entire behavior of this framework.  With the default implementations, you can pick and choose which portions of code to
+				use and which to change.  This section will describe how to extend this framework to suit your needs.  It is highly suggested
+				to read the source code to learn how the default implementations work.
+			</p>
+
+			<h3 id="6.1">6.1 &dash; The Parser</h3>
+			<p>
+				The parser is the first step to creating Lua code.  It is in charge of converting plain-text code into a DOM (Document Object
+				Model) of the code.  This is separated into two parts: (1) the tokenizer, and (2) the parser.  The tokenizer starts with some
+				input (usually from a file) and converts this into a sequence of tokens.  The parser takes these tokens and converts these into
+				an IParseItem tree.
+			</p>
+			<h4 id="6.1.1">6.1.1 &dash; The Tokenizer</h4>
+			<p>
+				The <em>ITokenizer</em> is the interface that defines how the tokenizer behaves.  <em>Tokenizer</em> defines the default behavior 
+				for a plain-text input.  The default tokenizer takes a <em>TextElementEnumerator</em> as input.  This allows for full Unicode 
+				support.  This will automatically keep track of position and line.  This can be extended to change how it behaves.  It defines the 
+				behavior of <em>Peek</em>, <em>Read</em>, and <em>PushBack</em>. It then as needed calls <em>InternalRead</em> that does the actual 
+				reading from the input.  This method will read a single token from the input.  
+			</p>
+			<p>
+				There are several helper functions that are defined.  Each helper function can be altered to change how it works.  <em>ReadElement</em> 
+				and <em>PeekElement</em> will read and peek a single letter (or two for surrogate pairs) and will return null on the end of the stream.  
+				<em>ReadElement</em> will also increase the position and Line as needed.  It will also convert any line endings into '\n'.  
+				<em>ReadWhitespace</em> will read any whitespace characters in the input using PeekElement and <em>ReadElement</em>.  <em>ReadComment</em> 
+				will read a comment, it assumes that the first two letters have been read '--' and the input is on the next letter.  <em>ReadString</em> 
+				will read a string, the input must be on the first letter of the string and 'depth' must specify the depth of the string.  -1 for ', 
+				-2 for ", and a positive number for that number of equal signs (e.g. 3 means '[===[').  <em>ReadNumber</em> will read a number, you must
+				 pass the first letter of the number and the input must be on the second one.
+			</p>
+			<h4 id="6.1.2">6.1.2 &dash; The Parser</h4>
+			<p>
+				The parser will take an <em>ITokenizer</em> input and will convert this into an <em>IParseItem</em> tree.  The default <em>PlainParser</em> 
+				can be extended to alter its behavior.  What may be confusing is the different uses of the Token type.  The tokens returned fro the 
+				tokenizer are used to determine what to add to the output, but are also used to store debug information.  Each <em>IParseItem</em> 
+				object contains a Debug property that contains the token that defines it.  If it is a compound token (e.g. <em>BlockItem</em>) then 
+				it is the entire token.  This is done by calling <em>Token.Append</em> which will append the given token onto the end of the current 
+				token.  If a function accepts a token object, this represents the enclosing token and anything that is read should be appended to the 
+				end of that token.  This is usually done by holding a global 'debug' Token that defines the item that is currently being read and at 
+				the end of the function calling append on the enclosing token with 'debug' as the argument.
+			</p>
+			<p>
+				There are several Read functions that will read different items.  <em>ReadBlock</em> does most of the work and will read a block of 
+				code.  This can either be the main section or the contains of another item, such as an 'if' block.  It is important to note that you 
+				should not append the 'end' token to what is read by a block, the 'end' token is read and added by the enclosing function.  
+				<em>ReadPrefixExp</em> will read a prefix-expression from the input.  A prefix expression is a simple expression such as literal or 
+				an indexer.  It will read the entire indexer(s) as well as any function calls.  This may call <em>ReadBlock</em> for an embedded 
+				function or <em>ReadExp</em> for function call arguments. <em>ReadExp</em> will read a single expression from the input.  If the 
+				'precedence' argument is -1, then it is the initial call and will keep reading until it gets to something that is not an expression; 
+				if it is not -1, then it will keep reading until it reaches the end or an expression with a higher precedence.  <em>ReadFunction</em> 
+				and <em>ReadTable</em> will read a function and table respectively.
+			</p>
+
+			<h3 id="6.2">6.2 &dash; The Compiler</h3>
+			<p>
+				The compiler is in charge of converting the <em>IParseItem</em> tree into an IMethod object that can be invoked later.  The default 
+				compiler cannot be extended due to its complexity. If you want to write your own compiler, you need to do it from scratch.  The compiler 
+				need to perform two functions, (1) compile <em>IParseItem</em> trees into <em>IMethod</em> objects, and (2) create delegates that will 
+				invoke a given IMethod object. If you want to use the default behavior of the second item, you can call the static method 
+				<em>CodeCompiler.CreateDelegate</em> in your method.  The default compiler uses System.Reflection.Emit to generate IL according to the 
+				IParseItem tree.  It uses an internal type <em>CompilerVisitor</em> to visit, the parse tree and it generates the code.  There is also 
+				a <em>ChunkBuilder</em> that helps generate the code.
+			</p>
+			<p>
+				There is a public type called <em>GetInfoVisitor</em> that will visit an <em>IParseItem</em> tree and will get information about it.  It is
+				highly suggested that you use this in you compilers.  This will resolve any 'goto' or 'break' statements.  It will also search for
+				captured variables and generate a <em>FuncDefItem.FunctionInfo</em> object for each function.  This will help to determine which variables
+				are local, captured, and global.  The array inside contains any local variables that are captured by nested functions, all others can
+				be real local variables because they are only used in this function.  There is also a field called <em>CapturesParrent</em> that determines
+				if it captures variables from the parent function.  It also defines a field called <em>HasNested</em> that determines if this function also
+				has nested functions.
+			</p>
+
+			<h3 id="6.3">6.3 &dash; The Runtime</h3>
+			<p>
+				The runtime defines how the Lua code will execute.  If you write your own compiler, using the runtime is not needed.  However, if using the
+				default compiler, you need to use <em>ILuaRuntime</em>.  The runtime defines several functions that are called by the generated code.
+				The default runtime (<em>LuaRuntime</em>) can be extended to change parts of its behavior.  It is important to read the section on
+				operator overloads (<a href="#3.1">&sect;3.1</a>) to make sure the operation of the function is the same.  You can use <em>OverloadInfo</em>
+				and <em>GetBetterOverload</em> to determine overload information.  Also make sure to read the next section on methods to correctly support
+				tail-calls.
+			</p>
+
+			<h3 id="6.4">6.4 &dash; Proper Tail Calls</h3>
+			<p>
+				The Lua specification says that is supports proper tail-calls.  This means that if a Lua-defined function returns a call to another function,
+				it will remove it's stack information so it can support infinite recursion.  By default, C# does not ever support tail-calls; however you
+				can use IL to support tail-calls with the 
+				<a href="http://msdn.microsoft.com/en-us/library/system.reflection.emit.opcodes.tailcall.aspx" target="_blank">OpCodes.TailCall</a> opcode.
+				This means that you need to dynamically generate some types to support proper tail-calls.  This is what the framework does by default.  If you
+				want to create a LuaRuntime instance, you need to call the static method <em>Create</em> and it will create an instance of the dynamic type.
+				This is the same for each of the LuaMethod types.  The call to <em>LuaRuntime.Invoke</em> and <em>LuaMethod.Invoke</em> are generated so
+				the tail-call opcode is injected.  If you want to support tail-calls, you need to do the same.
+			</p>
+			<p>
+				This is the call structure of the default runtime when Lua code executes a Lua-defined function.  (1) the backing method calls 
+				<em>ILuaRuntime.Invoke</em> passing the arguments and the object to call (defined in the default compiler), (2) the runtime then calls 
+				<em>LuaMethod.Invoke</em> (as LuaMethod implements <em>IMethod</em>), then (3) that validates the arguments and calls the abstract method
+				<em>LuaMethod.InvokeInternal</em>, (4) this is handled by <em>LuaDefinedMethod.InvokeInternal</em> and it simply calls the dynamically
+				generated method.  In each step above, it needs to contain the tail-call opcode, otherwise it will not support infinite recursion.  If you
+				want to define your own LuaMethod object, you can use <em>LuaMethod.AddInvokableImpl</em> which will generate dynamic implementations of
+				IMethod that will call <em>InvokeInternal</em>.  NOTE that deriving from either LuaMethod or LuaRuntime will NOT support tail-calls, the code
+				for their respective Invoke methods MUST be dynamically generated to support tail-calls.
+			</p>
+		</div>
+	</body>
+</html>

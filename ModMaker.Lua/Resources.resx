@@ -1,0 +1,372 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AlreadyRegistered" xml:space="preserve">
+    <value>An object with the name '{0}' is already registered.</value>
+    <comment>Registration</comment>
+  </data>
+  <data name="BadIndexType" xml:space="preserve">
+    <value>Index of a '{0}' must be a {1}.</value>
+    <comment>General</comment>
+  </data>
+  <data name="BadNumberFormat" xml:space="preserve">
+    <value>Incorrect number format.</value>
+    <comment>General</comment>
+  </data>
+  <data name="BehavesAsMustDeriveType" xml:space="preserve">
+    <value>A type marked with LuaIgnoreAttribute with a given BehavesAs must inherit from that type.</value>
+    <comment>LuaIgnore</comment>
+  </data>
+  <data name="BehavesAsMustDeriveVar" xml:space="preserve">
+    <value>A variable marked with LuaIgnoreAttribute with a given BehavesAs must inherit from that type.</value>
+    <comment>LuaIgnore</comment>
+  </data>
+  <data name="CannotCall" xml:space="preserve">
+    <value>Attempt to call a '{0}' type.</value>
+    <comment>General</comment>
+  </data>
+  <data name="CannotContainNull" xml:space="preserve">
+    <value>{0} cannot contain a null value.</value>
+    <comment>General</comment>
+  </data>
+  <data name="CannotHideMember" xml:space="preserve">
+    <value>Cannot hide member '{0}' defined in base class '{1}'.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="CannotIndex" xml:space="preserve">
+    <value>Attempt to index a '{0}' type.</value>
+    <comment>General</comment>
+  </data>
+  <data name="CannotOverrideProperty" xml:space="preserve">
+    <value>Cannot override property '{0}' because it is not virtual.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="CannotUseOverload" xml:space="preserve">
+    <value>Cannot specify the overload of a {0}.</value>
+    <comment>General</comment>
+  </data>
+  <data name="ChunkOutOfRange" xml:space="preserve">
+    <value>The index must be positive and less than the number of chunks loaded.</value>
+    <comment>Lua</comment>
+  </data>
+  <data name="ConstantProperty" xml:space="preserve">
+    <value>Cannot write to a constant property.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="CtorMustBeFunc" xml:space="preserve">
+    <value>The constructor can only be a function.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="CurrentDoesNotDerive" xml:space="preserve">
+    <value>The current class does not derrive from type '{0}'.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="DefineAtLeastOneName" xml:space="preserve">
+    <value>Must define at least one name.</value>
+    <comment>General</comment>
+  </data>
+  <data name="DefinedAsMethod" xml:space="preserve">
+    <value>'{0}' is already defined as a Method.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="DeriveFromDelegate" xml:space="preserve">
+    <value>The given type must derive from delegate.</value>
+    <comment>Lua</comment>
+  </data>
+  <data name="DoesNotImplement" xml:space="preserve">
+    <value>The class '{0}' does not implement an interface with the name '{1}'.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="ErrorResolveLabel" xml:space="preserve">
+    <value>Error while resolving labels, make sure not to change UserData during compilation.</value>
+    <comment>Compile</comment>
+  </data>
+  <data name="FunctionCallAfterOverload" xml:space="preserve">
+    <value>Must have a function call after specifying an overload.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="FunctionCantHaveName" xml:space="preserve">
+    <value>Functions cannot have names when used as expressions.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="IndexAfterExpression" xml:space="preserve">
+    <value>Cannot index an expression.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="IndexerAfterInstance" xml:space="preserve">
+    <value>Cannot use an indexer after an instance call.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="IndexerLocalMethod" xml:space="preserve">
+    <value>Cannot use indexers(.) in local definition.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="InstanceLocalMethod" xml:space="preserve">
+    <value>Cannot define instance methods for local methods.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="InstanceMissingArgs" xml:space="preserve">
+    <value>Instance function call missing arguments.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="InvalidDefinition" xml:space="preserve">
+    <value>Invalid {0} definition.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="InvalidEscape" xml:space="preserve">
+    <value>Invalid escape sequence '\{0}'.</value>
+    <comment>General</comment>
+  </data>
+  <data name="InvalidLiteralType" xml:space="preserve">
+    <value>A literal must be of type bool, double, string, or be null.</value>
+    <comment>General</comment>
+  </data>
+  <data name="InvalidUnary" xml:space="preserve">
+    <value>Cannot use unary minus on a string, bool, or nil.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="LabelAlreadyDefined" xml:space="preserve">
+    <value>A label with the name '{0}' is already defined in this block.</value>
+    <comment>Compile</comment>
+  </data>
+  <data name="LabelNotFound" xml:space="preserve">
+    <value>Unable to locate label '{0}' for goto item.</value>
+    <comment>Compile</comment>
+  </data>
+  <data name="LoopMustBeNumbers" xml:space="preserve">
+    <value>The Start, Limit, and Step of a for loop must result in numbers.</value>
+    <comment>Runtime</comment>
+  </data>
+  <data name="ManyMembersFound" xml:space="preserve">
+    <value>The type '{0}' defines more than one member named '{1}'.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="MemberHasDefault" xml:space="preserve">
+    <value>The member '{0}' has already a been assigned a default value.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="MemberHasType" xml:space="preserve">
+    <value>The member '{0}' has already a been assigned a type.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="MissingEnd" xml:space="preserve">
+    <value>Missing end of {0}.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="MulticastNotSupported" xml:space="preserve">
+    <value>Cannot register a multicast delegate, must register each individually.</value>
+    <comment>Registration</comment>
+  </data>
+  <data name="MustBeFunction" xml:space="preserve">
+    <value>The member '{0}' is defined as a method and must be set to a Lua function.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="MustBeOn" xml:space="preserve">
+    <value>Must be on a '{0}' when calling {1}.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="NameOrExpForVar" xml:space="preserve">
+    <value>Must give a name or expression for a variable definition.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="NoMemberFound" xml:space="preserve">
+    <value>The type '{0}' does not contain a definition of member '{1}'.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="OneInstanceCall" xml:space="preserve">
+    <value>Can only specify one instance call.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="OnlyNumbersInOverload" xml:space="preserve">
+    <value>Only numbers are allowed after the grave(`) when specifying an overload.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="OnlyVarByReference" xml:space="preserve">
+    <value>Only variables can be passed by-reference.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="OverloadMissingArgs" xml:space="preserve">
+    <value>Overload function call missing arguments.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="OverloadOneGrave" xml:space="preserve">
+    <value>Can only specify one grave(`) in an overload.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="OverloadOutOfRange" xml:space="preserve">
+    <value>The specified overload is greater than the number defined.</value>
+    <comment>General</comment>
+  </data>
+  <data name="PropTableFuncs" xml:space="preserve">
+    <value>The values in a property table must be functions.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="PropTableGetSet" xml:space="preserve">
+    <value>A property table can only contain a 'get' and/or a 'set' items.</value>
+    <comment>Class</comment>
+  </data>
+  <data name="ReadonlySettings" xml:space="preserve">
+    <value>Cannot modify the settings after it is registered to an Environment.</value>
+    <comment>Lua</comment>
+  </data>
+  <data name="RefOneArgument" xml:space="preserve">
+    <value>The 'ref' keyword can only have one argument.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="ReturnAtEnd" xml:space="preserve">
+    <value>The return statement must be the last statement in a block.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenEOF" xml:space="preserve">
+    <value>Invalid token '{0}', expecting end of file.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenInvalid" xml:space="preserve">
+    <value>Invalid token '{0}' in {1} definition.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenInvalidExpecting" xml:space="preserve">
+    <value>Invalid token '{0}' in {1} definition, expecting '{2}'.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenInvalidExpecting2" xml:space="preserve">
+    <value>Invalid token '{0}' in {1} definition, expecting '{2}' or '{3}'.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenNotAName" xml:space="preserve">
+    <value>Invalid token in '{0}' definition, '{1}' is not a name.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenReserved" xml:space="preserve">
+    <value>Invalid name, '{0}' is reserved.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="TokenStatement" xml:space="preserve">
+    <value>Invalid token '{0}', expecting start of statement.</value>
+    <comment>Parsing</comment>
+  </data>
+  <data name="UnexpectedEOF" xml:space="preserve">
+    <value>Unexpected end of file in {0}.</value>
+    <comment>Parsing</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="Whitelist" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>Resources\Whitelist.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+</root>
