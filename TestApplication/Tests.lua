@@ -1,4 +1,42 @@
-﻿-- A general test for all the features of Lua and ModMaker.Lua.
+﻿name = "BrewLAN 0.4.4"
+uid = "25D57D85-7D84-27HT-A501-BR3WL4N000044"
+version = "0.4.4"
+copyright = "2009 - 2014 Sean Wheeldon"
+description = "The BrewLAN unitpack and balance mod."
+author = "Sean Wheeldon"
+icon = "/mods/BrewLAN/documentation/icon.dds"
+selectable = true
+enabled = true
+exclusive = false
+ui_only = false
+conflicts = {
+    "25D57D85-7D84-27HT-A501-48F3488D85724",
+    "25D57D85-7D84-27HT-A501-48F3488D85725",
+    "25D57D85-7D84-27HT-A501-48F3488D85726",
+    "25D57D85-7D84-27HT-A501-48F3488D85727",
+    "25D57D85-7D84-27HT-A501-48F3488D85728",
+    "25D57D85-7D84-27HT-A501-48F3488D85729",
+    "25D57D85-7D84-27HT-A501-48F3488D85730",
+    "25D57D85-7D84-27HT-A501-48F3488D85731",
+    "25D57D85-7D84-27HT-A501-48F3488D85732",
+    "25D57D85-7D84-27HT-A501-48F3488D85733",
+    "25D57D85-7D84-27HT-A501-48F3488D85734",
+    "25D57D85-7D84-27HT-A501-48F3488D85735",
+    "25D57D85-7D84-27HT-A501-48F3488D85736",
+    "25D57D85-7D84-27HT-A501-48F3488D85737",
+    "25D57D85-7D84-27HT-A501-48F3488D85738",
+    "25D57D85-7D84-27HT-A501-48F3488D85739",
+    "25D57D85-7D84-27HT-A501-48F3488D85740",
+    "25D57D85-7D84-27HT-A501-BR3WL4N000040",
+    "25D57D85-7D84-27HT-A501-BR3WL4N000041",
+    "25D57D85-7D84-27HT-A501-BR3WL4N000042",
+    "25D57D85-7D84-27HT-A501-BR3WL4N000043",
+}
+before = {  }
+after = {  }
+
+
+--[[ A general test for all the features of Lua and ModMaker.Lua.
 
 do
 	io.write("General assignment...\t")
@@ -205,4 +243,4 @@ do
 	io.write("Pass\n")
 end
 
-print("\nAll tests succeeded.")
+print("\nAll tests succeeded.")--]]

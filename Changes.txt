@@ -1,3 +1,10 @@
+=== 0.9.3.2 ===
+* Added overload for Lua.DoFile to accept streams.
+* Changed Lua constructor to Accept null environments.
+* Changed Lua documentation to reflect exceptions.
+* Changed Lua.GetVariable*<T> methods to use metamethods.
+* Reordered the members in LuaSettings.
+
 === 0.9.3.1 ===
 * Added ToString, Equals, and GetHashCode implementations to LuaTable.
 * Created new type LuaTableNet, which should be used over LuaTable.

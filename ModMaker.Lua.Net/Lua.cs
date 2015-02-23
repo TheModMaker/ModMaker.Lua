@@ -23,27 +23,31 @@ namespace ModMaker.Lua
         /// and compiler.
         /// </summary>
         public Lua()
-            : this(new LuaEnvironmentNet(
-                new LuaSettings(Console.OpenStandardInput(), Console.OpenStandardOutput()))) { }
+            : this((ILuaEnvironment)null) { }
         /// <summary>
         /// Creates a new Lua object using the default environment, runtime, 
         /// and compiler using the given settings.
         /// </summary>
-        /// <param name="settings">The settings to use.</param>
+        /// <param name="settings">The settings to use, cannot be null.</param>
+        /// <exception cref="System.ArgumentNullException">If settings is null.</exception>
         public Lua(LuaSettings settings)
             : this(new LuaEnvironmentNet(settings)) { }
         /// <summary>
-        /// Creates a new Lua object using the given lua environment, cannot 
-        /// be null.
+        /// Creates a new Lua object using the given lua environment.
         /// </summary>
-        /// <param name="environment">The environment that Lua will execute in,
-        /// cannot be null.</param>
-        /// <exception cref="System.ArgumentNullException">If environment is 
-        /// null.</exception>
+        /// <param name="environment">The environment that Lua will execute in;
+        /// if null, will use the default.</param>
         public Lua(ILuaEnvironment environment)
         {
             if (environment == null)
-                throw new ArgumentNullException("environment");
+            {
+                environment = new LuaEnvironmentNet(
+                    new LuaSettings(
+                        Console.OpenStandardInput(), 
+                        Console.OpenStandardOutput()
+                    )
+                );
+            }
 
             this._chunks = new List<IMethod>();
             this._E = environment;
@@ -193,6 +197,22 @@ namespace ModMaker.Lua
         public object[] DoFile(string path, params object[] args)
         {
             var ret = Load(path);
+            return ret.Invoke(null, args).Values;
+        }
+        /// <summary>
+        /// Loads and executes the file from the given stream.  The chunk is
+        /// loaded into this object and can be indexed by Execute and the
+        /// indexder.
+        /// </summary>
+        /// <param name="stream">The stream to read the file from.</param>
+        /// <param name="args">The arguments to pass.</param>
+        /// <returns>The values returned from the file.</returns>
+        /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// syntax errors in the given file.</exception>
+        public object[] DoFile(Stream stream, params object[] args)
+        {
+            var ret = Load(stream);
             return ret.Invoke(null, args).Values;
         }
         /// <summary>
@@ -811,7 +831,7 @@ namespace ModMaker.Lua
                 PlainParser.Parse(E.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path)),
                 Path.GetFileNameWithoutExtension(path));
             ret.Invoke(new int[0], new object[0]);
-            return names.Select(s => (T)E.Runtime.ConvertType(E.GlobalsTable.GetItemRaw(s), typeof(T))).ToArray();
+            return names.Select(s => (T)E.Runtime.ConvertType(E[s], typeof(T))).ToArray();
         }
 
         #endregion

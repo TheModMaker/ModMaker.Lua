@@ -110,14 +110,13 @@ namespace ModMaker.Lua
     /// </summary>
     public sealed class LuaSettings
     {
-        bool _readonly;
         EventHandler<ExitEventArgs> _onquit;
-        string _name;
-        LuaLibraries _libs;
         LuaClassAccess _access;
+        LuaLibraries _libs;
         Encoding _enc;
-        bool _nonSeek, _reflect, _ensureReturn;
         Stream _in, _out;
+        string _name;
+        bool _nonSeek, _reflect, _ensureReturn, _readonly;
 
         /// <summary>
         /// Creates a new instance of LuaSettings with the default values.
