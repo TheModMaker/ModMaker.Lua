@@ -1,16 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Reflection.Emit;
-using System.Threading;
-using System.Reflection;
-using System.Security.Permissions;
-using System.Security;
+﻿using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
-using System.IO;
+using System;
+using System.Collections.Generic;
 using System.Dynamic;
-using ModMaker.Lua.Compiler;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -325,7 +317,7 @@ namespace ModMaker.Lua.Runtime
                     GlobalsTable.SetItemRaw(name, new LuaType(t));
             }
         }
-
+        
         /// <summary>
         /// Returns the enumeration of all dynamic member names.
         /// </summary>

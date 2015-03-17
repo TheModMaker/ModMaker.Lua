@@ -47,7 +47,6 @@ namespace TestApplication
 
             // load and execute a Lua file
             var v = lua.Load("Tests.lua");
-
             v.Invoke(null, null);
             
             // keep the console window open

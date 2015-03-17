@@ -24,7 +24,7 @@ namespace ModMaker.Lua
         /// A type id number for no-conflict naming.
         /// </summary>
         static int _tid = 1;
-        
+
         /// <summary>
         /// Returns an IEnumerable&lt;T&gt; object that will enumerate over the
         /// first enumerable and then the other one.
@@ -146,7 +146,7 @@ namespace ModMaker.Lua
             else
                 return type;
         }
-        
+
         /// <summary>
         /// Creates a new Method definition in the given Type that has the same
         /// definition as the given method.
@@ -157,6 +157,7 @@ namespace ModMaker.Lua
         /// <returns>A new method clone.</returns>
         public static MethodBuilder CloneMethod(TypeBuilder tb, string name, MethodInfo otherMethod)
         {
+            var attr = otherMethod.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
             var param = otherMethod.GetParameters();
             Type[] paramType = new Type[param.Length];
             Type[][] optional = new Type[param.Length][];
@@ -168,7 +169,7 @@ namespace ModMaker.Lua
                 required[i] = param[i].GetRequiredCustomModifiers();
             }
 
-            return tb.DefineMethod(name, otherMethod.Attributes, otherMethod.CallingConvention,
+            return tb.DefineMethod(name, attr, otherMethod.CallingConvention,
                 otherMethod.ReturnType, otherMethod.ReturnParameter.GetRequiredCustomModifiers(),
                 otherMethod.ReturnParameter.GetOptionalCustomModifiers(), paramType, required, optional);
         }
@@ -1122,6 +1123,7 @@ namespace ModMaker.Lua
 
                 // find all visible members with the given name
                 MemberInfo[] Base = type.GetMember(name)
+                    .Where(m => !(m is MethodInfo) || !((MethodInfo)m).Attributes.HasFlag(MethodAttributes.Abstract))
                     .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
                     .ToArray();
                 if (Base == null || Base.Length == 0 ||

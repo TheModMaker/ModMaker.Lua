@@ -14,7 +14,7 @@ namespace ModMaker.Lua
     [LuaIgnore]
     public sealed class Lua
     {
-        static bool __dynamic = true;
+        static bool __dynamic = false;
         ILuaEnvironment _E;
         List<IMethod> _chunks;
 

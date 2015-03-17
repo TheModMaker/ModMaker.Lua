@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Runtime
             get { return NumberProxy.Create(_table[key]); }
             set { _table[key] = (object)value; }
         }
-        
+
         /// <summary>
         /// Gets a IEnumerable&lt;KeyValuePair&lt;object, object&gt;&gt; to enumerate over
         /// each of the keys of the Table.
