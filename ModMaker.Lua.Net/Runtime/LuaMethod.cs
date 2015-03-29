@@ -48,6 +48,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Performs that actual invokation of the method.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do 
         /// overload resoltion.</param>
@@ -61,7 +63,7 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        protected abstract MultipleReturn InvokeInternal(int overload, int[]/*!*/ byRef, object[]/*!*/ args);
+        protected abstract MultipleReturn InvokeInternal(object target, bool methodCall, int overload, int[] byRef, object[] args);
         /// <summary>
         /// Adds an overload to the current method object.  This is used by the
         /// environment to register multiple delegates.  The default behaviour
@@ -95,51 +97,55 @@ namespace ModMaker.Lua.Runtime
         /// from LuaMethod.</param>
         protected static void AddInvokableImpl(TypeBuilder/*!*/ tb)
         {
-            //// MultipleReturn Invoke(int[] byRef, object[] args);
+            //// MultipleReturn Invoke(object target, bool methodCall, int[] byRef, object[] args);
             var mb = tb.DefineMethod("Invoke",
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-                typeof(MultipleReturn), new[] { typeof(int[]), typeof(object[]) });
+                typeof(MultipleReturn), new[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) });
             var gen = mb.GetILGenerator();
 
-            // return this.Invoke(-1, byRef, args);
+            // return this.Invoke(target, methodCall, -1, byRef, args);
             gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldc_I4_M1);
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldc_I4_M1);
+            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldarg, 4);
             gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Callvirt, typeof(LuaMethod).GetMethod("Invoke",
-                new[] { typeof(int), typeof(int[]), typeof(object[]) }));
+                new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) }));
             gen.Emit(OpCodes.Ret);
 
-            //// MultipleReturn Invoke(int overload, int[] byRef, object[] args);
+            //// MultipleReturn Invoke(object target, bool methodCall, int overload, int[] byRef, object[] args);
             mb = tb.DefineMethod("Invoke",
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-                typeof(MultipleReturn), new[] { typeof(int), typeof(int[]), typeof(object[]) });
+                typeof(MultipleReturn), new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) });
             gen = mb.GetILGenerator();
             var next = gen.DefineLabel();
 
             // if (args == null) args = new object[0];
-            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldarg, 5);
             gen.Emit(OpCodes.Brtrue, next);
             gen.Emit(OpCodes.Ldc_I4_0);
             gen.Emit(OpCodes.Newarr, typeof(object));
-            gen.Emit(OpCodes.Starg, 3);
+            gen.Emit(OpCodes.Starg, 5);
 
             // if (byRef == null) byRef = new int[0];
             gen.MarkLabel(next);
             next = gen.DefineLabel();
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg, 4);
             gen.Emit(OpCodes.Brtrue, next);
             gen.Emit(OpCodes.Ldc_I4_0);
             gen.Emit(OpCodes.Newarr, typeof(int));
-            gen.Emit(OpCodes.Starg, 2);
+            gen.Emit(OpCodes.Starg, 4);
 
-            // return this.InvokeInternal(overload, byRef, args);
+            // return this.InvokeInternal(target, methodCall, overload, byRef, args);
             gen.MarkLabel(next);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Ldarg_2);
             gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldarg, 4);
+            gen.Emit(OpCodes.Ldarg, 5);
             gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Callvirt, typeof(LuaMethod).GetMethod("InvokeInternal",
                 BindingFlags.Instance | BindingFlags.NonPublic));
@@ -151,6 +157,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <returns>The arguments to return to Lua.</returns>
@@ -159,18 +167,20 @@ namespace ModMaker.Lua.Runtime
         /// invoked with the given arguments.</exception>
         /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
         /// valid overloads for the given arguments.</exception>
-        public virtual MultipleReturn Invoke(int[] byRef, params object[] args)
+        public virtual MultipleReturn Invoke(object target, bool methodCall, int[] byRef, params object[] args)
         {
             if (args == null)
                 args = new object[0];
             if (byRef == null)
                 byRef = new int[0];
 
-            return InvokeInternal(-1, byRef, args);
+            return InvokeInternal(target, methodCall, -1, byRef, args);
         }
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <param name="overload">The zero-based index of the overload to invoke;
         /// if negative, use normal overload resolution.</param>
@@ -185,14 +195,14 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        public virtual MultipleReturn Invoke(int overload, int[] byRef, params object[] args)
+        public virtual MultipleReturn Invoke(object target, bool methodCall, int overload, int[] byRef, params object[] args)
         {
             if (args == null)
                 args = new object[0];
             if (byRef == null)
                 byRef = new int[0];
 
-            return InvokeInternal(overload, byRef, args);
+            return InvokeInternal(target, methodCall, overload, byRef, args);
         }
 
         #endregion
@@ -248,7 +258,7 @@ namespace ModMaker.Lua.Runtime
         [LuaIgnore]
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
-            var ret = InvokeInternal(-1, new int[0], args);
+            var ret = InvokeInternal(null, false, -1, new int[0], args);
             result = ret == null ? null : ret.ToArray();
             return true;
         }

@@ -99,6 +99,7 @@ namespace ModMaker.Lua.Runtime
             this._runtime = LuaRuntimeNet.Create();
             this.Settings = new LuaSettings().AsReadOnly();
             this._globals = new LuaTableNet();
+            this._modules = new ModuleBinder();
         }
         /// <summary>
         /// Creates a new environment with the given settings.
@@ -114,6 +115,7 @@ namespace ModMaker.Lua.Runtime
             this._compiler = new CodeCompiler();
             this._parser = new PlainParser();
             this._factory = new ThreadFactory();
+            this._modules = new ModuleBinder();
 
             this.Settings = settings.AsReadOnly();
             this._globals = new LuaTableNet();

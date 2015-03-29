@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -154,7 +155,7 @@ namespace ModMaker.Lua.Compiler
                 throw new ArgumentException(Resources.DeriveFromDelegate);
 
             // search through the cache for a compatible delegate helper
-            object target;
+            object target; // TODO: Make CreateDelegate more efficient.
             for (int i = 0; i < _delegateTypes.Count; i++)
             {
                 target = Activator.CreateInstance(_delegateTypes[i], E, method);
@@ -179,33 +180,43 @@ namespace ModMaker.Lua.Compiler
             FieldBuilder E = tb.DefineField("E", typeof(ILuaEnvironment), FieldAttributes.Private);
             MethodBuilder mb = NetHelpers.CloneMethod(tb, "Do", delegateMethod);
             ILGenerator gen = mb.GetILGenerator();
-            LocalBuilder loc = gen.DeclareLocal(typeof(object[]));
-            LocalBuilder ret = gen.DeclareLocal(typeof(object[]));
+            LocalBuilder ret = gen.DeclareLocal(typeof(MultipleReturn));
 
             // loc = new object[{args.Length}];
-            gen.Emit(OpCodes.Ldc_I4, args.Length);
-            gen.Emit(OpCodes.Newarr, typeof(object));
-            gen.Emit(OpCodes.Stloc, loc);
+            LocalBuilder loc = gen.CreateArray(typeof(object), args.Length);
+            // refs = new int[{args.Length}];
+            LocalBuilder refs = gen.CreateArray(typeof(int), args.Where(a => a.IsOut).Count());
+            int refC = 0;
 
-            for (int i = 0; i < args.Length; i++)
+            for (int i = 1; i < args.Length; i++)
             {
-                // loc[{indicies}] = arg_{indicies};
+                // loc[{i-1}] = arg_{i};
                 gen.Emit(OpCodes.Ldloc, loc);
-                gen.Emit(OpCodes.Ldc_I4, i);
-                gen.Emit(OpCodes.Ldarg, i + 1);
+                gen.Emit(OpCodes.Ldc_I4, i-1);
+                gen.Emit(OpCodes.Ldarg, i);
                 if (args[i].ParameterType.IsValueType)
                     gen.Emit(OpCodes.Box, args[i].ParameterType);
                 gen.Emit(OpCodes.Stelem, typeof(object));
+
+                if (args[i].IsOut)
+                {
+                    // refs[{refC}] = {i};
+                    gen.Emit(OpCodes.Ldloc, refs);
+                    gen.Emit(OpCodes.Ldc_I4, refC);
+                    gen.Emit(OpCodes.Ldc_I4, i);
+                    gen.Emit(OpCodes.Stelem, typeof(int));
+                    refC++;
+                }
             }
 
-            // ret = this.meth.Invoke(E, loc);
+            // ret = this.meth.Invoke(null, false, refs, loc);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, meth);
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, E);
+            gen.Emit(OpCodes.Ldnull);
+            gen.Emit(OpCodes.Ldc_I4_0);
+            gen.Emit(OpCodes.Ldloc, refs);
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke", new[] { typeof(ILuaEnvironment), typeof(object[]) }));
-            gen.Emit(OpCodes.Callvirt, typeof(MultipleReturn).GetMethod("get_Values"));
+            gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke", new[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) }));
             gen.Emit(OpCodes.Stloc, ret);
 
             // store any by-ref parameters in the arguments
@@ -213,20 +224,24 @@ namespace ModMaker.Lua.Compiler
             {
                 if (args[i].IsOut)
                 {
-                    // arg_{i} = ret[{i}];
-                    gen.Emit(OpCodes.Ldloc, ret);
+                    // arg_{i} = loc[{i}];
+                    gen.Emit(OpCodes.Ldloc, loc);
                     gen.Emit(OpCodes.Ldc_I4, i);
                     gen.Emit(OpCodes.Ldelem, typeof(object));
+                    gen.Emit(OpCodes.Unbox_Any, args[i].ParameterType);
                     gen.Emit(OpCodes.Starg, i);
                 }
             }
 
-            // return E.Runtime.ConvertType(ret, {info.Return});
+            // return E.Runtime.ConvertType(ret[0], {info.Return});
             if (delegateMethod.ReturnType != null && delegateMethod.ReturnType != typeof(void))
             {
-                gen.Emit(OpCodes.Ldarg_1);
+                gen.Emit(OpCodes.Ldarg_0);
+                gen.Emit(OpCodes.Ldfld, E);
                 gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
                 gen.Emit(OpCodes.Ldloc, ret);
+                gen.Emit(OpCodes.Ldc_I4_0);
+                gen.Emit(OpCodes.Callvirt, typeof(MultipleReturn).GetMethod("get_Item"));
                 gen.Emit(OpCodes.Ldtoken, delegateMethod.ReturnType);
                 gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("ConvertType"));
             }

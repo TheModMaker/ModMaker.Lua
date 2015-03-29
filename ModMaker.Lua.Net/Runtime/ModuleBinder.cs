@@ -132,7 +132,7 @@ namespace ModMaker.Lua.Runtime
 
                 var item = PlainParser.Parse(E.Parser, System.IO.File.ReadAllText(path), System.IO.Path.GetFileNameWithoutExtension(path));
                 var chunk = E.CodeCompiler.Compile(E, item, null);
-                return chunk.Invoke(new int[0], new object[0]);
+                return chunk.Invoke(null, false, new int[0], new object[0]);
             }
             else if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             {
@@ -220,14 +220,14 @@ namespace ModMaker.Lua.Runtime
                 if (ci != null)
                 {
                     IMethod mod = (IMethod)ci.Invoke(new[] { E });
-                    return mod.Invoke(new int[0], new object[0]);
+                    return mod.Invoke(null, false, new int[0], new object[0]);
                 }
                 return null;
             }
             else
             {
                 IMethod mod = (IMethod)ci.Invoke(null);
-                return mod.Invoke(new int[0], new object[0]);
+                return mod.Invoke(null, false, new int[0], new object[0]);
             }
         }
     }

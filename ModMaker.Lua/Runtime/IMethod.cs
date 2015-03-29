@@ -16,6 +16,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <returns>The arguments to return to Lua.</returns>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
@@ -24,10 +26,12 @@ namespace ModMaker.Lua.Runtime
         /// invoked with the given arguments.</exception>
         /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
         /// valid overloads for the given arguments.</exception>
-        MultipleReturn Invoke(int[] byRef, object[] args);
+        MultipleReturn Invoke(object target, bool memberCall, int[] byRef, object[] args);
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <param name="overload">The zero-based index of the overload to invoke;
         /// if negative, use normal overload resolution.</param>
@@ -51,6 +55,6 @@ namespace ModMaker.Lua.Runtime
         /// It is sugested that the other method simply call this one with -1
         /// as the overload index.
         /// </remarks>
-        MultipleReturn Invoke(int overload, int[] byRef, object[] args);
+        MultipleReturn Invoke(object target, bool memberCall, int overload, int[] byRef, object[] args);
     }
 }

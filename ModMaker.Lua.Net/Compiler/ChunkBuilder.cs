@@ -6,6 +6,7 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
+using System.Collections;
 
 namespace ModMaker.Lua.Compiler
 {
@@ -180,8 +181,9 @@ namespace ModMaker.Lua.Compiler
                 // the iterator will return in the order they would be pop'd.
                 foreach (var item in Locals)
                 {
-                    if (item.ContainsKey(name.Name))
-                        return item[name.Name];
+                    VarDefinition ret;
+                    if (item.TryGetValue(name.Name, out ret))
+                        return ret;
                 }
                 return null;
             }
@@ -287,39 +289,39 @@ namespace ModMaker.Lua.Compiler
         static void AddInvoke(TypeBuilder/*!*/ tb, MethodBuilder/*!*/ realMethod,
             FieldBuilder/*!*/ envField)
         {
-            //// MultipleReturn IMethod.$Invoke(int overload, int[] byRef, object[] args);
+            //// MultipleReturn IMethod.$Invoke(object target, bool methodCall, int overload, int[] byRef, object[] args);
             MethodBuilder mb = tb.DefineMethod("$Invoke",
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 typeof(MultipleReturn),
-                new Type[] { typeof(int), typeof(int[]), typeof(object[]) });
+                new Type[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) });
             var gen = mb.GetILGenerator();
 
             // return this.$Invoke(this.Environment, args);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, envField);
-            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldarg, 5);
             gen.Emit(OpCodes.Callvirt, realMethod);
             gen.Emit(OpCodes.Ret);
             tb.DefineMethodOverride(mb, typeof(IMethod).GetMethod("Invoke",
-                new[] { typeof(int), typeof(int[]), typeof(object[]) }));
+                new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) }));
 
-            //// MultipleReturn IMethod.$Invoke(int[] byRef, object[] args);
+            //// MultipleReturn IMethod.$Invoke(object target, bool methodCall, int[] byRef, object[] args);
             mb = tb.DefineMethod("$Invoke",
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                 typeof(MultipleReturn),
-                new Type[] { typeof(int[]), typeof(object[]) });
+                new Type[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) });
             gen = mb.GetILGenerator();
 
             // return this.$Invoke(this.Environment, args);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, envField);
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg, 4);
             gen.Emit(OpCodes.Callvirt, realMethod);
             gen.Emit(OpCodes.Ret);
             tb.DefineMethodOverride(mb, typeof(IMethod).GetMethod("Invoke",
-                new[] { typeof(int[]), typeof(object[]) }));
+                new[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) }));
         }
         /// <summary>
         /// Adds a get_Environment method to the given type builder object.
@@ -411,19 +413,20 @@ namespace ModMaker.Lua.Compiler
         public void ImplementFunction(IParseItemVisitor/*!*/ visitor, FuncDefItem/*!*/ function, string funcName)
         {
             NameItem[] args = function.Arguments.ToArray();
-            if (function.InstanceName != null) // TODO: Add ability to capture self.
+            if (function.InstanceName != null)
                 args = new[] { new NameItem("self") }.Union(args).ToArray();
 
+            // MultipleReturn function(ILuaEnvironment E, object[] args, object target, bool memberCall);
             funcName = funcName ?? "<>__" + (_mid++);
             string name = curNest.members.Contains(funcName) ? funcName + "_" + (_mid++) : funcName;
             MethodBuilder mb = curNest.TypeDef.DefineMethod(name, MethodAttributes.Public,
                 typeof(MultipleReturn),
-                new Type[] { typeof(ILuaEnvironment), typeof(object[]) });
+                new Type[] { typeof(ILuaEnvironment), typeof(object[]), typeof(object), typeof(bool) });
             var gen = mb.GetILGenerator();
             curNest = new NestInfo(curNest, gen, function.FunctionInformation.CapturedLocals,
                 function.FunctionInformation.HasNested, function.FunctionInformation.CapturesParrent);
 
-            // arg_2 = E.Runtime.FixArgs(arg_2, {args.Length});
+            // args = E.Runtime.FixArgs(args, {args.Length});
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             gen.Emit(OpCodes.Ldarg_2);
@@ -434,29 +437,83 @@ namespace ModMaker.Lua.Compiler
             // if this is an instance method, create a BaseAccessor object to help types.
             if (function.InstanceName != null)
             {
-                var field = curNest.DefineLocal(new NameItem("base")); // TODO: Add ability to capture base.
+                var field = curNest.DefineLocal(new NameItem("base"));
 
-                // {nest.ChildInst}.base = new BaseAcccessor(E, arg_2[0]);
+                // base = new BaseAcccessor(E, target);
                 field.StartSet();
                 gen.Emit(OpCodes.Ldarg_1);
-                gen.Emit(OpCodes.Ldarg_2);
-                gen.Emit(OpCodes.Ldc_I4, 0);
-                gen.Emit(OpCodes.Ldelem, typeof(object));
+                gen.Emit(OpCodes.Ldarg_3);
                 gen.Emit(OpCodes.Newobj, typeof(BaseAccessor).GetConstructor(
                     new[] { typeof(ILuaEnvironment), typeof(object) }));
                 field.EndSet();
             }
 
-            for (int i = 0; i < args.Length; i++)
+            // If this was an instance call, the first Lua argument is the 'target';
+            // otherwise the it is the zero'th index in args.
+            // int c = 0;
+            var c = gen.DeclareLocal(typeof(int));
+            if (args.Length > 0)
+            {
+                var field = curNest.DefineLocal(args[0]);
+                var end = gen.DefineLabel();
+                var else_ = gen.DefineLabel();
+
+                // if (!memberCall) c = 1;
+                // {field_0} = (memberCall ? target : args[0]);
+                field.StartSet();
+                  gen.Emit(OpCodes.Ldarg, 4);
+                  gen.Emit(OpCodes.Brfalse, else_);
+                    gen.Emit(OpCodes.Ldarg_3);
+                    gen.Emit(OpCodes.Br, end);
+                  gen.MarkLabel(else_);
+                    gen.Emit(OpCodes.Ldc_I4_1);
+                    gen.Emit(OpCodes.Stloc, c);
+                    gen.Emit(OpCodes.Ldarg_2);
+                    if (args[0].Name != "...")
+                    {
+                        gen.Emit(OpCodes.Ldc_I4_0);
+                        gen.Emit(OpCodes.Ldelem, typeof(object));
+                    }
+                    else
+                    {
+                        if (args.Length != 1)
+                            throw new InvalidOperationException("Variable arguments (...) only valid at end of argument list.");
+
+                        // If the first argument is ... convert to multiple return.
+                        gen.Emit(OpCodes.Newobj, typeof(MultipleReturn).GetConstructor(new[] { typeof(IEnumerable) }));
+                    }
+                  gen.MarkLabel(end);
+                field.EndSet();
+            }
+
+            for (int i = 1; i < args.Length; i++)
             {
                 var field = curNest.DefineLocal(args[i]);
 
-                // {field} = arg_2[{indicies}];
-                field.StartSet();
-                gen.Emit(OpCodes.Ldarg_2);
-                gen.Emit(OpCodes.Ldc_I4, i);
-                gen.Emit(OpCodes.Ldelem, typeof(object));
-                field.EndSet();
+                if (args[i].Name == "...")
+                {
+                    if (i != args.Length - 1)
+                        throw new InvalidOperationException("Variable arguments (...) only valid at end of argument list.");
+
+                    // {field} = new MultipleReturn(args.Skip({args.Length - 1});
+                    field.StartSet();
+                    gen.Emit(OpCodes.Ldarg_2);
+                    gen.Emit(OpCodes.Ldc_I4, args.Length - 1);
+                    gen.Emit(OpCodes.Call, typeof(Enumerable).GetMethod("Skip").MakeGenericMethod(typeof(object)));
+                    gen.Emit(OpCodes.Newobj, typeof(MultipleReturn).GetConstructor(new[] { typeof(IEnumerable) }));
+                    field.EndSet();
+                }
+                else
+                {
+                    // {field} = args[{i - 1} + c];
+                    field.StartSet();
+                    gen.Emit(OpCodes.Ldarg_2);
+                    gen.Emit(OpCodes.Ldc_I4, i-1);
+                    gen.Emit(OpCodes.Ldloc, c);
+                    gen.Emit(OpCodes.Add);
+                    gen.Emit(OpCodes.Ldelem, typeof(object));
+                    field.EndSet();
+                }
             }
 
             function.Block.Accept(visitor);
@@ -468,7 +525,7 @@ namespace ModMaker.Lua.Compiler
             // push a pointer to the new method onto the stack of the previous nest method
             //   the above line restores the nest to the previous state and this code will
             //   push the new method.
-            //! push E.Runtime.CreateFunction( E, {name}, {nest.TypeDef}.GetMethod({name}), {nest.ThisInst != null ? nest.NestInst : arg_0} );
+            //! push E.Runtime.CreateFunction( E, {name}, {nest.TypeDef}.GetMethod({name}), {nest.ThisInst != null ? nest.NestInst : this} );
             curNest.Generator.Emit(OpCodes.Ldarg_1);
             curNest.Generator.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             curNest.Generator.Emit(OpCodes.Ldarg_1);

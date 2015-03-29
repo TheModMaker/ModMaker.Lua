@@ -20,10 +20,12 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// A delegate for Lua defined functions.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="E">The current environment.</param>
         /// <param name="args">The arguments to pass.</param>
         /// <returns>The values returned from Lua.</returns>
-        protected delegate MultipleReturn LuaFunc(ILuaEnvironment E, object[] args);
+        protected delegate MultipleReturn LuaFunc(ILuaEnvironment E, object[] args, object target, bool memberCall);
         /// <summary>
         /// The backing Lua defined method.
         /// </summary>
@@ -47,6 +49,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Performs that actual invokation of the method.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do 
         /// overload resoltion.</param>
@@ -60,9 +64,9 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        protected override MultipleReturn InvokeInternal(int overload, int[] byRef, object[] args)
+        protected override MultipleReturn InvokeInternal(object target, bool memberCall, int overload, int[] byRef, object[] args)
         {
-            return _Method(Environment, args);
+            return _Method(Environment, args, target, memberCall);
         }
 
         /// <summary>
@@ -89,7 +93,7 @@ namespace ModMaker.Lua.Runtime
             if (func == null)
                 throw new ArgumentException("The given method does not have the correct method signature.");
 
-            if (createdType == null)
+            if (Lua.UseDynamicTypes && createdType == null)
                 CreateType();
 
             if (Lua.UseDynamicTypes)
@@ -125,18 +129,20 @@ namespace ModMaker.Lua.Runtime
                 new[] { typeof(ILuaEnvironment), typeof(LuaFunc), typeof(string) }, null));
             gen.Emit(OpCodes.Ret);
 
-            //// MultipleReturn InvokeInternal(int overload, int[] byRef, object[]/*!*/ args);
+            //// MultipleReturn InvokeInternal(object target, bool memberCall, int overload, int[] byRef, object[]/*!*/ args);
             var mb = tb.DefineMethod("InvokeInternal",
                 MethodAttributes.Family | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-                typeof(MultipleReturn), new[] { typeof(int), typeof(int[]), typeof(object[]) });
+                typeof(MultipleReturn), new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) });
             gen = mb.GetILGenerator();
 
-            // return _Method(Environment, args);
+            // return _Method(Environment, args, target, memberCall);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, field);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Callvirt, typeof(LuaMethod).GetMethod("get_Environment"));
-            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldarg, 5);
+            gen.Emit(OpCodes.Ldarg_1);
+            gen.Emit(OpCodes.Ldarg_2);
             gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Callvirt, typeof(LuaFunc).GetMethod("Invoke"));
             gen.Emit(OpCodes.Ret);

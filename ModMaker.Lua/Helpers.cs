@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 
 namespace ModMaker.Lua
@@ -37,7 +38,7 @@ namespace ModMaker.Lua
                 act();
             }
         }
-
+        
         /// <summary>
         /// Creates an IDisposable object that calls the given funcrion when
         /// Dispose is called.
@@ -100,9 +101,9 @@ namespace ModMaker.Lua
                 }
 
                 // ensure at least 'count' number of elements
-                while (temp.Count < count)
+                if (temp.Count < count)
                 {
-                    temp.Add(null);
+                    temp.AddRange(Enumerable.Repeat<object>(null, count - temp.Count));
                 }
                 return temp.ToArray();
             }
@@ -119,7 +120,8 @@ namespace ModMaker.Lua
                 return null;
 
             Type t1 = value.GetType();
-            if (t1 == typeof(SByte) ||
+            if (t1.IsPrimitive && (
+                t1 == typeof(SByte) ||
                 t1 == typeof(Int16) ||
                 t1 == typeof(Int32) ||
                 t1 == typeof(Int64) ||
@@ -128,7 +130,7 @@ namespace ModMaker.Lua
                 t1 == typeof(UInt32) ||
                 t1 == typeof(UInt64) ||
                 t1 == typeof(Byte) ||
-                t1 == typeof(Decimal))
+                t1 == typeof(Decimal)))
                 return Convert.ToDouble(value, CultureInfo.InvariantCulture);
             else
                 return value;

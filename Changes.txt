@@ -1,3 +1,23 @@
+=== 0.9.3.3 ===
+* Changed the Lua calling convention:
+	* Self is accepted as a seperate argument.
+	* A new argument telling if the function was defined with self.
+	* Self no longer added to normal argument lists.
+	* Simply pass false to memberCall to get old behaviour (except with C# calls).
+	* C# calls now work with both calling styles (with : or not).
+* BaseAccessor no longer throws when creating, only when used.
+* Fixed infinite loop in LuaTable.ToString and Equals.
+* Fixed name linking bug when inside else if blocks.
+* Fixed bug in table.concat.
+* Fixed bug when using modules.
+* Minor style and documentation changes.
+* Updated all version numbers, fixed version number in TestProject and TestApplication.
+
+=== Changeset 36298(0.9.3.2) ===
+* Updated to Visual Studio 2013.
+* Removed LuaClassNew
+* Minor formatting changes.
+
 === 0.9.3.2 ===
 * Added overload for Lua.DoFile to accept streams.
 * Changed Lua constructor to Accept null environments.

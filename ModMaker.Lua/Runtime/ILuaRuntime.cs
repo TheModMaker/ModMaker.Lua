@@ -63,11 +63,13 @@ namespace ModMaker.Lua.Runtime
         /// <param name="byRef">Contains the indicies that are passed by-reference.</param>
         /// <param name="overload">The zero-based index of the overload to invoke,
         /// a negative number to ignore.</param>
+        /// <param name="memberCall">Whether the function was invoked using member call (:).</param>
+        /// <param name="self">The object being called on.</param>
         /// <returns>The return value of the method.</returns>
         /// <exception cref="System.InvalidOperationException">If attempting
         /// to invoke an invalid value.</exception>
         /// <exception cref="System.ArgumentNullException">If E is null.</exception>
-        MultipleReturn Invoke(ILuaEnvironment E, object value, int overload, object[] args, int[] byRef);
+        MultipleReturn Invoke(ILuaEnvironment E, object self, object value, int overload, bool memberCall, object[] args, int[] byRef);
         /// <summary>
         /// Determines whether a given object is true according
         /// to Lua.

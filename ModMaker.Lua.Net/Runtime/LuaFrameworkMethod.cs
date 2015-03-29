@@ -16,7 +16,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="E">The current environment.</param>
         /// <param name="name">The name of the method.</param>
-        public LuaFrameworkMethod(ILuaEnvironment E, string name)
+        protected LuaFrameworkMethod(ILuaEnvironment E, string name)
             : base(E, name) { }
 
         /// <summary>
@@ -30,6 +30,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Performs that actual invokation of the method.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do 
         /// overload resoltion.</param>
@@ -43,8 +45,9 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        protected override MultipleReturn InvokeInternal(int overload, int[] byRef, object[] args)
+        protected override MultipleReturn InvokeInternal(object target, bool memberCall, int overload, int[] byRef, object[] args)
         {
+            if (memberCall) args = new[] { target }.Concat(args).ToArray();
             return InvokeInternal(args);
         }
     }

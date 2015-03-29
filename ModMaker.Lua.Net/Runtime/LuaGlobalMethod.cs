@@ -31,7 +31,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="E">The current environment.</param>
         /// <param name="type">The generated type, must implement IMethod.</param>
-        protected LuaGlobalMethod(ILuaEnvironment E, Type/*!*/ type)
+        protected LuaGlobalMethod(ILuaEnvironment E, Type type)
             : base(E, type.Name)
         {
             this._Type = type;
@@ -40,6 +40,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Performs that actual invokation of the method.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do 
         /// overload resoltion.</param>
@@ -53,10 +55,10 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        protected override MultipleReturn InvokeInternal(int overload, int[]/*!*/ byRef, object[]/*!*/ args)
+        protected override MultipleReturn InvokeInternal(object target, bool memberCall, int overload, int[] byRef, object[] args)
         {
-            IMethod target = (IMethod)Activator.CreateInstance(_Type, new[] { Environment });
-            return target.Invoke(byRef, args);
+            IMethod method = (IMethod)Activator.CreateInstance(_Type, new[] { Environment });
+            return method.Invoke(null, false, byRef, args);
         }
 
         /// <summary>
@@ -77,7 +79,7 @@ namespace ModMaker.Lua.Runtime
             if (!typeof(IMethod).IsAssignableFrom(type))
                 throw new ArgumentException("The type must implement IMethod.");
 
-            if (createdType == null)
+            if (Lua.UseDynamicTypes && createdType == null)
                 CreateType();
 
             if (Lua.UseDynamicTypes)
@@ -98,7 +100,7 @@ namespace ModMaker.Lua.Runtime
                 typeof(LuaGlobalMethod), new Type[0]);
             var field = typeof(LuaGlobalMethod).GetField("_Type", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            //// .ctor(ILuaEnvironment E, Type/*!*/ type);
+            //// .ctor(ILuaEnvironment E, Type type);
             var ctor = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard,
                 new[] { typeof(ILuaEnvironment), typeof(Type) });
             var gen = ctor.GetILGenerator();
@@ -112,10 +114,10 @@ namespace ModMaker.Lua.Runtime
                 new[] { typeof(ILuaEnvironment), typeof(Type) }, null));
             gen.Emit(OpCodes.Ret);
 
-            //// MultipleReturn InvokeInternal(int overload, int[]/*!*/ byRef, object[]/*!*/ args);
+            //// MultipleReturn InvokeInternal(object target, bool memberCall, int overload, int[] byRef, object[] args);
             var mb = tb.DefineMethod("InvokeInternal",
                 MethodAttributes.Family | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-                typeof(MultipleReturn), new[] { typeof(int), typeof(int[]), typeof(object[]) });
+                typeof(MultipleReturn), new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) });
             gen = mb.GetILGenerator();
 
             // object[] args = new object[1];
@@ -128,7 +130,7 @@ namespace ModMaker.Lua.Runtime
             gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("get_Environment"));
             gen.Emit(OpCodes.Stelem, typeof(object));
 
-            // IMethod target = (IMethod)Activator.CreateInstance($Type, args);
+            // IMethod target = (IMethod)Activator.CreateInstance(this.type, args);
             var target = gen.DeclareLocal(typeof(IMethod));
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, field);
@@ -138,13 +140,15 @@ namespace ModMaker.Lua.Runtime
             gen.Emit(OpCodes.Castclass, typeof(IMethod));
             gen.Emit(OpCodes.Stloc, target);
 
-            // return target.Invoke(byRef, args);
+            // return target.Invoke(null, false, byRef, args);
             gen.Emit(OpCodes.Ldloc, target);
-            gen.Emit(OpCodes.Ldarg_2);
-            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Ldnull);
+            gen.Emit(OpCodes.Ldc_I4_0);
+            gen.Emit(OpCodes.Ldarg, 4);
+            gen.Emit(OpCodes.Ldarg, 5);
             gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke",
-                new[] { typeof(int[]), typeof(object[]) }));
+                new[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) }));
             gen.Emit(OpCodes.Ret);
 
             // add tailcall compatible IInvokable implementations.

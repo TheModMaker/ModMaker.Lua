@@ -5,6 +5,8 @@ using System.Text;
 using ModMaker.Lua;
 using System.IO;
 using ModMaker.Lua.Runtime;
+using System.Reflection.Emit;
+using System.Linq.Expressions;
 
 namespace TestApplication
 {
@@ -46,8 +48,7 @@ namespace TestApplication
             lua.Register((Test)Foo);
 
             // load and execute a Lua file
-            var v = lua.Load("Tests.lua");
-            v.Invoke(null, null);
+            lua.DoFile("Tests.lua");
             
             // keep the console window open
             Console.WriteLine("Press any key to continue...");

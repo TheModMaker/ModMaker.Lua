@@ -26,27 +26,6 @@ namespace ModMaker.Lua
         static int _tid = 1;
 
         /// <summary>
-        /// Returns an IEnumerable&lt;T&gt; object that will enumerate over the
-        /// first enumerable and then the other one.
-        /// </summary>
-        /// <typeparam name="T">The type of the enumerable.</typeparam>
-        /// <param name="item">The first enumerable to enumerate over.</param>
-        /// <param name="other">The other enumerable to enumerate over.</param>
-        /// <returns>An IEnumerable&lt;T&gt; object that will enumerate over
-        /// the two enumerables.</returns>
-        public static IEnumerable<T> Then<T>(this IEnumerable<T> item, IEnumerable<T> other)
-        {
-            if (item == null)
-                throw new ArgumentNullException("item");
-            if (other == null)
-                throw new ArgumentNullException("other");
-
-            foreach (var i in item)
-                yield return i;
-            foreach (var i in other)
-                yield return i;
-        }
-        /// <summary>
         /// Converts the given enumerable over bytes to a base-16 string of
         /// the object, (e.g. "1463E5FF").
         /// </summary>

@@ -77,7 +77,7 @@ namespace ModMaker.Lua.Runtime
 
                     try
                     {
-                        return new MultipleReturn(new object[] { true }.Then(meth.Resume(args.Cast<object>().Where((o, i) => i > 0).ToArray())));
+                        return new MultipleReturn(new object[] { true }.Concat(meth.Resume(args.Cast<object>().Where((o, i) => i > 0).ToArray())));
                     }
                     catch (Exception e)
                     {

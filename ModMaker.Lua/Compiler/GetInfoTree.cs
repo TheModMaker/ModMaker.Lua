@@ -139,7 +139,7 @@ namespace ModMaker.Lua.Compiler
         {
             cur = new TreeNode(cur, false);
             foreach (var item in names)
-                cur.TrueLocals.Add(item.Name, item);
+                cur.TrueLocals[item.Name] = item;
         }
 
         /// <summary>

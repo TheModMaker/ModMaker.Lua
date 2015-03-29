@@ -270,7 +270,7 @@ namespace ModMaker.Lua.Runtime
 
                 var args = _args ?? new object[0];
                 _args = null; // make sure that they are not repeated
-                var ret = _method.Invoke(null, args);
+                var ret = _method.Invoke(null, false, null, args);
 
                 lock (_handle)
                 {

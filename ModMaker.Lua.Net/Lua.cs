@@ -159,7 +159,7 @@ namespace ModMaker.Lua
                 List<object> ret = new List<object>();
                 foreach (var item in _chunks)
                 {
-                    ret.AddRange(item.Invoke(null, args));
+                    ret.AddRange(item.Invoke(null, false, null, args));
                 }
                 return ret.ToArray();
             }
@@ -179,7 +179,7 @@ namespace ModMaker.Lua
             {
                 if (index >= _chunks.Count || index < 0)
                     throw new IndexOutOfRangeException(Resources.ChunkOutOfRange);
-                return _chunks[index].Invoke(null, args).Values;
+                return _chunks[index].Invoke(null, false, null, args).Values;
             }
         }
 
@@ -197,7 +197,7 @@ namespace ModMaker.Lua
         public object[] DoFile(string path, params object[] args)
         {
             var ret = Load(path);
-            return ret.Invoke(null, args).Values;
+            return ret.Invoke(null, false, null, args).Values;
         }
         /// <summary>
         /// Loads and executes the file from the given stream.  The chunk is
@@ -213,7 +213,7 @@ namespace ModMaker.Lua
         public object[] DoFile(Stream stream, params object[] args)
         {
             var ret = Load(stream);
-            return ret.Invoke(null, args).Values;
+            return ret.Invoke(null, false, null, args).Values;
         }
         /// <summary>
         /// Loads and executes the specified text. The chunk is
@@ -229,7 +229,7 @@ namespace ModMaker.Lua
         public object[] DoText(string chunk, params object[] args)
         {
             var ret = LoadText(chunk);
-            return ret.Invoke(null, args).Values;
+            return ret.Invoke(null, false, null, args).Values;
         }
 
         #region public IMethod Load(...)
@@ -458,7 +458,7 @@ namespace ModMaker.Lua
                 {
                     var temp = Environment.Parser.UseCache;
                     Environment.Parser.UseCache = !@override;
-                    IMethod ret = Environment.CodeCompiler.Compile(
+                    var ret = Environment.CodeCompiler.Compile(
                         Environment,
                         PlainParser.Parse(Environment.Parser, c.ReadToEnd(), name),
                         name);
@@ -547,7 +547,7 @@ namespace ModMaker.Lua
             {
                 var temp = Environment.Parser.UseCache;
                 Environment.Parser.UseCache = !@override;
-                IMethod ret = Environment.CodeCompiler.Compile(
+                var ret = Environment.CodeCompiler.Compile(
                     Environment,
                     PlainParser.Parse(Environment.Parser, chunk, name),
                     name);
@@ -688,7 +688,7 @@ namespace ModMaker.Lua
             var ret = E.CodeCompiler.Compile(E,
                 PlainParser.Parse(E.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path)),
                 Path.GetFileNameWithoutExtension(path));
-            ret.Invoke(new int[0], new object[0]);
+            ret.Invoke(null, false, new int[0], new object[0]);
             return names.Select(s => E[s]).ToArray();
         }
         /// <summary>
@@ -830,7 +830,7 @@ namespace ModMaker.Lua
             var ret = E.CodeCompiler.Compile(E,
                 PlainParser.Parse(E.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path)),
                 Path.GetFileNameWithoutExtension(path));
-            ret.Invoke(new int[0], new object[0]);
+            ret.Invoke(null, false, new int[0], new object[0]);
             return names.Select(s => (T)E.Runtime.ConvertType(E[s], typeof(T))).ToArray();
         }
 

@@ -27,8 +27,6 @@ namespace ModMaker.Lua.Runtime
         {
             if (E == null)
                 throw new ArgumentNullException("E");
-            if (obj == null)
-                throw new ArgumentNullException("obj");
 
             this.target = obj;
             this.E = E;
@@ -46,6 +44,8 @@ namespace ModMaker.Lua.Runtime
         {
             if (index == null)
                 throw new ArgumentNullException("index");
+            if (target == null)
+                throw new ArgumentNullException("target");
 
             return NetHelpers.GetSetIndex(E, target, index, false, true, true);
         }
@@ -64,6 +64,8 @@ namespace ModMaker.Lua.Runtime
         {
             if (index == null)
                 throw new ArgumentNullException("index");
+            if (target == null)
+                throw new ArgumentNullException("target");
 
             NetHelpers.GetSetIndex(E, target, index, false, false, true, value);
         }

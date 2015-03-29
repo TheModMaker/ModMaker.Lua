@@ -215,7 +215,10 @@ namespace ModMaker.Lua.Compiler
             for (int i = 0; i < target.Elses.Count; i++)
             {
                 using (tree.Block(true))
+                {
                     target.Elses[i].Expression.Accept(this);
+                    target.Elses[i].Block.Accept(this);
+                }
             }
 
             if (target.ElseBlock != null)

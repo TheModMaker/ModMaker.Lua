@@ -179,7 +179,7 @@ namespace ModMaker.Lua.Runtime
                         IMethod meth = meta.GetItemRaw("__ipairs") as IMethod;
                         if (meth != null)
                         {
-                            var ret = meth.Invoke(null, new object[] { table });
+                            var ret = meth.Invoke(table, true, null, new object[0]);
                             return ret.AdjustResults(3);
                         }
                     }
@@ -224,7 +224,7 @@ namespace ModMaker.Lua.Runtime
 
                     int i = Convert.ToInt32((double)obj);
 
-                    return meth.Invoke(i, null, args.Cast<object>().Where((ob, ind) => ind > 1).ToArray());
+                    return meth.Invoke(null, false, i, null, args.Skip(2).ToArray());
                 }
             }
             sealed class pairs : LuaFrameworkMethod
@@ -246,7 +246,7 @@ namespace ModMaker.Lua.Runtime
                             IMethod p = meta.GetItemRaw("__pairs") as IMethod;
                             if (p != null)
                             {
-                                var ret = p.Invoke(null, new[] { table });
+                                var ret = p.Invoke(table, true, null, new object[0]);
                                 return ret.AdjustResults(3);
                             }
                         }
@@ -271,7 +271,7 @@ namespace ModMaker.Lua.Runtime
                     {
                         try
                         {
-                            var ret = (func as IMethod).Invoke(null, args.Cast<object>().Where((obj, i) => i > 0).ToArray());
+                            var ret = (func as IMethod).Invoke(null, false, null, args.Skip(1).ToArray());
                             return new MultipleReturn(new object[] { true }.Union(ret));
                         }
                         catch (ThreadAbortException)
@@ -413,7 +413,7 @@ namespace ModMaker.Lua.Runtime
                         double d = (double)index;
                         if (d < 0)
                             d = args.Length + d;
-                        return new MultipleReturn(args.Cast<object>().Where((obj, i) => i > d));
+                        return new MultipleReturn(args.Skip((int)d));
                     }
                     else
                         throw new ArgumentException("First argument to function 'select' must be a number or the string '#'.");
@@ -479,7 +479,7 @@ namespace ModMaker.Lua.Runtime
                             var m = meta.GetItemRaw("__tostring");
                             if (m != null && m is IMethod)
                             {
-                                var result = (m as IMethod).Invoke(null, new[] { val });
+                                var result = (m as IMethod).Invoke(val, true, null, new object[0]);
                                 return new MultipleReturn((object)result[0].ToString());
                             }
                         }

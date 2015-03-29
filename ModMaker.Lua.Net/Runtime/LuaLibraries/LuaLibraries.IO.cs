@@ -678,7 +678,7 @@ namespace ModMaker.Lua.Runtime
                     string chunk = File.ReadAllText(file);
                     var r = Environment.CodeCompiler.Compile(Environment,
                         PlainParser.Parse(Environment.Parser, chunk, Path.GetFileNameWithoutExtension(file)), null);
-                    return new MultipleReturn((IEnumerable)r.Invoke(null, new object[0]));
+                    return new MultipleReturn((IEnumerable)r.Invoke(null, false, null, new object[0]));
                 }
             }
             sealed class load : LuaFrameworkMethod
@@ -698,7 +698,7 @@ namespace ModMaker.Lua.Runtime
                         chunk = "";
                         while (true)
                         {
-                            var ret = (ld as IMethod).Invoke(null, new object[0]);
+                            var ret = (ld as IMethod).Invoke(null, false, null, new object[0]);
                             if (ret[0] is string)
                             {
                                 if (string.IsNullOrEmpty(ret[0] as string))

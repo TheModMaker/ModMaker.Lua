@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Runtime
                     {
                         try
                         {
-                            var temp = ((IMethod)method).Invoke(null, new[] { this, key });
+                            var temp = ((IMethod)method).Invoke(this, true, null, new[] { key });
                             return temp[0];
                         }
                         catch (Exception) { }
@@ -145,7 +145,7 @@ namespace ModMaker.Lua.Runtime
                 IMethod m = MetaTable.GetItemRaw("__newindex") as IMethod;
                 if (m != null)
                 {
-                    m.Invoke(null, new[] { this, key, value });
+                    m.Invoke(this, true, null, new[] { key, value });
                     return;
                 }
             }
@@ -205,7 +205,7 @@ namespace ModMaker.Lua.Runtime
                     _values.Remove(key);
             }
             else
-                _values[key] = Helpers.ToDouble(value);
+                _values[key] = value;
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace ModMaker.Lua.Runtime
                 IMethod meth = MetaTable.GetItemRaw("__len") as IMethod;
                 if (meth != null)
                 {
-                    var ret = meth.Invoke(null, new[] { this });
+                    var ret = meth.Invoke(this, true, null, null);
                     object o = ret[0];
                     if (o is double)
                         return (double)o;
@@ -249,7 +249,7 @@ namespace ModMaker.Lua.Runtime
         public override bool Equals(object obj)
         {
             LuaTable t = obj as LuaTable;
-            return t != null && t.GetType() == this.GetType() && t.ToString() == this.ToString();
+            return t != null && t.GetType() == this.GetType() && _values.Equals(t._values);
         }
         /// <summary>
         /// Serves as a hash function for a particular type.
@@ -280,9 +280,15 @@ namespace ModMaker.Lua.Runtime
                     str.Append(", ");
                 first = false;
 
-                str.Append(item.Key);
+                if (item.Key is ILuaTable)
+                    str.Append("{...}");
+                else
+                    str.Append(item.Key);
                 str.Append(" = ");
-                str.Append(item.Value);
+                if (item.Value is ILuaTable)
+                    str.Append("{...}");
+                else
+                    str.Append(item.Value);
             }
 
             str.Append(" }");
@@ -332,6 +338,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <returns>The arguments to return to Lua.</returns>
@@ -340,13 +348,15 @@ namespace ModMaker.Lua.Runtime
         /// invoked with the given arguments.</exception>
         /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
         /// valid overloads for the given arguments.</exception>
-        MultipleReturn IMethod.Invoke(int[] byRef, object[] args)
+        MultipleReturn IMethod.Invoke(object target, bool memberCall, int[] byRef, object[] args)
         {
-            return ((IMethod)this).Invoke(-1, byRef, args);
+            return ((IMethod)this).Invoke(target, memberCall, -1, byRef, args);
         }
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <param name="overload">The zero-based index of the overload to invoke;
         /// if negative, use normal overload resolution.</param>
@@ -370,7 +380,7 @@ namespace ModMaker.Lua.Runtime
         /// It is sugested that the other method simply call this one with -1
         /// as the overload index.
         /// </remarks>
-        MultipleReturn IMethod.Invoke(int overload, int[] byRef, object[] args)
+        MultipleReturn IMethod.Invoke(object target, bool memberCall, int overload, int[] byRef, object[] args)
         {
             if (overload >= 0)
                 throw new NotSupportedException(string.Format(Resources.CannotUseOverload, "LuaTable"));
@@ -382,7 +392,7 @@ namespace ModMaker.Lua.Runtime
             {
                 object v = m.GetItemRaw("__call");
                 if (v is IMethod)
-                    return (v as IMethod).Invoke(byRef, args);
+                    return (v as IMethod).Invoke(v, false, byRef, args);
             }
 
             throw new InvalidOperationException(string.Format(Resources.CannotCall, "table"));

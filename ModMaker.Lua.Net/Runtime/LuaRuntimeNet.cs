@@ -106,12 +106,13 @@ namespace ModMaker.Lua.Runtime
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[0], null));
             gen.Emit(OpCodes.Ret);
 
-            //// override MultipleReturn Invoke(ILuaEnvironment E, object value, int overload, object[] args, int[] byRef);
+            //// override MultipleReturn Invoke(ILuaEnvironment E, object self, object value, int overload, bool memberCall, object[] args, int[] byRef);
             var mb = tb.DefineMethod("Invoke",
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-                typeof(MultipleReturn), new[] { typeof(ILuaEnvironment), typeof(object), typeof(int), typeof(object[]), typeof(int[]) });
+                typeof(MultipleReturn), new[] { typeof(ILuaEnvironment), typeof(object), typeof(object), typeof(int), typeof(bool), typeof(object[]), typeof(int[]) });
             gen = mb.GetILGenerator();
             var next = gen.DefineLabel();
+            var call = gen.DefineLabel();
 
             // if (E == null) throw new ArgumentNullException("E");
             gen.Emit(OpCodes.Ldarg_1);
@@ -120,68 +121,55 @@ namespace ModMaker.Lua.Runtime
             gen.Emit(OpCodes.Newobj, typeof(ArgumentNullException).GetConstructor(new[] { typeof(string) }));
             gen.Emit(OpCodes.Throw);
 
-            //if (value is MultipleReturn) value = ((MultipleReturn)value)[0];
+            // if (value is MultipleReturn) value = ((MultipleReturn)value)[0];
             gen.MarkLabel(next);
             next = gen.DefineLabel();
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg_3);
             gen.Emit(OpCodes.Isinst, typeof(MultipleReturn));
             gen.Emit(OpCodes.Brfalse, next);
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg_3);
             gen.Emit(OpCodes.Castclass, typeof(MultipleReturn));
             gen.Emit(OpCodes.Ldc_I4_0);
             gen.Emit(OpCodes.Callvirt, typeof(MultipleReturn).GetMethod("get_Item"));
-            gen.Emit(OpCodes.Starg, 2);
+            gen.Emit(OpCodes.Starg, 3);
+
+            // if (value is LuaUserData) value = ((LuaUserData)value).Backing;
+            gen.MarkLabel(next);
+            next = gen.DefineLabel();
+            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Isinst, typeof(LuaUserData));
+            gen.Emit(OpCodes.Brfalse, next);
+            gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Castclass, typeof(LuaUserData));
+            gen.Emit(OpCodes.Callvirt, typeof(LuaUserData).GetMethod("get_Backing"));
+            gen.Emit(OpCodes.Starg, 3);
 
             // if (!(value is IMethod)) goto next;
             gen.MarkLabel(next);
             next = gen.DefineLabel();
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg_3);
             gen.Emit(OpCodes.Isinst, typeof(IMethod));
             gen.Emit(OpCodes.Brfalse, next);
 
-            // return ((IMethod)value).Invoke(overload, byRef, args);
-            gen.Emit(OpCodes.Ldarg_2);
-            gen.Emit(OpCodes.Castclass, typeof(IMethod));
+            // return value.Invoke(self, memberCall, overload, byRef, args);
+            gen.MarkLabel(call);
             gen.Emit(OpCodes.Ldarg_3);
+            gen.Emit(OpCodes.Castclass, typeof(IMethod));
+            gen.Emit(OpCodes.Ldarg_2);
             gen.Emit(OpCodes.Ldarg, 5);
             gen.Emit(OpCodes.Ldarg, 4);
+            gen.Emit(OpCodes.Ldarg, 7);
+            gen.Emit(OpCodes.Ldarg, 6);
             gen.Emit(OpCodes.Tailcall);
             gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke",
-                new[] { typeof(int), typeof(int[]), typeof(object[]) }));
-            gen.Emit(OpCodes.Ret);
-
-            // if (!(value is LuaUserData)) goto next;
-            gen.MarkLabel(next);
-            next = gen.DefineLabel();
-            gen.Emit(OpCodes.Ldarg_2);
-            gen.Emit(OpCodes.Isinst, typeof(LuaUserData));
-            gen.Emit(OpCodes.Brfalse, next);
-
-            // if (!(((LuaUserData)value).Backing is IMethod)) goto next;
-            gen.Emit(OpCodes.Ldarg_2);
-            gen.Emit(OpCodes.Castclass, typeof(LuaUserData));
-            gen.Emit(OpCodes.Callvirt, typeof(LuaUserData).GetMethod("get_Backing"));
-            gen.Emit(OpCodes.Isinst, typeof(IMethod));
-            gen.Emit(OpCodes.Brfalse, next);
-
-            // return ((IMethod)(((LuaUserData)value).Backing)).Invoke(overload, byRef, args);
-            gen.Emit(OpCodes.Ldarg_2);
-            gen.Emit(OpCodes.Castclass, typeof(LuaUserData));
-            gen.Emit(OpCodes.Callvirt, typeof(LuaUserData).GetMethod("get_Backing"));
-            gen.Emit(OpCodes.Castclass, typeof(IMethod));
-            gen.Emit(OpCodes.Ldarg_3);
-            gen.Emit(OpCodes.Ldarg, 5);
-            gen.Emit(OpCodes.Ldarg, 4);
-            gen.Emit(OpCodes.Tailcall);
-            gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke",
-                new[] { typeof(int), typeof(int[]), typeof(object[]) }));
+                new[] { typeof(object), typeof(bool), typeof(int), typeof(int[]), typeof(object[]) }));
             gen.Emit(OpCodes.Ret);
 
             // throw new InvalidOperationException("Attempt to call a '" + GetValueType(value) + "' type.");
             gen.MarkLabel(next);
             gen.Emit(OpCodes.Ldstr, "Attempt to call a '");
             gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldarg_2);
+            gen.Emit(OpCodes.Ldarg_3);
             gen.Emit(OpCodes.Callvirt, typeof(LuaRuntimeNet).GetMethod("GetValueType", BindingFlags.NonPublic | BindingFlags.Instance));
             gen.Emit(OpCodes.Box, typeof(LuaValueType));
             gen.Emit(OpCodes.Ldstr, "' type.");
@@ -288,10 +276,10 @@ namespace ModMaker.Lua.Runtime
                 return LuaValueType.Bool;
             else if (source is ILuaTable)
                 return LuaValueType.Table;
-            else if (source is IMethod)
-                return LuaValueType.Function;
             else if (source is LuaThread)
                 return LuaValueType.Thread;
+            else if (source is LuaMethod)
+                return LuaValueType.Function;
             else
                 return LuaValueType.UserData;
         }
@@ -477,24 +465,24 @@ namespace ModMaker.Lua.Runtime
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <param name="overload">The zero-based index of the overload to invoke,
         /// a negative number to ignore.</param>
+        /// <param name="memberCall">Whether the function was invoked using member call (:).</param>
+        /// <param name="self">The object being called on.</param>
         /// <returns>The return value of the method.</returns>
         /// <exception cref="System.InvalidOperationException">If attempting
         /// to invoke an invalid value.</exception>
         /// <exception cref="System.ArgumentNullException">If E  is null.</exception>
-        public virtual MultipleReturn Invoke(ILuaEnvironment E, object value, int overload, object[] args, int[] byRef)
+        public virtual MultipleReturn Invoke(ILuaEnvironment E, object self, object value, int overload, bool memberCall, object[] args, int[] byRef)
         {
             if (E == null)
                 throw new ArgumentNullException("E");
             if (value is MultipleReturn)
                 value = ((MultipleReturn)value)[0];
+            if (value is LuaUserData)
+                value = ((LuaUserData)value).Backing;
 
             if (value is IMethod)
             {
-                return ((IMethod)value).Invoke(overload, byRef, args);
-            }
-            else if (value is LuaUserData && ((LuaUserData)value).Backing is IMethod)
-            {
-                return ((IMethod)(((LuaUserData)value).Backing)).Invoke(overload, byRef, args);
+                return ((IMethod)value).Invoke(self, memberCall, overload, byRef, args);
             }
 
             throw new InvalidOperationException("Attempt to call a '" + GetValueType(value) + "' type.");
@@ -507,6 +495,8 @@ namespace ModMaker.Lua.Runtime
         /// <returns>False if the object is null or false, otherwise true.</returns>
         public virtual bool IsTrue(object value)
         {
+            if (value is MultipleReturn)
+                value = ((MultipleReturn)value)[0];
             return !(value == null || value as bool? == false);
         }
         /// <summary>
@@ -967,7 +957,7 @@ namespace ModMaker.Lua.Runtime
 
                 while (true)
                 {
-                    var temp = target.Invoke(null, new[] { s, var });
+                    var temp = target.Invoke(null, false, null, new[] { s, var });
                     if (temp == null || temp[0] == null)
                         yield break;
                     var = temp[0];

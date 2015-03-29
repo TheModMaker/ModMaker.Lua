@@ -35,9 +35,15 @@ do
 	-- and/or and expressions
 	local x = a + c / 3
 	x = x ^ 2
+	local ddd = nil and assert(false)
+	local s22 = 12 or assert(false)
 	local x2 = (nil or x) and 12
 	assert(x == 9, "Numerical expressions")
 	assert(x2 == 12, "And/or of values")
+	assert((nil or 12) == 12, "And/or of values")
+	assert((nil and 12) == nil, "And/or of values")
+	assert((12 or nil) == 12, "And/or of values")
+	assert((12 and nil) == nil, "And/or of values")
 
 	io.write("Pass\n")
 end
@@ -197,7 +203,7 @@ do
 	local temp = MyLuaClass()
 	assert(temp, "Lua defined type")
 	assert(temp.Do() == true, "Lua defined type")
-	assert(temp.Some() == 12, "Lua defined type")
+	assert(temp:Some() == 12, "Lua defined type")
 	assert(temp.Field1 == 12, "Lua defined type")
 	assert(type(temp.Field2) == "table", "Lua defined type")
 	assert(temp.Field2.out == 234, "Lua defined type")

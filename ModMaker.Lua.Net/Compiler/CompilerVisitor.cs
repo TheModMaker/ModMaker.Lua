@@ -18,10 +18,35 @@ namespace ModMaker.Lua.Compiler
         ChunkBuilder compiler;
 
         /// <summary>
+        /// A Helper used for compiling function call.  This is used to fake the
+        /// prefix in an indexer item.  This simply reads from the prefix local.
+        /// </summary>
+        sealed class IndexerHelper : IParseExp
+        {
+            ILGenerator gen;
+            LocalBuilder prefix;
+
+            public IndexerHelper(ILGenerator gen, LocalBuilder prefix)
+            {
+                this.gen = gen; 
+                this.prefix = prefix;
+            }
+
+            public Token Debug { get; set; }
+            public object UserData { get; set; }
+
+            public IParseItem Accept(IParseItemVisitor visitor)
+            {
+                gen.Emit(OpCodes.Ldloc, prefix);
+                return this;
+            }
+        }
+
+        /// <summary>
         /// Creates a new instance of CompilerVisitor.
         /// </summary>
         /// <param name="compiler">The creating object used to help generate code.</param>
-        public CompilerVisitor(ChunkBuilder/*!*/ compiler)
+        public CompilerVisitor(ChunkBuilder compiler)
         {
             this.compiler = compiler;
         }
@@ -39,13 +64,52 @@ namespace ModMaker.Lua.Compiler
 
             ILGenerator gen = compiler.CurrentGenerator;
 
-            //! push E.Runtime.ResolveBinaryOperation({Lhs}, {OperationType}, {Rhs})
-            gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-            target.Lhs.Accept(this);
-            gen.Emit(OpCodes.Ldc_I4, (int)target.OperationType);
-            target.Rhs.Accept(this);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("ResolveBinaryOperation"));
+            if (target.OperationType == BinaryOperationType.And ||
+                target.OperationType == BinaryOperationType.Or)
+            {
+                // object temp = {Lhs};
+                var end = gen.DefineLabel();
+                var temp = compiler.CreateTemporary(typeof(object));
+                target.Lhs.Accept(this);
+                gen.Emit(OpCodes.Stloc, temp);
+
+                // Push Lhs onto the stack, if going to end, this will be the result.
+                gen.Emit(OpCodes.Ldloc, temp);
+
+                // if (E.Runtime.IsTrue(temp)) goto end;
+                gen.Emit(OpCodes.Ldarg_1);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Ldloc, temp);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("IsTrue"));
+                if (target.OperationType == BinaryOperationType.And)
+                {
+                    // We want to break if the value is truthy and it's an OR,
+                    // or it's falsy and it's an AND.
+
+                    // Boolean negation.
+                    gen.Emit(OpCodes.Ldc_I4_1);
+                    gen.Emit(OpCodes.Xor);
+                }
+                gen.Emit(OpCodes.Brtrue, end);
+
+                // Replace Lhs on stack with Rhs.
+                gen.Emit(OpCodes.Pop);
+                target.Rhs.Accept(this);
+
+                // :end
+                gen.MarkLabel(end);
+            }
+            else
+            {
+                //! push E.Runtime.ResolveBinaryOperation({Lhs}, {OperationType}, {Rhs})
+                gen.Emit(OpCodes.Ldarg_1);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                target.Lhs.Accept(this);
+                gen.Emit(OpCodes.Ldc_I4, (int)target.OperationType);
+                target.Rhs.Accept(this);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("ResolveBinaryOperation"));
+            }
+
             return target;
         }
         /// <summary>
@@ -371,76 +435,50 @@ namespace ModMaker.Lua.Compiler
             if (target == null)
                 throw new ArgumentNullException("target");
 
-            /* load the args into an array */
+            //// load the args into an array.
             ILGenerator gen = compiler.CurrentGenerator;
             LocalBuilder f = compiler.CreateTemporary(typeof(object));
+            LocalBuilder self = compiler.CreateTemporary(typeof(object));
 
             // args = new object[...];
-            LocalBuilder args = compiler.CreateArray(typeof(object),
-                target.Arguments.Count + (target.InstanceName == null ? 0 : 1));
+            LocalBuilder args = compiler.CreateArray(typeof(object), target.Arguments.Count);
             // byref = new int[...];
             LocalBuilder byref = compiler.CreateArray(typeof(int), 
                 target.Arguments.Count(t => t.IsByRef));
 
-            // only need to create args array if there are aruments
-            if (target.Arguments.Count > 0 || target.InstanceName != null)
+            /* add 'self' if instance call */
+            if (target.InstanceName != null)
             {
-                /* add 'self' if instance call */
-                if (target.InstanceName != null)
-                {
-                    // f = {Prefix};
-                    target.Prefix.Accept(this);
-                    gen.Emit(OpCodes.Stloc, f);
-
-                    // args[0] = f;
-                    gen.Emit(OpCodes.Ldloc, args);
-                    gen.Emit(OpCodes.Ldc_I4_0);
-                    gen.Emit(OpCodes.Ldloc, f);
-                    gen.Emit(OpCodes.Stelem, typeof(object));
-
-                    // f = E.Runtime.GetIndex(E, f, {Instance});
-                    gen.Emit(OpCodes.Ldarg_1);
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-                    gen.Emit(OpCodes.Ldarg_1);
-                    gen.Emit(OpCodes.Ldloc, f);
-                    gen.Emit(OpCodes.Ldstr, target.InstanceName);
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("GetIndex"));
-                    gen.Emit(OpCodes.Stloc, f);
-                }
-                else
-                {
-                    // f = {Prefix};
-                    target.Prefix.Accept(this);
-                    gen.Emit(OpCodes.Stloc, f);
-                }
-
-                int bi = 0;
-                for (int i = 0; i < target.Arguments.Count; i++)
-                {
-                    // args[...] = {item};
-                    gen.Emit(OpCodes.Ldloc, args);
-                    gen.Emit(OpCodes.Ldc_I4, i + (target.InstanceName == null ? 0 : 1));
-                    target.Arguments[i].Expression.Accept(this);
-                    gen.Emit(OpCodes.Stelem, typeof(object));
-
-                    // add value to byRef
-                    if (target.Arguments[i].IsByRef)
-                    {
-                        // byRef[{bi}] = {i};
-                        gen.Emit(OpCodes.Ldloc, byref);
-                        gen.Emit(OpCodes.Ldc_I4, bi++);
-                        gen.Emit(OpCodes.Ldc_I4, i);
-                        gen.Emit(OpCodes.Stelem, typeof(int));
-                    }
-                }
-
-                // args = E.Runtime.FixArgs(args);
+                // self = {Prefix};
+                target.Prefix.Accept(this);
+                gen.Emit(OpCodes.Stloc, self);
+                    
+                // f = E.Runtime.GetIndex(E, self, {Instance});
                 gen.Emit(OpCodes.Ldarg_1);
                 gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-                gen.Emit(OpCodes.Ldloc, args);
-                gen.Emit(OpCodes.Ldc_I4_M1);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("FixArgs"));
-                gen.Emit(OpCodes.Stloc, args);
+                gen.Emit(OpCodes.Ldarg_1);
+                gen.Emit(OpCodes.Ldloc, self);
+                gen.Emit(OpCodes.Ldstr, target.InstanceName);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("GetIndex"));
+                gen.Emit(OpCodes.Stloc, f);
+            }
+            else if (target.Prefix is IndexerItem)
+            {
+                // self = {Prefix};
+                IndexerItem item = (IndexerItem)target.Prefix;
+                item.Prefix.Accept(this);
+                gen.Emit(OpCodes.Stloc, self);
+
+                // Store the old value to restore later, add a dummy.
+                var tempPrefix = item.Prefix;
+                item.Prefix = new IndexerHelper(gen, self);
+
+                // f = {Prefix};
+                target.Prefix.Accept(this);
+                gen.Emit(OpCodes.Stloc, f);
+
+                // Restore the old value
+                item.Prefix = tempPrefix;
             }
             else
             {
@@ -449,12 +487,45 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Stloc, f);
             }
 
-            //! push E.Runtime.Invoke(E, f, {Overload}, args, byref);
+            int bi = 0;
+            for (int i = 0; i < target.Arguments.Count; i++)
+            {
+                // args[i] = {item};
+                gen.Emit(OpCodes.Ldloc, args);
+                gen.Emit(OpCodes.Ldc_I4, i);
+                target.Arguments[i].Expression.Accept(this);
+                gen.Emit(OpCodes.Stelem, typeof(object));
+
+                // add value to byRef
+                if (target.Arguments[i].IsByRef)
+                {
+                    // byRef[{bi}] = {i};
+                    gen.Emit(OpCodes.Ldloc, byref);
+                    gen.Emit(OpCodes.Ldc_I4, bi++);
+                    gen.Emit(OpCodes.Ldc_I4, i);
+                    gen.Emit(OpCodes.Stelem, typeof(int));
+                }
+            }
+
+            if (target.Arguments.Count > 0)
+            {
+                // args = E.Runtime.FixArgs(args);
+                gen.Emit(OpCodes.Ldarg_1);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Ldloc, args);
+                gen.Emit(OpCodes.Ldc_I4_M1);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("FixArgs"));
+                gen.Emit(OpCodes.Stloc, args);
+            }
+
+            //! push E.Runtime.Invoke(E, self, f, {Overload}, {InstanceName}, args, byref);
             gen.Emit(OpCodes.Ldarg_1);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             gen.Emit(OpCodes.Ldarg_1);
+            gen.Emit(OpCodes.Ldloc, self);
             gen.Emit(OpCodes.Ldloc, f);
             gen.Emit(OpCodes.Ldc_I4, target.Overload);
+            gen.Emit(OpCodes.Ldc_I4, target.InstanceName != null ? 1 : 0);
             gen.Emit(OpCodes.Ldloc, args);
             gen.Emit(OpCodes.Ldloc, byref);
             if (target.IsTailCall)
@@ -462,6 +533,7 @@ namespace ModMaker.Lua.Compiler
             gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("Invoke"));
             compiler.RemoveTemporary(f);
             compiler.RemoveTemporary(byref);
+            compiler.RemoveTemporary(self);
 
             //! pop
             if (target.Statement)
@@ -987,7 +1059,7 @@ namespace ModMaker.Lua.Compiler
         /// <param name="getIndex">A function to get the index of the object,
         /// pass null to use the default.</param>
         /// <param name="getValue">A function to get the value to set to.</param>
-        void AssignValue(IParseItem/*!*/ target, bool local, Action getIndex, Action/*!*/ getValue)
+        void AssignValue(IParseItem target, bool local, Action getIndex, Action getValue)
         {
             ILGenerator gen = compiler.CurrentGenerator;
             ChunkBuilder.VarDefinition field;

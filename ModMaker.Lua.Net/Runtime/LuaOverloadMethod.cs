@@ -326,6 +326,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Performs that actual invokation of the method.
         /// </summary>
+        /// <param name="self">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do 
         /// overload resoltion.</param>
@@ -339,7 +341,7 @@ namespace ModMaker.Lua.Runtime
         /// larger than the number of overloads.</exception>
         /// <exception cref="System.NotSupportedException">If this object does
         /// not support overloads.</exception>
-        protected override MultipleReturn InvokeInternal(int overload, int[]/*!*/ byRef, object[]/*!*/ args)
+        protected override MultipleReturn InvokeInternal(object self, bool memberCall, int overload, int[] byRef, object[] args)
         {
             // convert the arguments to a form that can be passed to the method
             object[] r_args = new object[args.Length];
@@ -366,31 +368,7 @@ namespace ModMaker.Lua.Runtime
                 if (!NetHelpers.GetCompatibleMethod(methods.Select(t => t.Item1).ToArray(), methods.Select(t => t.Item2).ToArray(),
                     ref r_args, byRef, out method, out target))
                 {
-                    // if the first argument is the same type as the target, remove it to support 'a:Foo()' syntax
-                    bool fail = true;
-                    if (r_args.Length > 0 && r_args[0] != null)
-                    {
-                        // filter out any overloads that the target is not the same type as the first arguemnt
-                        Type oType = r_args[0].GetType();
-                        var temp = methods
-                            .Where(t => t.Item2 != null && t.Item2.GetType() == oType);
-
-                        // remove the first argument
-                        r_args = r_args.Where((o, i) => i > 0).ToArray();
-                        byRef = byRef.Where((o, i) => i > 0).ToArray();
-
-                        // try to find an overload
-                        if (NetHelpers.GetCompatibleMethod(
-                            temp.Select(t => t.Item1).ToArray(),
-                            temp.Select(t => t.Item2).ToArray(),
-                            ref r_args, byRef, out method, out target))
-                        {
-                            fail = false;
-                        }
-                    }
-
-                    if (fail)
-                        throw new ArgumentException("No overload of method '" + Name + "' could be found with specified parameters.");
+                    throw new ArgumentException("No overload of method '" + Name + "' could be found with specified parameters.");
                 }
             }
             else
@@ -402,20 +380,7 @@ namespace ModMaker.Lua.Runtime
                 if (!NetHelpers.GetCompatibleMethod(new[] { temp.Item1 }, new[] { temp.Item2 },
                     ref r_args, byRef, out method, out target))
                 {
-                    // if the first argument is the same type as the target, remove it to support 'a:Foo()' syntax
-                    bool fail = true;
-                    if (r_args.Length > 0 && temp.Item2 != null && r_args[0] != null && temp.Item2.GetType() == r_args[0].GetType())
-                    {
-                        // remove the first argument and try to find an overload
-                        r_args = r_args.Where((a, i) => i > 0).ToArray();
-                        byRef = byRef.Where((o, i) => i > 0).ToArray();
-                        if (NetHelpers.GetCompatibleMethod(new[] { temp.Item1 }, new[] { temp.Item2 },
-                            ref r_args, byRef, out method, out target))
-                            fail = false;
-                    }
-
-                    if (fail)
-                        throw new ArgumentException("The given overload for '" + Name + "' is not compatible with the specified parameters.");
+                    throw new ArgumentException("The given overload for '" + Name + "' is not compatible with the specified parameters.");
                 }
             }
 

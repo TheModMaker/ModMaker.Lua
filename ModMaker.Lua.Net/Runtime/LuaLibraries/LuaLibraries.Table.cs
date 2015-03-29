@@ -36,7 +36,7 @@ namespace ModMaker.Lua.Runtime
                 {
                     if (meth != null)
                     {
-                        var ret = meth.Invoke(null, new[] { x, y });
+                        var ret = meth.Invoke(null, false, null, new[] { x, y });
                         object o = ret[0];
                         if (!(o is bool))
                             throw new InvalidOperationException("Invalid comparer function.");
@@ -68,7 +68,7 @@ namespace ModMaker.Lua.Runtime
                     double len = table.GetLength();
                     double j = ((args.Length > 3 ? args[3] : null) as double? ?? len);
 
-                    if (j > i)
+                    if (j < i)
                         return new MultipleReturn((object)"");
 
                     StringBuilder str = new StringBuilder();

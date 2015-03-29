@@ -61,6 +61,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <returns>The arguments to return to Lua.</returns>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
@@ -68,13 +70,15 @@ namespace ModMaker.Lua.Runtime
         /// invoked with the given arguments.</exception>
         /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
         /// valid overloads for the given arguments.</exception>
-        public MultipleReturn Invoke(int[] byRef, params object[] args)
+        public MultipleReturn Invoke(object target, bool memberCall, int[] byRef, params object[] args)
         {
-            return Invoke(-1, byRef, args);
+            return Invoke(target, memberCall, -1, byRef, args);
         }
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <param name="overload">The zero-based index of the overload to invoke;
         /// if negative, use normal overload resolution.</param>
@@ -97,7 +101,7 @@ namespace ModMaker.Lua.Runtime
         /// It is sugested that the other method simply call this one with -1
         /// as the overload index.
         /// </remarks>
-        public MultipleReturn Invoke(int overload, int[] byRef, params object[] args)
+        public MultipleReturn Invoke(object target, bool memberCall, int overload, int[] byRef, params object[] args)
         {
             if (overload >= 0)
                 throw new NotSupportedException(string.Format(Resources.CannotUseOverload, "LuaType"));
@@ -108,12 +112,12 @@ namespace ModMaker.Lua.Runtime
 
             Type t = Type;
             ConstructorInfo method;
-            object target;
+            object ignore;
             if (NetHelpers.GetCompatibleMethod(
                 t.GetConstructors()
                     .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
                     .ToArray(),
-                new object[] { null }, ref args, null, out method, out target))
+                new object[] { null }, ref args, null, out method, out ignore))
             {
                 return new MultipleReturn(method.Invoke(args));
             }
@@ -263,7 +267,7 @@ namespace ModMaker.Lua.Runtime
         /// <param name="returnType">The return type of the method.</param>
         static void CallFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField, LocalBuilder arguments, FieldBuilder _E)
         {
-            // MultipleReturn ret = E.Runtime.Invoke(E, this.{field}, -1, arguments, null);
+            // MultipleReturn ret = E.Runtime.Invoke(E, this, this.{field}, -1, false, arguments, null);
             LocalBuilder ret = gen.DeclareLocal(typeof(MultipleReturn));
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, _E);
@@ -271,8 +275,10 @@ namespace ModMaker.Lua.Runtime
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, _E);
             gen.Emit(OpCodes.Ldarg_0);
+            gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, methodField);
-            gen.Emit(OpCodes.Ldc_I4_4);
+            gen.Emit(OpCodes.Ldc_I4_M1);
+            gen.Emit(OpCodes.Ldc_I4_0);
             gen.Emit(OpCodes.Ldloc, arguments);
             gen.Emit(OpCodes.Ldnull);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("Invoke"));
@@ -348,12 +354,14 @@ namespace ModMaker.Lua.Runtime
             ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(typeof(object)));
             ctorgen.Emit(OpCodes.Stloc, temp);
 
-            // E.Runtime.Invoke(E, ctor, -1, temp, null);
+            // E.Runtime.Invoke(E, this, ctor, -1, false, temp, null);
             ctorgen.Emit(OpCodes.Ldarg_3);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             ctorgen.Emit(OpCodes.Ldarg_3);
+            ctorgen.Emit(OpCodes.Ldarg_0);
             ctorgen.Emit(OpCodes.Ldarg, 5);
             ctorgen.Emit(OpCodes.Ldc_I4_M1);
+            ctorgen.Emit(OpCodes.Ldc_I4_0);
             ctorgen.Emit(OpCodes.Ldloc, temp);
             ctorgen.Emit(OpCodes.Ldnull);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("Invoke"));
@@ -579,6 +587,8 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <returns>The arguments to return to Lua.</returns>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
@@ -586,13 +596,15 @@ namespace ModMaker.Lua.Runtime
         /// invoked with the given arguments.</exception>
         /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
         /// valid overloads for the given arguments.</exception>
-        MultipleReturn IMethod.Invoke(int[] byRef, object[] args)
+        MultipleReturn IMethod.Invoke(object target, bool memberCall, int[] byRef, object[] args)
         {
-            return ((IMethod)this).Invoke(-1, byRef, args);
+            return ((IMethod)this).Invoke(target, memberCall, -1, byRef, args);
         }
         /// <summary>
         /// Invokes the current object with the given arguments.
         /// </summary>
+        /// <param name="target">The object that this was called on.</param>
+        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, can be null or empty.</param>
         /// <param name="overload">The zero-based index of the overload to invoke;
         /// if negative, use normal overload resolution.</param>
@@ -615,7 +627,7 @@ namespace ModMaker.Lua.Runtime
         /// It is sugested that the other method simply call this one with -1
         /// as the overload index.
         /// </remarks>
-        MultipleReturn IMethod.Invoke(int overload, int[] byRef, object[] args)
+        MultipleReturn IMethod.Invoke(object target, bool memberCall, int overload, int[] byRef, object[] args)
         {
             if (args == null)
                 args = new object[0];

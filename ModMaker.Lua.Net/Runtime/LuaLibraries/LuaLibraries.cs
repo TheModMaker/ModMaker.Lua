@@ -67,10 +67,10 @@ namespace ModMaker.Lua.Runtime
                 return "boolean";
             else if (value is ILuaTable)
                 return "table";
-            else if (value is IMethod)
-                return "function";
             else if (value is LuaThread)
                 return "thread";
+            else if (value is LuaMethod)
+                return "function";
             else
                 return "userdata";
         }

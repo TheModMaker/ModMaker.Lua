@@ -93,7 +93,7 @@ namespace ModMaker.Lua.Runtime
                     }
                     else if (_meth != null)
                     {
-                        var obj = _meth.Invoke(null, match.Groups.Cast<Group>().Where((g, i) => i > 0).Select(c => c.Value).ToArray());
+                        var obj = _meth.Invoke(null, false, null, match.Groups.Cast<Group>().Where((g, i) => i > 0).Select(c => c.Value).ToArray());
                         if (obj != null && obj.Count > 0)
                         {
                             object o = obj[0];
@@ -210,7 +210,7 @@ namespace ModMaker.Lua.Runtime
                     return mat == null ? new MultipleReturn() :
                         new MultipleReturn(
                             new object[] { (double)mat.Index, (double)(mat.Index + mat.Length) }
-                                .Then(mat.Captures.Cast<Capture>()
+                                .Concat(mat.Captures.Cast<Capture>()
                                     .Select(c => c.Value))
                             );
                 }
