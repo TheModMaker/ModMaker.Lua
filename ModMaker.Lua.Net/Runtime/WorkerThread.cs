@@ -1,4 +1,5 @@
-﻿using System;
+using ModMaker.Lua.Runtime.LuaValues;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,15 +8,20 @@ using System.Threading;
 namespace ModMaker.Lua.Runtime
 {
     /// <summary>
-    /// Defines a helper thread used for LuaThread objects.  This will
-    /// execute multiple LuaThread objects over its lifetime.
+    /// Defines a helper thread used for LuaThread objects.  This will execute multiple LuaThread
+    /// objects over its lifetime.
     /// </summary>
     sealed class WorkerThread : IDisposable
     {
         /// <summary>
+        /// The max wait time in miliseconds to wait for a new task.
+        /// </summary>
+        const int MAX_WAIT_TIME = 1000;
+
+        /// <summary>
         /// Contains the status of the worker thread.
         /// </summary>
-        public enum Status
+        enum Status
         {
             /// <summary>
             /// The thread is waiting for a new task.
@@ -31,24 +37,26 @@ namespace ModMaker.Lua.Runtime
             Shutdown,
         }
 
-        object _lock = new object();
-        bool _disposed = false;
-        Status _status;
-        Thread _backing;
-        LuaThread _target;
-        ThreadFactory _owner;
+        object lock_ = new object();
+        bool disposed_ = false;
+        ILuaEnvironment E_;
+        ThreadPool owner_;
+        Status status_;
+        Thread backing_;
 
         /// <summary>
         /// Creates a new WorkerThread object.
         /// </summary>
         /// <param name="owner">The factory that created this object.</param>
-        public WorkerThread(ThreadFactory/*!*/ owner)
+        /// <param name="E">The current environment.</param>
+        public WorkerThread(ThreadPool owner, ILuaEnvironment E)
         {
-            this._backing = new Thread(Execute);
-            this._backing.IsBackground = true;
-            this._backing.Start();
-            this._status = Status.Waiting;
-            this._owner = owner;
+            status_ = Status.Waiting;
+            owner_ = owner;
+            E_ = E;
+            backing_ = new Thread(Execute);
+            backing_.IsBackground = true;
+            backing_.Start();
         }
         ~WorkerThread()
         {
@@ -58,30 +66,28 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Gets the current target of the thread.
         /// </summary>
-        public LuaThread Target { get { return _target; } }
-        /// <summary>
-        /// Gets the current status of the thread.
-        /// </summary>
-        public Status CurrentStatus { get { return _status; } }
+        public LuaThreadNet Target { get; private set; }
         /// <summary>
         /// Gets the ID for the worker thread.
         /// </summary>
-        public int ID { get { return _backing.ManagedThreadId; } }
+        public int ID { get { return backing_.ManagedThreadId; } }
 
         /// <summary>
         /// Makes the current thread execute the given method.
         /// </summary>
         /// <param name="target">The method to execute.</param>
-        public void DoWork(IMethod/*!*/ target)
+        public void DoWork(ILuaValue target)
         {
-            if (_status != Status.Waiting)
+            if (status_ != Status.Waiting)
+            {
                 throw new InvalidOperationException(
                     "The worker thread must be waiting to get a new task.");
+            }
 
-            _target = new LuaThread(_backing, target);
-            _status = Status.Working;
-            lock (_lock)
-                Monitor.Pulse(_lock);
+            Target = new LuaThreadNet(E_, backing_, target);
+            status_ = Status.Working;
+            lock (lock_)
+                Monitor.Pulse(lock_);
         }
 
         /// <summary>
@@ -90,33 +96,35 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         public void Dispose()
         {
-            if (!_disposed)
+            if (!disposed_)
             {
-                _disposed = true;
-
-                Dispose(true);
+                disposed_ = true;
                 GC.SuppressFinalize(this);
+                Dispose(true);
             }
         }
         void Dispose(bool disposing)
         {
-            if (disposing && _target != null)
-                _target.Dispose();
-            _target = null;
+            if (!disposing)
+                return;
 
-            if (disposing && _backing != null)
+            if (Target != null)
+                Target.Dispose();
+            Target = null;
+
+            if (backing_ != null)
             {
-                if (_status == Status.Working)
-                    _backing.Abort();
+                if (status_ == Status.Working)
+                    backing_.Abort();
                 else
                 {
-                    _status = Status.Shutdown;
-                    lock (_lock)
-                        Monitor.Pulse(_lock);
+                    status_ = Status.Shutdown;
+                    lock (lock_)
+                        Monitor.Pulse(lock_);
                 }
-                _backing.Join();
+                backing_.Join();
             }
-            _backing = null;
+            backing_ = null;
         }
 
         /// <summary>
@@ -126,22 +134,24 @@ namespace ModMaker.Lua.Runtime
         {
             while (true)
             {
-                lock (_lock)
+                lock (lock_)
                 {
-                    while (_status == Status.Waiting)
-                        if (!Monitor.Wait(_lock, 1000))
-                            _status = Status.Shutdown;
-
-                    if (_status == Status.Shutdown)
+                    while (status_ == Status.Waiting)
                     {
-                        _owner.ShutdownThread(this);
+                        if (!Monitor.Wait(lock_, MAX_WAIT_TIME))
+                            status_ = Status.Shutdown;
+                    }
+
+                    if (status_ == Status.Shutdown)
+                    {
+                        owner_.ShutdownThread(this);
                         return;
                     }
 
-                    _target.Do();
+                    Target.Do();
 
-                    _status = Status.Waiting;
-                    _owner.DoneWorking(this);
+                    status_ = Status.Waiting;
+                    owner_.DoneWorking(this);
                 }
             }
         }

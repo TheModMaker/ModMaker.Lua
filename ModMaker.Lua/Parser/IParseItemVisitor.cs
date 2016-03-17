@@ -1,4 +1,4 @@
-﻿using ModMaker.Lua.Parser.Items;
+using ModMaker.Lua.Parser.Items;
 
 namespace ModMaker.Lua.Parser
 {

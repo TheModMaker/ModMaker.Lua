@@ -1,3 +1,6 @@
+=== TODO ===
+* Fix bug with (t()) not adjusting results.
+
 === 0.9.3.3 ===
 * Changed the Lua calling convention:
 	* Self is accepted as a seperate argument.

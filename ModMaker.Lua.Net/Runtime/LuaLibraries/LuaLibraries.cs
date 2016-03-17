@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,10 +16,9 @@ namespace ModMaker.Lua.Runtime
 {
     static partial class LuaStaticLibraries
     {
-        public static void Initialize(ILuaEnvironment/*!*/ E)
+        public static void Initialize(ILuaEnvironment E)
         {
             LuaLibraries libraries = E.Settings.Libraries;
-            ILuaTable _globals = E.GlobalsTable;
 
             if ((libraries & LuaLibraries.Standard) == LuaLibraries.Standard)
             {
@@ -31,48 +30,49 @@ namespace ModMaker.Lua.Runtime
             }
             if ((libraries & LuaLibraries.String) == LuaLibraries.String)
             {
-                _globals.SetItemRaw("string", String.Initialize(E));
+                String.Initialize(E);
             }
             if ((libraries & LuaLibraries.Math) == LuaLibraries.Math)
             {
-                _globals.SetItemRaw("math", Math.Initialize(E));
-                _globals.SetItemRaw("bit32", Bit32.Initialize(E));
-            }
-            if ((libraries & LuaLibraries.Coroutine) == LuaLibraries.Coroutine)
-            {
-                _globals.SetItemRaw("coroutine", Coroutine.Initialize(E));
-            }
-            if ((libraries & LuaLibraries.OS) == LuaLibraries.OS)
-            {
-                _globals.SetItemRaw("os", OS.Initialize(E));
+                Math.Initialize(E);
+                Bit32.Initialize(E);
             }
             if ((libraries & LuaLibraries.Table) == LuaLibraries.Table)
             {
-                _globals.SetItemRaw("table", Table.Initialize(E));
+                new Table(E).Initialize();
+            }
+            if ((libraries & LuaLibraries.OS) == LuaLibraries.OS)
+            {
+                new OS(E).Initialize();
             }
             if ((libraries & LuaLibraries.Modules) == LuaLibraries.Modules)
             {
-                _globals.SetItemRaw("require", new Module.require(E));
+                new Module(E).Initialize();
+            }
+            if ((libraries & LuaLibraries.Coroutine) == LuaLibraries.Coroutine)
+            {
+                new Coroutine(E).Initialize();
             }
         }
-        static string _type(object value)
+
+        static void Register(ILuaEnvironment E, ILuaValue table, Delegate func, string name = null)
         {
-            if (value == null)
-                return "nil";
-            else if (value is string)
-                return "string";
-            else if (value is double)
-                return "number";
-            else if (value is bool)
-                return "boolean";
-            else if (value is ILuaTable)
-                return "table";
-            else if (value is LuaThread)
-                return "thread";
-            else if (value is LuaMethod)
-                return "function";
-            else
-                return "userdata";
+            var funcValue = E.Runtime.CreateValue(func);
+            var nameValue = E.Runtime.CreateValue(name ?? func.Method.Name);
+            table.SetIndex(nameValue, funcValue);
         }
+
+        static int normalizeIndex_(int max, int i)
+        {
+            if (i == 0)
+                return 1;
+            else if (i < 0)
+                return max + i + 1;
+            else if (i > max)
+                return max;
+            else
+                return i;
+        }
+
     }
 }

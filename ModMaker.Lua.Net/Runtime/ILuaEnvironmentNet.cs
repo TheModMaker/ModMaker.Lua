@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,13 +19,6 @@ namespace ModMaker.Lua.Runtime
         /// implementations may allow setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        IModuleBinder ModuleBinder { get; set; } 
-        /// <summary>
-        /// Gets or sets the object that creates LuaThread objects.  This
-        /// franework assumes that the value returned is never null.  Some
-        /// implementations may support setting to null.
-        /// </summary>
-        /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        IThreadFactory ThreadFactory { get; set; }
+        IModuleBinder ModuleBinder { get; set; }
     }
 }

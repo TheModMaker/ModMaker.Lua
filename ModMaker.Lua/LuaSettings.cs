@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -148,7 +148,7 @@ namespace ModMaker.Lua
         /// Creates a read-only copy of the given settings.
         /// </summary>
         /// <param name="copy">The settings to copy.</param>
-        LuaSettings(LuaSettings/*!*/ copy)
+        LuaSettings(LuaSettings copy)
         {
             this._readonly = true;
 

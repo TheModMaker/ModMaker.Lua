@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -128,54 +128,77 @@ namespace ModMaker.Lua
         /// <returns>True if the member is visible, otherwise false.</returns>
         public bool IsMemberVisible(Type backing, string member)
         {
-            if (AccessMembers != null)
+            return IsMemberVisible(backing, member, AccessMembers, IgnoreMembers, DefinedOnly, BehavesAs);
+        }
+
+        /// <summary>
+        /// Checks whether a given member is visible to Lua code.
+        /// </summary>
+        /// <param name="backing">The backing type to check.</param>
+        /// <param name="member">The name of the member.</param>
+        /// <param name="access">The members that Lua has access to.  If this is not
+        /// null, then a visible member MUST be in this array.</param>
+        /// <param name="ignore">The members that Lua does not have access to.  Can be null.</param>
+        /// <param name="definedOnly">If true, then Lua can only access members defined by the given type,
+        /// otherwise it has access to inherited members.</param>
+        /// <param name="behavesAs">The type that this class should behave as if it is.
+        /// If it is null, then it is ignored.  The attached type must
+        /// derive from or implement this type.</param>
+        /// <returns>True if the member is visible, otherwise false.</returns>
+        public static bool IsMemberVisible(Type backing, string member, string[] access, string[] ignore, bool definedOnly, Type behavesAs)
+        {
+            if (backing == null)
+                throw new ArgumentNullException("backing");
+            if (member == null)
+                throw new ArgumentNullException("member");
+
+            if (access != null)
             {
                 // the member must be in AccessMembers if it is not null
-                if (!AccessMembers.Contains(member))
+                if (!access.Contains(member))
                     return false;
             }
-            if (IgnoreMembers != null)
+            if (ignore != null)
             {
                 // the member must not be in IgnoreMembers if not null
-                if (IgnoreMembers.Contains(member))
+                if (ignore.Contains(member))
                     return false;
             }
-            if (BehavesAs != null)
+
+            if (behavesAs != null)
             {
                 // sanity check, the backing type must inherit from BehavesAs type.
-                if (!BehavesAs.IsAssignableFrom(backing))
+                if (!behavesAs.IsAssignableFrom(backing))
                     throw new InvalidOperationException(Resources.BehavesAsMustDeriveType);
 
-                // than this variable is pretending to be another type, so
+                // then this variable is pretending to be another type, so
                 //   check that type.  Favor having a LuaIgnoreAttribute
-                var temp = BehavesAs.GetCustomAttributes(typeof(LuaIgnoreAttribute), true);
-                if (temp != null && temp.Length > 0)
+                var temp = behavesAs.GetCustomAttribute<LuaIgnoreAttribute>(true);
+                if (temp != null)
                 {
-                    if (!((LuaIgnoreAttribute)temp[0]).IsMemberVisible(backing, member))
+                    if (!temp.IsMemberVisible(backing, member))
                         return false;
                 }
                 else
                 {
                     // the type must define the member without LuaIgnore
-                    if (BehavesAs.GetMembers().Where(m => m.Name == member &&
-                        m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0).Count() == 0)
+                    if (!behavesAs.GetMembers()
+                        .Any(m => m.Name == member && m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0))
                         return false;
                 }
             }
-            // otherwise check the backing type, ignore this value if BehavesAs
-            //   is not null.
-            else if (DefinedOnly)
+            // otherwise check the backing type, ignore this value if BehavesAs is not null.
+            else if (definedOnly)
             {
                 // must only use DeclaredOnly members
-                if (backing.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
-                    .Where(m => m.Name == member &&
-                        m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0).Count() == 0)
+                if (!backing.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance)
+                    .Any(m => m.Name == member && m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0))
                     return false;
             }
             else
             {
-                if (backing.GetMembers().Where(m => m.Name == member &&
-                    m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0).Count() == 0)
+                if (!backing.GetMembers()
+                    .Any(m => m.Name == member && m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0))
                     return false;
             }
 

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Threading;
 using System.Reflection;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -18,261 +19,271 @@ namespace ModMaker.Lua.Runtime
             public static void Initialize(ILuaEnvironment E)
             {
                 var table = E.GlobalsTable;
-                table.SetItemRaw("assert", new assert(E));
-                table.SetItemRaw("collectgarbage", new collectgarbage(E));
-                table.SetItemRaw("error", new error(E));
-                table.SetItemRaw("getmetatable", new getmetatable(E));
-                table.SetItemRaw("ipairs", new ipairs(E));
-                table.SetItemRaw("next", new next(E));
-                table.SetItemRaw("pairs", new pairs(E));
-                table.SetItemRaw("pcall", new pcall(E));
-                table.SetItemRaw("print", new print(E));
-                table.SetItemRaw("rawequal", new rawequal(E));
-                table.SetItemRaw("rawget", new rawget(E));
-                table.SetItemRaw("rawlen", new rawlen(E));
-                table.SetItemRaw("rawset", new rawset(E));
-                table.SetItemRaw("select", new select(E));
-                table.SetItemRaw("setmetatable", new setmetatable(E));
-                table.SetItemRaw("tonumber", new tonumber(E));
-                table.SetItemRaw("tostring", new tostring(E));
-                table.SetItemRaw("type", new type(E));
-                table.SetItemRaw("_VERSION", Standard._VERSION);
-                table.SetItemRaw("_NET", Standard._NET);
-                table.SetItemRaw("_G", table);
+                Register(E, table, (Func<ILuaValue, ILuaValue, ILuaValue>)assert);
+                Register(E, table, (Func<ILuaValue, string>)tostring);
+                Register(E, table, (Func<string, int?, object[]>)collectgarbage);
+                Register(E, table, (Action<string>)error);
+                Register(E, table, (Func<ILuaValue, ILuaValue>)getmetatable);
+                Register(E, table, (Func<ILuaTable, object[]>)ipairs);
+                Register(E, table, (Func<ILuaTable, ILuaValue, object[]>)next);
+                Register(E, table, (Func<ILuaTable, object[]>)pairs);
+                Register(E, table, (Func<ILuaValue, ILuaValue, bool>)rawequal);
+                Register(E, table, (Func<ILuaTable, ILuaValue, ILuaValue>)rawget);
+                Register(E, table, (Func<ILuaTable, ILuaValue>)rawlen);
+                Register(E, table, (Func<ILuaTable, ILuaValue, ILuaValue, ILuaValue>)rawset);
+                Register(E, table, (Func<ILuaValue, object[], IEnumerable<object>>)select);
+                Register(E, table, (Func<ILuaTable, ILuaTable, ILuaValue>)setmetatable);
+                Register(E, table, (Func<ILuaTable, double?>)tonumber);
+                Register(E, table, (Func<ILuaTable, string>)type);
+
+                table.SetItemRaw(new LuaString("overload"), new overload(E));
+                table.SetItemRaw(new LuaString("pcall"), new pcall(E));
+                table.SetItemRaw(new LuaString("print"), new print(E));
+
+                table.SetItemRaw(new LuaString("_VERSION"),
+                                 E.Runtime.CreateValue(Standard._VERSION));
+                table.SetItemRaw(new LuaString("_NET"),
+                                 E.Runtime.CreateValue(Standard._NET));
+                table.SetItemRaw(new LuaString("_G"), table);
             }
 
-            const string _VERSION = "Lua 5.2";
-            const string _NET = ".NET 4.0";
+            static readonly string _VERSION = "Lua 5.2";
+            static readonly string _NET = ".NET 4.0";
 
-            sealed class assert : LuaFrameworkMethod
+            static readonly ILuaValue _tostring = new LuaString("__tostring");
+            static readonly ILuaValue _metamethod = new LuaString("__metatable");
+            static readonly ILuaValue _ipairs = new LuaString("__ipairs");
+            static readonly ILuaValue _pairs = new LuaString("__pairs");
+
+            static ILuaValue assert(ILuaValue value, ILuaValue obj = null)
             {
-                public assert(ILuaEnvironment E) : base(E, "assert") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'assert'.");
-
-                    object obj = args[0];
-                    string message = "Assertion failed: '" + (args.Length > 1 ? args[1] : null) as string + "'.";
-
-                    if (obj == null || obj as bool? == false)
-                        throw new AssertException(message);
-                    else
-                        return new MultipleReturn(obj);
-                }
-            }
-            sealed class collectgarbage : LuaFrameworkMethod
-            {
-                public collectgarbage(ILuaEnvironment E) : base(E, "collectgarbage") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'collectgarbage'.");
-                    string opt = args[0] as string;
-                    if (opt == null)
-                        throw new ArgumentException("First argument to 'collectgarbage' must be a string.");
-                    object arg = args.Length > 1 ? args[1] : null;
-
-                    if (opt == "collect" || string.IsNullOrEmpty(opt))
-                    {
-                        int gen = -1;
-                        double? d = arg as double?;
-                        if (d == 0)
-                            gen = 0;
-                        else if (d == 1)
-                            gen = 1;
-                        else if (d == 2)
-                            gen = 2;
-                        else
-                            throw new ArgumentException(
-                                "Second argument to 'collectgarbage' with opt as 'collect' must be a 0, 1 or 2.");
-
-                        if (gen == -1)
-                            GC.Collect();
-                        else
-                            GC.Collect(gen);
-
-                        return new MultipleReturn();
-                    }
-                    else if (opt == "count")
-                    {
-                        double mem = GC.GetTotalMemory(false);
-
-                        return new MultipleReturn(mem, mem % 1024);
-                    }
-                    else if (opt == "stop" || opt == "restart" || opt == "step" || opt == "setpause" ||
-                        opt == "setstepmul" || opt == "generational" || opt == "incremental")
-                    {
-                        throw new ArgumentException("The option '" + opt + "' is not supported by this framework.");
-                    }
-                    else if (opt == "isrunning")
-                    {
-                        return new MultipleReturn(true);
-                    }
-                    else
-                    {
-                        throw new ArgumentException("The option '" + opt + "' is not recognized to function 'collectgarbage'.");
-                    }
-                }
-            }
-            sealed class error : LuaFrameworkMethod
-            {
-                public error(ILuaEnvironment E) : base(E, "error") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'error'.");
-
-                    string message = args[0] as string;
-
-                    if (message == null)
-                        throw new ArgumentException("First argument to function 'error' must be a string.");
-
+                string message = "Assertion failed: '" + (obj != null ? obj.ToString() : "") + "'.";
+                if (value.IsTrue)
+                    return obj;
+                else
                     throw new AssertException(message);
+            }
+            [MultipleReturn]
+            static object[] collectgarbage(string operation = "", int? gen = null)
+            {
+                switch (operation)
+                {
+                case null:
+                case "":
+                case "collect":
+                    if (gen < 0 || gen > 2)
+                        throw new ArgumentException("Second argument to 'collectgarbage' with operation as 'collect' must be a 0, 1 or 2.");
+
+                    if (!gen.HasValue)
+                        GC.Collect();
+                    else
+                        GC.Collect(gen.Value);
+
+                    return new object[0];
+                case "count":
+                    double mem = GC.GetTotalMemory(false);
+                    return new object[] { mem, mem % 1024 };
+                case "isrunning":
+                    return new object[] { true };
+                case "stop":
+                case "restart":
+                case "step":
+                case "setpause":
+                case "setstepmul":
+                case "generational":
+                case "incremental":
+                    throw new ArgumentException(
+                        "The option '" + operation + "' is not supported by this framework.");
+                default:
+                    throw new ArgumentException(
+                        "The option '" + operation + "' is not recognized to function 'collectgarbage'.");
                 }
             }
-            sealed class getmetatable : LuaFrameworkMethod
+            static string tostring(ILuaValue value)
             {
-                public getmetatable(ILuaEnvironment E) : base(E, "getmetatable") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
+                if (value.ValueType == LuaValueType.Table)
                 {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'getmetatable'.");
-
-                    ILuaTable table = args[0] as ILuaTable;
-
-                    if (table == null)
-                        return new MultipleReturn();
-
-                    ILuaTable meta = table.MetaTable;
+                    var meta = ((ILuaTable)value).MetaTable;
                     if (meta != null)
                     {
-                        object meth = meta.GetItemRaw("__metatable");
-                        if (meth != null)
-                            return new MultipleReturn(meth);
-                    }
-
-                    return new MultipleReturn(meta);
-                }
-            }
-            sealed class ipairs : LuaFrameworkMethod
-            {
-                public ipairs(ILuaEnvironment E) : base(E, "ipairs") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args == null || args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'ipairs'.");
-
-                    ILuaTable table = args[0] as ILuaTable;
-
-                    if (table == null)
-                        throw new ArgumentException("First argument to 'iparis' must be a table.");
-
-                    ILuaTable meta = table.MetaTable;
-                    if (meta != null)
-                    {
-                        IMethod meth = meta.GetItemRaw("__ipairs") as IMethod;
-                        if (meth != null)
+                        var m = meta.GetItemRaw(_tostring);
+                        if (m != null && m.ValueType == LuaValueType.Function)
                         {
-                            var ret = meth.Invoke(table, true, null, new object[0]);
-                            return ret.AdjustResults(3);
+                            var result = m.Invoke(value, true, -1, LuaMultiValue.Empty);
+                            return result[0].ToString();
                         }
                     }
-
-                    return new MultipleReturn(new _ipairs_itr(Environment), table, 0);
                 }
+
+                return value.ToString();
             }
-            sealed class next : LuaFrameworkMethod
+            static void error(string message)
             {
-                public next(ILuaEnvironment E) : base(E, "next") { }
+                throw new AssertException(message);
+            }
+            static ILuaValue getmetatable(ILuaValue value)
+            {
+                if (value.ValueType != LuaValueType.Table)
+                    return LuaNil.Nil;
 
-                protected override MultipleReturn InvokeInternal(object[] args)
+                ILuaTable meta = ((ILuaTable)value).MetaTable;
+                if (meta != null)
                 {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'next'.");
+                    ILuaValue method = meta.GetItemRaw(_metamethod);
+                    if (method != null && method != LuaNil.Nil)
+                        return method;
+                }
 
-                    ILuaTable table = args[0] as ILuaTable;
-                    object index = args.Length > 1 ? args[1] : null;
-                    if (table == null)
-                        throw new ArgumentException("First parameter to 'next' must be a table.");
+                return meta;
+            }
+            [MultipleReturn]
+            static object[] ipairs(ILuaTable table)
+            {
+                ILuaTable meta = table.MetaTable;
+                if (meta != null)
+                {
+                    ILuaValue method = meta.GetItemRaw(_ipairs);
+                    if (method != null && method != LuaNil.Nil)
+                    {
+                        var ret = method.Invoke(table, true, -1, LuaMultiValue.Empty);
+                        // The runtime will correctly expand the results (because the multi-value
+                        // is at the end).
+                        return new object[] { ret.AdjustResults(3) };
+                    }
+                }
 
-                    var t = LuaTableNet.GetNext(table, index);
-                    return new MultipleReturn(t.Item1, t.Item2);
+                return new object[] { (Func<ILuaTable, double, object[]>)_ipairs_itr, table, 0 };
+            }
+            [MultipleReturn]
+            static object[] next(ILuaTable table, ILuaValue index)
+            {
+                bool return_next = index == LuaNil.Nil;
+                foreach (var item in table)
+                {
+                    if (return_next)
+                        return new object[] { item.Key, item.Value };
+                    else if (item.Key == index)
+                        return_next = true;
+                }
+
+                // return nil, nil;
+                return new object[0];
+            }
+            [MultipleReturn]
+            static object[] pairs(ILuaTable table)
+            {
+                ILuaTable meta = table.MetaTable;
+                if (meta != null)
+                {
+                    ILuaValue p = meta.GetItemRaw(_pairs);
+                    if (p != null && p != LuaNil.Nil)
+                    {
+                        var ret = p.Invoke(table, true, -1, LuaMultiValue.Empty);
+                        return new object[] { ret.AdjustResults(3) };
+                    }
+                }
+
+                return new object[] { (Func<ILuaTable, ILuaValue, object[]>)next, table };
+            }
+            static bool rawequal(ILuaValue v1, ILuaValue v2)
+            {
+                return object.Equals(v1, v2);
+            }
+            static ILuaValue rawget(ILuaTable table, ILuaValue index)
+            {
+                return table.GetItemRaw(index);
+            }
+            static ILuaValue rawlen(ILuaTable table)
+            {
+                return table.RawLength();
+            }
+            static ILuaValue rawset(ILuaTable table, ILuaValue index, ILuaValue value)
+            {
+                table.SetItemRaw(index, value);
+                return table;
+            }
+            [MultipleReturn]
+            static IEnumerable<object> select(ILuaValue index, params object[] args)
+            {
+                if (index.Equals("#"))
+                {
+                    return new object[] { args.Length };
+                }
+                else if (index.ValueType == LuaValueType.Number)
+                {
+                    double ind = index.AsDouble() ?? 0;
+                    if (ind < 0)
+                        ind = args.Length + ind + 1;
+
+                    return args.Skip((int)(ind - 1));
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        "First argument to function 'select' must be a number or the string '#'.");
                 }
             }
-            sealed class overload : LuaFrameworkMethod
+            static ILuaValue setmetatable(ILuaTable table, ILuaValue metatable)
+            {
+                if (metatable == LuaNil.Nil)
+                    table.MetaTable = null;
+                else if (metatable.ValueType == LuaValueType.Table)
+                    table.MetaTable = (ILuaTable)metatable;
+                else
+                {
+                    throw new ArgumentException(
+                        "Second argument to 'setmetatable' must be a table.");
+                }
+
+                return table;
+            }
+            static double? tonumber(ILuaValue value)
+            {
+                return value.AsDouble();
+            }
+            static string type(ILuaValue value)
+            {
+                return value.ValueType.ToString().ToLower();
+            }
+
+            sealed class overload : LuaFrameworkFunction
             {
                 public overload(ILuaEnvironment E) : base(E, "overload") { }
 
-                protected override MultipleReturn InvokeInternal(object[] args)
+                protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args)
                 {
-                    if (args.Length < 2)
+                    if (args.Count < 2)
                         throw new ArgumentException("Expecting at least two arguments to function 'overload'.");
 
-                    IMethod meth = args[0] as IMethod;
-                    object obj = args[1];
+                    ILuaValue meth = args[0];
+                    ILuaValue obj = args[1];
 
-                    if (meth == null)
+                    if (meth.ValueType != LuaValueType.Function)
                         throw new ArgumentException("First argument to function 'overload' must be a method.");
-                    if (obj == null || !(obj is double) || ((double)obj % 1 != 0))
+                    if (obj.ValueType != LuaValueType.Number || ((double)obj.GetValue() % 1 != 0))
                         throw new ArgumentException("Second argument to function 'overload' must be an integer.");
 
-                    int i = Convert.ToInt32((double)obj);
+                    int i = Convert.ToInt32((double)obj.GetValue());
 
-                    return meth.Invoke(null, false, i, null, args.Skip(2).ToArray());
+                    return meth.Invoke(null, false, i, Environment.Runtime.CreateMultiValue(args.Skip(2).ToArray()));
                 }
             }
-            sealed class pairs : LuaFrameworkMethod
-            {
-                public pairs(ILuaEnvironment E) : base(E, "pairs") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'pairs'.");
-
-                    object t = args[0];
-                    if (t is ILuaTable)
-                    {
-                        ILuaTable table = t as ILuaTable;
-                        ILuaTable meta = table.MetaTable;
-                        if (meta != null)
-                        {
-                            IMethod p = meta.GetItemRaw("__pairs") as IMethod;
-                            if (p != null)
-                            {
-                                var ret = p.Invoke(table, true, null, new object[0]);
-                                return ret.AdjustResults(3);
-                            }
-                        }
-
-                        return new MultipleReturn(new next(Environment), table, null);
-                    }
-                    else
-                        throw new ArgumentException("First argument to 'pairs' must be a table.");
-                }
-            }
-            sealed class pcall : LuaFrameworkMethod
+            sealed class pcall : LuaFrameworkFunction
             {
                 public pcall(ILuaEnvironment E) : base(E, "pcall") { }
 
-                protected override MultipleReturn InvokeInternal(object[] args)
+                protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args)
                 {
-                    if (args.Length < 1)
+                    if (args.Count < 1)
                         throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
 
-                    object func = args[0];
-                    if (func is IMethod)
+                    ILuaValue func = args[0];
+                    if (func.ValueType == LuaValueType.Function)
                     {
                         try
                         {
-                            var ret = (func as IMethod).Invoke(null, false, null, args.Skip(1).ToArray());
-                            return new MultipleReturn(new object[] { true }.Union(ret));
+                            var ret = func.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
+                            return Environment.Runtime.CreateMultiValue(new ILuaValue[] { LuaBoolean.True }.Union(ret).ToArray());
                         }
                         catch (ThreadAbortException)
                         {
@@ -284,28 +295,26 @@ namespace ModMaker.Lua.Runtime
                         }
                         catch (Exception e)
                         {
-                            return new MultipleReturn(false, e.Message, e);
+                            return Environment.Runtime.CreateMultiValueFromObj(false, e.Message, e);
                         }
                     }
                     else
                         throw new ArgumentException("First argument to 'pcall' must be a function.");
                 }
             }
-            sealed class print : LuaFrameworkMethod
+            sealed class print : LuaFrameworkFunction
             {
                 public print(ILuaEnvironment E) : base(E, "print") { }
 
-                protected override MultipleReturn InvokeInternal(object[] args)
+                protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args)
                 {
                     StringBuilder str = new StringBuilder();
                     if (args != null)
                     {
-                        for (int i = 0; i < args.Length; i++)
+                        for (int i = 0; i < args.Count; i++)
                         {
-                            object temp = args[i];
-                            if (temp is LuaUserData)
-                                temp = ((LuaUserData)temp).Backing;
-                            str.Append((temp ?? "").ToString());
+                            ILuaValue temp = args[i];
+                            str.Append(temp.ToString());
                             str.Append('\t');
                         }
                         str.Append("\n");
@@ -315,221 +324,22 @@ namespace ModMaker.Lua.Runtime
                     byte[] txt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
                     s.Write(txt, 0, txt.Length);
 
-                    return new MultipleReturn();
+                    return LuaMultiValue.Empty;
                 }
             }
-            sealed class rawequal : LuaFrameworkMethod
+            
+            [MultipleReturn]
+            static object[] _ipairs_itr(ILuaTable table, double index)
             {
-                public rawequal(ILuaEnvironment E) : base(E, "rawequal") { }
+                if (index < 0 || index % 1 != 0)
+                    throw new ArgumentException("Second argument to function 'ipairs iterator' must be a positive integer.");
+                index++;
 
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args == null || args.Length < 2)
-                        throw new ArgumentException("Expecting two arguments to function 'rawget'.");
-
-                    object v1 = args[0];
-                    object v2 = args[1];
-
-                    return new MultipleReturn(object.Equals(v1, v2));
-                }
-            }
-            sealed class rawget : LuaFrameworkMethod
-            {
-                public rawget(ILuaEnvironment E) : base(E, "rawget") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 2)
-                        throw new ArgumentException("Expecting two arguments to function 'rawget'.");
-
-                    object table = args[0];
-                    object index = args[1];
-
-                    if (table is ILuaTable)
-                        return new MultipleReturn((table as ILuaTable).GetItemRaw(index));
-                    else
-                        throw new ArgumentException("First argument to function 'rawget' must be a table.");
-                }
-            }
-            sealed class rawlen : LuaFrameworkMethod
-            {
-                public rawlen(ILuaEnvironment E) : base(E, "rawlen") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'rawlen'.");
-
-                    object table = args[0];
-
-                    if (table is string)
-                        return new MultipleReturn((double)(table as string).Length);
-                    else if (table is ILuaTable)
-                        return new MultipleReturn((double)(table as ILuaTable).Length);
-                    else
-                        throw new ArgumentException("Argument to 'rawlen' must be a string or table.");
-                }
-            }
-            sealed class rawset : LuaFrameworkMethod
-            {
-                public rawset(ILuaEnvironment E) : base(E, "rawset") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 3)
-                        throw new ArgumentException("Expecting three arguments to function 'rawset'.");
-
-                    object table = args[0];
-                    object index = args[1];
-                    object value = args[2];
-
-                    if (!(table is ILuaTable))
-                        throw new ArgumentException("First argument to 'rawset' must be a table.");
-                    if (index == null)
-                        throw new ArgumentException("Second argument to 'rawset' cannot be nil.");
-
-                    ((ILuaTable)table).SetItemRaw(index, value);
-
-                    return new MultipleReturn(table);
-                }
-            }
-            sealed class select : LuaFrameworkMethod
-            {
-                public select(ILuaEnvironment E) : base(E, "select") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'select'.");
-
-                    object index = args[0];
-
-                    if (index as string == "#")
-                    {
-                        return new MultipleReturn((double)(args.Length - 1));
-                    }
-                    else if (index is double)
-                    {
-                        double d = (double)index;
-                        if (d < 0)
-                            d = args.Length + d;
-                        return new MultipleReturn(args.Skip((int)d));
-                    }
-                    else
-                        throw new ArgumentException("First argument to function 'select' must be a number or the string '#'.");
-                }
-            }
-            sealed class setmetatable : LuaFrameworkMethod
-            {
-                public setmetatable(ILuaEnvironment E) : base(E, "setmetatable") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 2)
-                        throw new ArgumentException("Expecting two arguments to function 'setmetatable'.");
-
-                    ILuaTable table = args[0] as ILuaTable;
-                    object metatable = args[1];
-
-                    if (table == null)
-                        throw new ArgumentException("First argument to function 'setmetatable' must be a table.");
-
-                    if (metatable == null)
-                        table.MetaTable = null;
-                    else if (metatable is ILuaTable)
-                        table.MetaTable = (ILuaTable)metatable;
-                    else
-                        throw new ArgumentException("Attempt to set metatable to a '" + _type(metatable) + "' type.");
-
-                    return new MultipleReturn(table);
-                }
-            }
-            sealed class tonumber : LuaFrameworkMethod
-            {
-                public tonumber(ILuaEnvironment E) : base(E, "tonumber") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'tonumber'.");
-
-                    double? d = Environment.Runtime.ToNumber(args[0]);
-                    if (d.HasValue)
-                        return new MultipleReturn(d.Value);
-                    else
-                        return new MultipleReturn();
-                }
-            }
-            sealed class tostring : LuaFrameworkMethod
-            {
-                public tostring(ILuaEnvironment E) : base(E, "tostring") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'tostring'.");
-
-                    object val = args[0];
-                    if (val is ILuaTable)
-                    {
-                        ILuaTable tab = (ILuaTable)val;
-                        var meta = tab.MetaTable;
-                        if (meta != null)
-                        {
-                            var m = meta.GetItemRaw("__tostring");
-                            if (m != null && m is IMethod)
-                            {
-                                var result = (m as IMethod).Invoke(val, true, null, new object[0]);
-                                return new MultipleReturn((object)result[0].ToString());
-                            }
-                        }
-
-                        return new MultipleReturn((object)val.ToString());
-                    }
-                    else if (val is LuaUserData)
-                        return new MultipleReturn((object)((LuaUserData)val).Backing.ToString());
-                    else
-                        return new MultipleReturn((object)(val ?? "").ToString());
-                }
-            }
-            sealed class type : LuaFrameworkMethod
-            {
-                public type(ILuaEnvironment E) : base(E, "type") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'type'.");
-
-                    object value = args[0];
-                    return new MultipleReturn((object)_type(value));
-                }
-            }
-
-            sealed class _ipairs_itr : LuaFrameworkMethod
-            {
-                public _ipairs_itr(ILuaEnvironment E) : base(E, "_ipairs_itr") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 2)
-                        throw new ArgumentException("Expecting two arguments to 'ipairs iterator'.");
-
-                    ILuaTable table = args[0] as ILuaTable;
-                    double index = args[1] as double? ?? -1;
-
-                    if (table == null)
-                        throw new ArgumentException("First argument to function 'ipairs iterator' must be a table.");
-                    if (index < 0 || index % 1 != 0)
-                        throw new ArgumentException("Second argument to function 'ipairs iterator' must be a positive integer.");
-                    index++;
-
-                    var ret = table.GetItemRaw(index);
-                    if (ret == null)
-                        return new MultipleReturn();
-                    else
-                        return new MultipleReturn(index, ret);
-                }
+                ILuaValue ret = table.GetItemRaw(new LuaNumber(index));
+                if (ret == null || ret == LuaNil.Nil)
+                    return new object[0];
+                else
+                    return new object[] { index, ret };
             }
         }
     }

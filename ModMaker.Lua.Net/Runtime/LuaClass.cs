@@ -1,19 +1,23 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection.Emit;
 using System.Collections.ObjectModel;
 using System.Reflection;
+using ModMaker.Lua.Runtime.LuaValues;
+using System.Diagnostics.Contracts;
 
 namespace ModMaker.Lua.Runtime
 {
-    class LuaType : IIndexable, IMethod
+    class LuaType : LuaValueBase
     {
         public LuaType(Type type)
         {
             this.Type = type;
         }
+
+        public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
 
         public Type Type { get; private set; }
 
@@ -22,110 +26,53 @@ namespace ModMaker.Lua.Runtime
             return Type.ToString();
         }
 
-        #region IIndexable implementation
-
-        /// <summary>
-        /// Sets the value of the given index to the given value.
-        /// </summary>
-        /// <param name="index">The index to use, cannot be null.</param>
-        /// <param name="value">The value to set to, can be null.</param>
-        /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-        /// <exception cref="System.InvalidOperationException">If the current
-        /// type does not support setting an index -or- if index is not a valid
-        /// value or type -or- if value is not a valid value or type.</exception>
-        /// <exception cref="System.MemberAccessException">If Lua does not have
-        /// access to the given index.</exception>
-        void IIndexable.SetIndex(object index, object value)
+        public override void SetIndex(ILuaValue index, ILuaValue value)
         {
-            NetHelpers.GetSetIndex(Environment, Type, index, true, false, false, value);
+            Helpers.GetSetMember(Type, null, index, value);
         }
-        /// <summary>
-        /// Gets the value of the given index.
-        /// </summary>
-        /// <param name="index">The index to use, cannot be null.</param>
-        /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-        /// <exception cref="System.InvalidOperationException">If the current
-        /// type does not support getting an index -or- if index is not a valid
-        /// value or type.</exception>
-        object IIndexable.GetIndex(object index)
+        public override ILuaValue GetIndex(ILuaValue index)
         {
-            return NetHelpers.GetSetIndex(Environment, Type, index, true, true, false);
+            return Helpers.GetSetMember(Type, null, index);
         }
 
-        #endregion
-
-        #region IMethod implementation
-
-        public ILuaEnvironment Environment { get; set; }
-
-        /// <summary>
-        /// Invokes the current object with the given arguments.
-        /// </summary>
-        /// <param name="target">The object that this was called on.</param>
-        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-        /// <param name="args">The current arguments, can be null or empty.</param>
-        /// <returns>The arguments to return to Lua.</returns>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
-        /// <exception cref="System.ArgumentException">If the object cannot be
-        /// invoked with the given arguments.</exception>
-        /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-        /// valid overloads for the given arguments.</exception>
-        public MultipleReturn Invoke(object target, bool memberCall, int[] byRef, params object[] args)
-        {
-            return Invoke(target, memberCall, -1, byRef, args);
-        }
-        /// <summary>
-        /// Invokes the current object with the given arguments.
-        /// </summary>
-        /// <param name="target">The object that this was called on.</param>
-        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-        /// <param name="args">The current arguments, can be null or empty.</param>
-        /// <param name="overload">The zero-based index of the overload to invoke;
-        /// if negative, use normal overload resolution.</param>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
-        /// <returns>The arguments to return to Lua.</returns>
-        /// <exception cref="System.ArgumentException">If the object cannot be
-        /// invoked with the given arguments.</exception>
-        /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-        /// valid overloads for the given arguments.</exception>
-        /// <exception cref="System.IndexOutOfRangeException">If overload is
-        /// larger than the number of overloads.</exception>
-        /// <exception cref="System.NotSupportedException">If this object does
-        /// not support overloads.</exception>
-        /// <remarks>
-        /// If this object does not support overloads, you still need to write
-        /// this method to work with negative indicies, however you should throw
-        /// an exception if zero or positive.  This method is always the one
-        /// invoked by the default runtime.
-        /// 
-        /// It is sugested that the other method simply call this one with -1
-        /// as the overload index.
-        /// </remarks>
-        public MultipleReturn Invoke(object target, bool memberCall, int overload, int[] byRef, params object[] args)
+        public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args)
         {
             if (overload >= 0)
                 throw new NotSupportedException(string.Format(Resources.CannotUseOverload, "LuaType"));
             if (args == null)
-                args = new object[0];
-            if (byRef == null)
-                byRef = new int[0];
+                args = new LuaMultiValue();
 
             Type t = Type;
             ConstructorInfo method;
-            object ignore;
-            if (NetHelpers.GetCompatibleMethod(
+            object ignored;
+            if (Helpers.GetCompatibleMethod(
                 t.GetConstructors()
                     .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
-                    .ToArray(),
-                new object[] { null }, ref args, null, out method, out ignore))
+                    .Select(c => Tuple.Create(c, (object)null)),
+                args, out method, out ignored))
             {
-                return new MultipleReturn(method.Invoke(args));
+                object value = method.Invoke(Helpers.ConvertForArgs(args, method));
+                return LuaMultiValue.CreateMultiValueFromObj(value);
             }
 
             throw new InvalidOperationException(string.Format(Resources.CannotCall, "LuaType"));
         }
 
-        #endregion
+        public override bool Equals(ILuaValue other)
+        {
+            var temp = other as LuaType;
+            return temp != null && temp.Type == Type;
+        }
+
+        public override ILuaValue Arithmetic(Parser.Items.BinaryOperationType type, ILuaValue other)
+        {
+            throw new ArgumentException(Resources.BadBinOp);
+        }
+
+        public override ILuaValue Arithmetic<T>(Parser.Items.BinaryOperationType type, LuaValues.LuaUserData<T> self)
+        {
+            throw new ArgumentException(Resources.BadBinOp);
+        }
     }
 
     /// <summary>
@@ -134,10 +81,10 @@ namespace ModMaker.Lua.Runtime
     /// it will change the class that is defined.  When this is 
     /// invoked, it creates a new instance.
     /// </summary>
-    public sealed class LuaClass : IIndexable, IMethod
+    public sealed class LuaClass : LuaValueBase
     {
         Type _created;
-        IMethod _ctor;
+        ILuaValue _ctor;
         ItemData _data;
         List<Item> _items;
 
@@ -164,9 +111,14 @@ namespace ModMaker.Lua.Runtime
         }
 
         /// <summary>
-        /// Gets or sets the current environment.
+        /// Gets the value type of the value.
         /// </summary>
-        public ILuaEnvironment Environment { get { return _data.Env; } set { _data.Env = value; } }
+        public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
+
+        /// <summary>
+        /// Gets the current environment.
+        /// </summary>
+        public ILuaEnvironment Environment { get { return _data.Env; } }
         /// <summary>
         /// Gets the simple name of the class.
         /// </summary>
@@ -215,10 +167,9 @@ namespace ModMaker.Lua.Runtime
                 }
             }
 
-            InvokeConstructor(_data.CtorGen);
+            InvokeConstructor(_data.CtorGen, _data.EnvField, _data.TargetField);
 
             _created = _data.TB.CreateType();
-            //_data.AB.Save("DynamicAssembly2.dll");
         }
         /// <summary>
         /// Creates an instance of the given type with the given arguments.  Calls CreateType if it has
@@ -226,8 +177,10 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="args">Any arguments to pass to the constructor.</param>
         /// <returns>An instance of the type.</returns>
-        public object CreateInstance(params object[] args)
+        public object CreateInstance(params ILuaValue[] args)
         {
+            Contract.Requires(args != null);
+
             if (_created == null)
                 CreateType();
 
@@ -240,7 +193,7 @@ namespace ModMaker.Lua.Runtime
         /// <param name="args">Any arguments to pass to the constructor.</param>
         /// <typeparam name="T">The base-type or interface to cast the object to.  The class must impliment it.</typeparam>
         /// <returns>An instance of the type.</returns>
-        public T CreateInstance<T>(params object[] args)
+        public T CreateInstance<T>(params ILuaValue[] args)
         {
             if (_created == null)
                 CreateType();
@@ -256,47 +209,36 @@ namespace ModMaker.Lua.Runtime
         /// Injects:
         /// 
         /// <code>
-        /// MultipleReturn ret = E.Runtime.Invoke(E, this.envField, arguments);
-        /// return RuntimeHelper.ConvertType(ret[0], returnType);
+        /// ILuaMultiValue ret = this.methodField.Invoke(this, false, -1, arguments);
+        /// return E.Runtime.ConvertType(ret[0], returnType);
         /// </code>
         /// </summary>
-        /// <param name="arguments">The local variable (of type object[]) that contains the arguments to pass to the method.</param>
         /// <param name="gen">The generator to inject code into.</param>
-        /// <param name="methodField">The field (of type LuaMethod) that contains the method to call.</param>
-        /// <param name="_E">The field that stores the environment.</param>
         /// <param name="returnType">The return type of the method.</param>
-        static void CallFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField, LocalBuilder arguments, FieldBuilder _E)
+        /// <param name="methodField">The field (of type LuaValueType.Function) that contains the method to call.</param>
+        /// <param name="arguments">The local variable (of type ILuaMultiValue) that contains the arguments to pass to the method.</param>
+        /// <param name="_E">The field that holds the environment.</param>
+        static void CallFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField, LocalBuilder arguments, FieldBuilder target)
         {
-            // MultipleReturn ret = E.Runtime.Invoke(E, this, this.{field}, -1, false, arguments, null);
-            LocalBuilder ret = gen.DeclareLocal(typeof(MultipleReturn));
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, _E);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, _E);
-            gen.Emit(OpCodes.Ldarg_0);
+            //$PUSH this.{methodField}.Invoke(this.{target}, false, -1, arguments);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, methodField);
-            gen.Emit(OpCodes.Ldc_I4_M1);
+            gen.Emit(OpCodes.Ldarg_0);
+            gen.Emit(OpCodes.Ldfld, target);
             gen.Emit(OpCodes.Ldc_I4_0);
+            gen.Emit(OpCodes.Ldc_I4_M1);
             gen.Emit(OpCodes.Ldloc, arguments);
-            gen.Emit(OpCodes.Ldnull);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("Invoke"));
-            gen.Emit(OpCodes.Stloc, ret);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
 
-            // convert and push result if the return type is not null.
+            // Convert and push result if the return type is not null.
             if (returnType != null && returnType != typeof(void))
             {
-                // return E.Runtime.ConvertType(ret[0], {returnType});
-                gen.Emit(OpCodes.Ldarg_0);
-                gen.Emit(OpCodes.Ldfld, _E);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-                gen.Emit(OpCodes.Ldloc, ret);
-                gen.Emit(OpCodes.Ldc_I4_0);
-                gen.Emit(OpCodes.Callvirt, typeof(MultipleReturn).GetMethod("get_Item"));
-                gen.Emit(OpCodes.Ldtoken, returnType);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("ConvertType"));
-                gen.Emit(OpCodes.Unbox_Any, returnType);
+                // return $POP.As<{returnType}>();
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(returnType));
+            }
+            else
+            {
+                gen.Emit(OpCodes.Pop);
             }
             gen.Emit(OpCodes.Ret);
         }
@@ -329,7 +271,7 @@ namespace ModMaker.Lua.Runtime
         /// Adds the code to invoke the constructor.
         /// </summary>
         /// <param name="ctorgen">The generator to add the code to.</param>
-        static void InvokeConstructor(ILGenerator ctorgen)
+        static void InvokeConstructor(ILGenerator ctorgen, FieldBuilder _E, FieldBuilder target)
         {
             // call the Lua defined constructor method.
 
@@ -338,33 +280,43 @@ namespace ModMaker.Lua.Runtime
             ctorgen.Emit(OpCodes.Ldarg, 5);
             ctorgen.Emit(OpCodes.Brfalse, end);
 
-            // object[] temp = new object[1];
-            LocalBuilder temp = ctorgen.CreateArray(typeof(object), 1);
+            // ILuaValue[] temp = new ILuaValue[1];
+            LocalBuilder temp = ctorgen.CreateArray(typeof(ILuaValue), 1);
 
-            // temp[0] = this;
+            // temp[0] = E.Runtime.CreateValue(this);
             ctorgen.Emit(OpCodes.Ldloc, temp);
             ctorgen.Emit(OpCodes.Ldc_I4_0);
             ctorgen.Emit(OpCodes.Ldarg_0);
-            ctorgen.Emit(OpCodes.Stelem_Ref);
+            ctorgen.Emit(OpCodes.Ldfld, _E);
+            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            ctorgen.Emit(OpCodes.Ldarg_0);
+            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
+            ctorgen.Emit(OpCodes.Stelem, typeof(ILuaValue));
 
             // temp = temp.Union(ctorArgs).ToArray();
             ctorgen.Emit(OpCodes.Ldloc, temp);
             ctorgen.Emit(OpCodes.Ldarg, 4);
-            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethods().Where(m => m.Name == "Union" && m.GetParameters().Length == 2).First().MakeGenericMethod(typeof(object)));
-            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(typeof(object)));
+            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethods().Where(m => m.Name == "Union" && m.GetParameters().Length == 2).First().MakeGenericMethod(typeof(ILuaValue)));
+            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(typeof(ILuaValue)));
             ctorgen.Emit(OpCodes.Stloc, temp);
 
-            // E.Runtime.Invoke(E, this, ctor, -1, false, temp, null);
-            ctorgen.Emit(OpCodes.Ldarg_3);
-            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-            ctorgen.Emit(OpCodes.Ldarg_3);
+            // ILuaMultiValue args = this.E.Runtime.CreateMultiValue(temp);
+            LocalBuilder args = ctorgen.DeclareLocal(typeof(ILuaMultiValue));
             ctorgen.Emit(OpCodes.Ldarg_0);
-            ctorgen.Emit(OpCodes.Ldarg, 5);
-            ctorgen.Emit(OpCodes.Ldc_I4_M1);
-            ctorgen.Emit(OpCodes.Ldc_I4_0);
+            ctorgen.Emit(OpCodes.Ldfld, _E);
+            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             ctorgen.Emit(OpCodes.Ldloc, temp);
-            ctorgen.Emit(OpCodes.Ldnull);
-            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("Invoke"));
+            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+            ctorgen.Emit(OpCodes.Stloc, args);
+
+            // ctor.Invoke(this.{target}, false, -1, args);
+            ctorgen.Emit(OpCodes.Ldarg, 5);
+            ctorgen.Emit(OpCodes.Ldarg_0);
+            ctorgen.Emit(OpCodes.Ldfld, target);
+            ctorgen.Emit(OpCodes.Ldc_I4_0);
+            ctorgen.Emit(OpCodes.Ldc_I4_M1);
+            ctorgen.Emit(OpCodes.Ldloc, args);
+            ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
             ctorgen.Emit(OpCodes.Pop);
 
             ctorgen.MarkLabel(end);
@@ -374,7 +326,7 @@ namespace ModMaker.Lua.Runtime
 
         #region ILuaIndexer implementation
 
-        class LuaClassItem : IIndexable
+        class LuaClassItem : LuaValueBase
         {
             LuaClass parent;
             Type type;
@@ -385,32 +337,14 @@ namespace ModMaker.Lua.Runtime
                 this.type = type;
             }
 
-            /// <summary>
-            /// Gets the value of the given index.
-            /// </summary>
-            /// <param name="index">The index to use, cannot be null.</param>
-            /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-            /// <exception cref="System.InvalidOperationException">If the current
-            /// type does not support getting an index -or- if index is not a valid
-            /// value or type.</exception>
-            object IIndexable.GetIndex(object index)
+            public override LuaValueType ValueType
             {
-                throw new InvalidOperationException(string.Format(Resources.CannotIndex, "class definition item"));
+                get { return LuaValueType.UserData; }
             }
-            /// <summary>
-            /// Sets the value of the given index to the given value.
-            /// </summary>
-            /// <param name="index">The index to use, cannot be null.</param>
-            /// <param name="value">The value to set to, can be null.</param>
-            /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-            /// <exception cref="System.InvalidOperationException">If the current
-            /// type does not support setting an index -or- if index is not a valid
-            /// value or type -or- if value is not a valid value or type.</exception>
-            /// <exception cref="System.MemberAccessException">If Lua does not have
-            /// access to the given index.</exception>
-            void IIndexable.SetIndex(object index, object value)
+
+            public override void SetIndex(ILuaValue index, ILuaValue value)
             {
-                string name = index as string;
+                string name = index.GetValue() as string;
                 int overload = -1;
                 if (name == null)
                     throw new InvalidOperationException(string.Format(Resources.BadIndexType, "class definition", "string"));
@@ -437,7 +371,7 @@ namespace ModMaker.Lua.Runtime
                 // set the backing parrent object.
                 if (members[0].MemberType == MemberTypes.Method)
                 {
-                    if (!(value is IMethod))
+                    if (value.ValueType != LuaValueType.Function)
                         throw new InvalidOperationException(string.Format(Resources.MustBeFunction, name));
 
                     var item = parent._items.Find(i => i.Name == name);
@@ -459,19 +393,27 @@ namespace ModMaker.Lua.Runtime
                     item.Assign(value);
                 }
             }
+
+            public override bool Equals(ILuaValue other)
+            {
+                var temp = other as LuaClassItem;
+                return temp != null && temp.parent == parent && temp.type == type;
+            }
+
+            public override ILuaValue Arithmetic(Parser.Items.BinaryOperationType type, ILuaValue other)
+            {
+                throw new ArgumentException(Resources.BadBinOp);
+            }
+
+            public override ILuaValue Arithmetic<T>(Parser.Items.BinaryOperationType type, LuaValues.LuaUserData<T> self)
+            {
+                throw new ArgumentException(Resources.BadBinOp);
+            }
         }
 
-        /// <summary>
-        /// Gets the value of the given index.
-        /// </summary>
-        /// <param name="index">The index to use, cannot be null.</param>
-        /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-        /// <exception cref="System.InvalidOperationException">If the current
-        /// type does not support getting an index -or- if index is not a valid
-        /// value or type.</exception>
-        object IIndexable.GetIndex(object index)
+        public override ILuaValue GetIndex(ILuaValue index)
         {
-            string n = index as string;
+            string n = index.GetValue() as string;
             if (n == null)
                 throw new InvalidOperationException(string.Format(Resources.BadIndexType, "class definition", "string"));
 
@@ -482,28 +424,18 @@ namespace ModMaker.Lua.Runtime
             }
             throw new InvalidOperationException(string.Format(Resources.DoesNotImplement, Name, n));
         }
-        /// <summary>
-        /// Sets the value of the given index to the given value.
-        /// </summary>
-        /// <param name="index">The index to use, cannot be null.</param>
-        /// <param name="value">The value to set to, can be null.</param>
-        /// <exception cref="System.ArgumentNullException">If index is null.</exception>
-        /// <exception cref="System.InvalidOperationException">If the current
-        /// type does not support setting an index -or- if index is not a valid
-        /// value or type -or- if value is not a valid value or type.</exception>
-        /// <exception cref="System.MemberAccessException">If Lua does not have
-        /// access to the given index.</exception>
-        void IIndexable.SetIndex(object index, object value)
+        
+        public override void SetIndex(ILuaValue index, ILuaValue value)
         {
-            var name = index as string;
+            var name = index.GetValue() as string;
             if (_created != null || name == null)
                 return;
 
             // If this is the contructor, assign it.
             if (name == "__ctor")
             {
-                if (value is IMethod)
-                    _ctor = value as IMethod;
+                if (value.ValueType == LuaValueType.Function)
+                    _ctor = value;
                 else
                     throw new InvalidOperationException(Resources.CtorMustBeFunc);
 
@@ -581,62 +513,12 @@ namespace ModMaker.Lua.Runtime
         }
 
         #endregion
-
-        #region IMethod implementation
-
-        /// <summary>
-        /// Invokes the current object with the given arguments.
-        /// </summary>
-        /// <param name="target">The object that this was called on.</param>
-        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-        /// <param name="args">The current arguments, can be null or empty.</param>
-        /// <returns>The arguments to return to Lua.</returns>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
-        /// <exception cref="System.ArgumentException">If the object cannot be
-        /// invoked with the given arguments.</exception>
-        /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-        /// valid overloads for the given arguments.</exception>
-        MultipleReturn IMethod.Invoke(object target, bool memberCall, int[] byRef, object[] args)
+        
+        public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args)
         {
-            return ((IMethod)this).Invoke(target, memberCall, -1, byRef, args);
+            return new LuaMultiValue(new LuaValues.LuaUserData<object>(CreateInstance(args.ToArray())));
         }
-        /// <summary>
-        /// Invokes the current object with the given arguments.
-        /// </summary>
-        /// <param name="target">The object that this was called on.</param>
-        /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-        /// <param name="args">The current arguments, can be null or empty.</param>
-        /// <param name="overload">The zero-based index of the overload to invoke;
-        /// if negative, use normal overload resolution.</param>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
-        /// <returns>The arguments to return to Lua.</returns>
-        /// <exception cref="System.ArgumentException">If the object cannot be
-        /// invoked with the given arguments.</exception>
-        /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-        /// valid overloads for the given arguments.</exception>
-        /// <exception cref="System.IndexOutOfRangeException">If overload is
-        /// larger than the number of overloads.</exception>
-        /// <exception cref="System.NotSupportedException">If this object does
-        /// not support overloads.</exception>
-        /// <remarks>
-        /// If this object does not support overloads, you still need to write
-        /// this method to work with negative indicies, however you should throw
-        /// an exception if zero or positive.  This method is always the one
-        /// invoked by the default runtime.
-        /// 
-        /// It is sugested that the other method simply call this one with -1
-        /// as the overload index.
-        /// </remarks>
-        MultipleReturn IMethod.Invoke(object target, bool memberCall, int overload, int[] byRef, object[] args)
-        {
-            if (args == null)
-                args = new object[0];
-
-            return new MultipleReturn(CreateInstance(args));
-        }
-
-        #endregion
-
+        
         #region Item Classes
 
         /// <summary>
@@ -646,9 +528,9 @@ namespace ModMaker.Lua.Runtime
         {
             public ItemData(ILuaEnvironment E, string name, Type baseType, Type[] _interfaces)
             {
-                this.MethodArgs = new List<IMethod>();
+                this.MethodArgs = new List<ILuaValue>();
                 this.Methods = new List<MethodInfo>();
-                this.Constants = new List<object>();
+                this.Constants = new List<ILuaValue>();
                 this.Names = new HashSet<string>();
                 this.Env = E;
                 this.FID = 0;
@@ -661,10 +543,11 @@ namespace ModMaker.Lua.Runtime
                 ModuleBuilder mb = ab.DefineDynamicModule("DynamicAssembly2.dll");
                 this.TB = mb.DefineType(name, TypeAttributes.Class | TypeAttributes.BeforeFieldInit | TypeAttributes.Public, baseType, _interfaces);
                 this.EnvField = TB.DefineField("$Env", typeof(ILuaEnvironment), FieldAttributes.Private);
+                this.TargetField = TB.DefineField("$Target", typeof(ILuaValue), FieldAttributes.Private);
 
-                // public ctor(IMethod[] methods, object[] initialValues, LuaEnvironment E, object[] ctorArgs, IMethod ctor);
+                // public ctor(ILuaValue[] methods, ILuaValue[] initialValues, LuaEnvironment E, ILuaValue[] ctorArgs, ILuaValue ctor);
                 {
-                    var temp = new[] { typeof(IMethod[]), typeof(object[]), typeof(ILuaEnvironment), typeof(object[]), typeof(IMethod) };
+                    var temp = new[] { typeof(ILuaValue[]), typeof(ILuaValue[]), typeof(ILuaEnvironment), typeof(ILuaValue[]), typeof(ILuaValue) };
                     ConstructorBuilder ctor = TB.DefineConstructor(
                         MethodAttributes.Public | MethodAttributes.HideBySig,
                         CallingConventions.Standard,
@@ -679,16 +562,24 @@ namespace ModMaker.Lua.Runtime
                     CtorGen.Emit(OpCodes.Ldarg_0);
                     CtorGen.Emit(OpCodes.Ldarg_3);
                     CtorGen.Emit(OpCodes.Stfld, EnvField);
+
+                    // this.$Target = E.Runtime.CreateTable();
+                    CtorGen.Emit(OpCodes.Ldarg_0);
+                    CtorGen.Emit(OpCodes.Ldarg_3);
+                    CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                    CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateTable"));
+                    CtorGen.Emit(OpCodes.Stfld, TargetField);
                 }
             }
 
-            public List<IMethod> MethodArgs;
+            public List<ILuaValue> MethodArgs;
             public List<MethodInfo> Methods;
-            public List<object> Constants;
+            public List<ILuaValue> Constants;
             public HashSet<string> Names;
             public ILGenerator CtorGen;
             public TypeBuilder TB;
             public FieldBuilder EnvField;
+            public FieldBuilder TargetField;
             public ILuaEnvironment Env;
             public int FID;
             public AssemblyBuilder AB;
@@ -714,7 +605,7 @@ namespace ModMaker.Lua.Runtime
             /// Assigns the given value to the item.
             /// </summary>
             /// <param name="value">The value to asign to.</param>
-            public abstract void Assign(object value);
+            public abstract void Assign(ILuaValue value);
 
             /// <summary>
             /// Adds a field to the type that contains the given method.  Adds
@@ -722,10 +613,10 @@ namespace ModMaker.Lua.Runtime
             /// </summary>
             /// <param name="method">The method to store in the field.</param>
             /// <returns>The field that contains the method.</returns>
-            protected FieldBuilder AddMethodArg(ItemData data, IMethod method)
+            protected FieldBuilder AddMethodArg(ItemData data, ILuaValue method)
             {
                 // define a envField to hold a pointer to the method
-                FieldBuilder field = data.TB.DefineField("<>_field_" + (data.FID++), typeof(IMethod), FieldAttributes.Private);
+                FieldBuilder field = data.TB.DefineField("<>_field_" + (data.FID++), typeof(ILuaValue), FieldAttributes.Private);
 
                 // store the method in the input list and create code in the 
                 //   constructor to get the method from the argument and store
@@ -735,7 +626,7 @@ namespace ModMaker.Lua.Runtime
                 data.CtorGen.Emit(OpCodes.Ldarg_0);
                 data.CtorGen.Emit(OpCodes.Ldarg_1);
                 data.CtorGen.Emit(OpCodes.Ldc_I4, (data.MethodArgs.Count - 1));
-                data.CtorGen.Emit(OpCodes.Ldelem, typeof(IMethod));
+                data.CtorGen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
                 data.CtorGen.Emit(OpCodes.Stfld, field);
 
                 return field;
@@ -746,7 +637,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         sealed class MethodItem : Item
         {
-            public IMethod Method;
+            public ILuaValue Method;
             public MethodInfo BoundTo;
 
             public MethodItem(string name, MemberInfo member)
@@ -756,13 +647,12 @@ namespace ModMaker.Lua.Runtime
                 this.BoundTo = (MethodInfo)member;
             }
 
-            public override void Assign(object value)
+            public override void Assign(ILuaValue value)
             {
-                IMethod temp = value as IMethod;
-                if (temp == null)
+                if (value.ValueType != LuaValueType.Function)
                     throw new InvalidOperationException(string.Format(Resources.CannotHideMember, Name, BoundTo.DeclaringType));
 
-                Method = temp;
+                Method = value;
             }
             public override void Generate(ItemData data)
             {
@@ -779,14 +669,15 @@ namespace ModMaker.Lua.Runtime
                 var meth = NetHelpers.CloneMethod(data.TB, name, BoundTo);
                 ILGenerator gen = meth.GetILGenerator();
 
-                // object[] loc = new object[{param.length + 1}];
-                LocalBuilder loc = gen.CreateArray(typeof(object), param.Length + 1);
+                // ILuaValue[] loc = new ILuaValue[{param.length + 1}];
+                LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length + 1);
 
-                // loc[0] = this;
+                // loc[0] = $Target;
                 gen.Emit(OpCodes.Ldloc, loc);
                 gen.Emit(OpCodes.Ldc_I4_0);
                 gen.Emit(OpCodes.Ldarg_0);
-                gen.Emit(OpCodes.Stelem, typeof(object));
+                gen.Emit(OpCodes.Ldfld, data.TargetField);
+                gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
 
                 for (int ind = 0; ind < param.Length; ind++)
                 {
@@ -794,10 +685,19 @@ namespace ModMaker.Lua.Runtime
                     gen.Emit(OpCodes.Ldloc, loc);
                     gen.Emit(OpCodes.Ldc_I4, ind + 1);
                     gen.Emit(OpCodes.Ldarg, ind);
-                    gen.Emit(OpCodes.Stelem, typeof(object));
+                    gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
                 }
 
-                CallFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
+                // ILuaMultiValue args = E.Runtime.CreateMultiValue(loc);
+                var args = gen.DeclareLocal(typeof(ILuaMultiValue));
+                gen.Emit(OpCodes.Ldarg_0);
+                gen.Emit(OpCodes.Ldfld, data.EnvField);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Ldloc, loc);
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+                gen.Emit(OpCodes.Stloc, args);
+
+                CallFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.TargetField);
 
                 // link our new method to the method it's bound to.
                 //data.TB.DefineMethodOverride(meth, BoundTo);
@@ -809,9 +709,9 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         sealed class PropertyItem : Item
         {
-            public object Default;
+            public ILuaValue Default;
             public Type Type;
-            public IMethod Method, MethodSet;
+            public ILuaValue Method, MethodSet;
             public MethodInfo BoundTo, BoundSet;
             private PropertyInfo _prop;
 
@@ -827,39 +727,35 @@ namespace ModMaker.Lua.Runtime
                 BoundSet = null;
             }
 
-            public override void Assign(object value)
+            public override void Assign(ILuaValue value)
             {
-                LuaTable table = value as LuaTable;
-                if (table != null)
+                if (value.ValueType == LuaValueType.Table)
                 {
-                    foreach (var item in table)
+                    // set the 'get' method for the item
+                    var item = value.GetIndex(new LuaString("get"));
+                    if (item != null && item != LuaNil.Nil)
                     {
-                        // set the 'get' method for the item
-                        if (item.Key as string == "get")
-                        {
-                            MethodInfo m = _prop.GetGetMethod(true);
-                            if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) && !m.Attributes.HasFlag(MethodAttributes.Virtual)))
-                                throw new InvalidOperationException(string.Format(Resources.CannotOverrideProperty, Name));
-                            BoundTo = m;
+                        MethodInfo m = _prop.GetGetMethod(true);
+                        if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) && !m.Attributes.HasFlag(MethodAttributes.Virtual)))
+                            throw new InvalidOperationException(string.Format(Resources.CannotOverrideProperty, Name));
+                        BoundTo = m;
 
-                            if (!(item.Value is IMethod))
-                                throw new InvalidOperationException(Resources.PropTableFuncs);
-                            Method = (IMethod)item.Value;
-                        }
-                        // set the 'set' method for the item
-                        else if (item.Key as string == "set")
-                        {
-                            MethodInfo m = _prop.GetSetMethod(true);
-                            if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) && !m.Attributes.HasFlag(MethodAttributes.Virtual)))
-                                throw new InvalidOperationException(string.Format(Resources.CannotOverrideProperty, Name));
-                            BoundSet = m;
+                        if (item.ValueType != LuaValueType.Function)
+                            throw new InvalidOperationException(Resources.PropTableFuncs);
+                        Method = item;
+                    }
+                    // set the 'set' method for the item
+                    item = value.GetIndex(new LuaString("set"));
+                    if (item != null && item != LuaNil.Nil)
+                    {
+                        MethodInfo m = _prop.GetSetMethod(true);
+                        if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) && !m.Attributes.HasFlag(MethodAttributes.Virtual)))
+                            throw new InvalidOperationException(string.Format(Resources.CannotOverrideProperty, Name));
+                        BoundSet = m;
 
-                            if (!(item.Value is IMethod))
-                                throw new InvalidOperationException(Resources.PropTableFuncs);
-                            MethodSet = (IMethod)item.Value;
-                        }
-                        else
-                            throw new InvalidOperationException(Resources.PropTableGetSet);
+                        if (item.ValueType != LuaValueType.Function)
+                            throw new InvalidOperationException(Resources.PropTableFuncs);
+                        MethodSet = item;
                     }
                 }
                 else
@@ -891,17 +787,14 @@ namespace ModMaker.Lua.Runtime
                         FieldBuilder field = data.TB.DefineField(name, Type, FieldAttributes.Private);
                         if (Default != null)
                         {
-                            // convert the default value to the requested type.
-                            Default = data.Env.Runtime.ConvertType(Default, Type);
-
                             // store the constant passed in the constructor in the envField.
                             data.Constants.Add(Default);
-                            // {envField} = arg_2[{_input2.Count - 1}];
+                            // this.{field} = arg_2[{_input2.Count - 1}].As<Type>();
                             data.CtorGen.Emit(OpCodes.Ldarg_0);
                             data.CtorGen.Emit(OpCodes.Ldarg_2);
                             data.CtorGen.Emit(OpCodes.Ldc_I4, (data.Constants.Count - 1));
-                            data.CtorGen.Emit(OpCodes.Ldelem, typeof(object));
-                            data.CtorGen.Emit(OpCodes.Unbox_Any, Type);
+                            data.CtorGen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
+                            data.CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(Type));
                             data.CtorGen.Emit(OpCodes.Stfld, field);
                         }
 
@@ -915,9 +808,17 @@ namespace ModMaker.Lua.Runtime
                         // define a getter method that returns a value from a method.
                         FieldBuilder field = AddMethodArg(data, Method);
 
-                        // object[] loc = new object[0];
-                        LocalBuilder loc = gen.CreateArray(typeof(object), 0);
-                        CallFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
+                        // ILuaMultiValue loc = E.Runtime.CreateMultiValue(new ILuaValue[0]);
+                        LocalBuilder loc = gen.DeclareLocal(typeof(ILuaMultiValue));
+                        gen.Emit(OpCodes.Ldarg_0);
+                        gen.Emit(OpCodes.Ldfld, data.EnvField);
+                        gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                        gen.Emit(OpCodes.Ldc_I4, 0);
+                        gen.Emit(OpCodes.Newarr, typeof(ILuaValue));
+                        gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+                        gen.Emit(OpCodes.Stloc, loc);
+
+                        CallFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.TargetField);
                     }
 
                     // link our new method to the method this item is bound to.
@@ -947,7 +848,7 @@ namespace ModMaker.Lua.Runtime
                         // object[] loc = new object[1];
                         LocalBuilder loc = gen.CreateArray(typeof(object), 1);
 
-                        // loc[0] = (object)arg_1;
+                        // loc[0] = (object)arg_1
                         gen.Emit(OpCodes.Ldloc, loc);
                         gen.Emit(OpCodes.Ldc_I4_0);
                         gen.Emit(OpCodes.Ldarg_1);
@@ -955,7 +856,16 @@ namespace ModMaker.Lua.Runtime
                             gen.Emit(OpCodes.Box, Type);
                         gen.Emit(OpCodes.Stelem, typeof(object));
 
-                        CallFieldAndReturn(gen, null, field, loc, data.EnvField);
+                        // ILuaMultiValue argss = E.Runtime.CreateMultiValueFromObj(loc);
+                        LocalBuilder args = gen.DeclareLocal(typeof(ILuaMultiValue));
+                        gen.Emit(OpCodes.Ldarg_0);
+                        gen.Emit(OpCodes.Ldfld, data.EnvField);
+                        gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                        gen.Emit(OpCodes.Ldloc, loc);
+                        gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+                        gen.Emit(OpCodes.Stloc, args);
+
+                        CallFieldAndReturn(gen, null, field, args, data.TargetField);
                     }
 
                     // link our new method to the method it is bound to.
@@ -970,7 +880,7 @@ namespace ModMaker.Lua.Runtime
         sealed class FieldItem : Item
         {
             public Type Type;
-            public object Default;
+            public ILuaValue Default;
 
             public FieldItem(string name)
                 : base(name)
@@ -979,7 +889,7 @@ namespace ModMaker.Lua.Runtime
                 this.Default = null;
             }
 
-            public override void Assign(object value)
+            public override void Assign(ILuaValue value)
             {
                 LuaType type = value as LuaType;
                 if (type != null)
@@ -994,7 +904,11 @@ namespace ModMaker.Lua.Runtime
                     if (Default != null)
                         throw new InvalidOperationException(string.Format(Resources.MemberHasDefault, Name));
 
-                    Type = Type ?? (value == null ? typeof(object) : value.GetType());
+                    if (Type == null)
+                    {
+                        object temp = value == null ? value : value.GetValue();
+                        Type = temp == null ? typeof(object) : temp.GetType();
+                    }
                     Default = value;
                 }
             }
@@ -1008,21 +922,34 @@ namespace ModMaker.Lua.Runtime
 
                 if (Default != null)
                 {
-                    Default = data.Env.Runtime.ConvertType(Default, Type);
-
                     // get the initial value from the constructor and set it.
                     data.Constants.Add(Default);
-                    // {envField} = ({item.Type})arg_2[{_input2.Count - 1}];
+                    // {envField} = arg_2[{_input2.Count - 1}].As<Type>();
                     data.CtorGen.Emit(OpCodes.Ldarg_0);
                     data.CtorGen.Emit(OpCodes.Ldarg_2);
                     data.CtorGen.Emit(OpCodes.Ldc_I4, (data.Constants.Count - 1));
-                    data.CtorGen.Emit(OpCodes.Ldelem, typeof(object));
-                    data.CtorGen.Emit(OpCodes.Unbox_Any, Type);
+                    data.CtorGen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
+                    data.CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(Type));
                     data.CtorGen.Emit(OpCodes.Stfld, field);
                 }
             }
         }
 
         #endregion
+
+        public override bool Equals(ILuaValue other)
+        {
+            return object.ReferenceEquals(this, other);
+        }
+
+        public override ILuaValue Arithmetic(Parser.Items.BinaryOperationType type, ILuaValue other)
+        {
+            throw new ArgumentException(Resources.BadBinOp);
+        }
+
+        public override ILuaValue Arithmetic<T>(Parser.Items.BinaryOperationType type, LuaValues.LuaUserData<T> self)
+        {
+            throw new ArgumentException(Resources.BadBinOp);
+        }
     }
 }

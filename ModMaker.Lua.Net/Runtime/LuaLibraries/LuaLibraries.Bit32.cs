@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,317 +9,105 @@ namespace ModMaker.Lua.Runtime
     {
         static class Bit32
         {
-            public static ILuaTable Initialize(ILuaEnvironment E)
+            public static void Initialize(ILuaEnvironment E)
             {
-                ILuaTable bit32 = new LuaTableNet();
-                bit32.SetItemRaw("arshift", new arshift(E));
-                bit32.SetItemRaw("band", new band(E));
-                bit32.SetItemRaw("bnot", new bnot(E));
-                bit32.SetItemRaw("bor", new bor(E));
-                bit32.SetItemRaw("btest", new btest(E));
-                bit32.SetItemRaw("bxor", new bxor(E));
-                bit32.SetItemRaw("extract", new extract(E));
-                bit32.SetItemRaw("replace", new replace(E));
-                bit32.SetItemRaw("lrotate", new lrotate(E));
-                bit32.SetItemRaw("lshift", new lshift(E));
-                bit32.SetItemRaw("rrotate", new rrotate(E));
-                bit32.SetItemRaw("rshift", new rshift(E));
+                ILuaValue bit32 = E.Runtime.CreateTable();
+                Register(E, bit32, (Func<double, double, uint>)arshift);
+                Register(E, bit32, (Func<uint[], uint>)band);
+                Register(E, bit32, (Func<uint, uint>)bnot);
+                Register(E, bit32, (Func<uint[], uint>)bor);
+                Register(E, bit32, (Func<uint[], bool>)btest);
+                Register(E, bit32, (Func<uint[], uint>)bxor);
+                Register(E, bit32, (Func<uint, int, int, uint>)extract);
+                Register(E, bit32, (Func<uint, uint, int, int, uint>)replace);
+                Register(E, bit32, (Func<uint, int, uint>)lrotate);
+                Register(E, bit32, (Func<uint, int, uint>)lshift);
+                Register(E, bit32, (Func<uint, int, uint>)rrotate);
+                Register(E, bit32, (Func<uint, int, uint>)rshift);
 
-                return bit32;
+                E.GlobalsTable.SetItemRaw(E.Runtime.CreateValue("bit32"), bit32);
             }
 
-            abstract class BitBase : LuaFrameworkMethod
+            static uint arshift(double x, double disp)
             {
-                bool atLeast;
-                protected BitBase(ILuaEnvironment E, string name, bool atleast)
-                    : base(E, "bit32" + name)
-                {
-                    this.atLeast = atleast;
-                }
+                if (System.Math.Abs(disp) > 31)
+                    return 0;
 
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 2)
-                        throw new ArgumentException("Expecting " + (atLeast ? "at least " : "") + "two arguments to function '" + Name + "'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("First arguments to '" + Name + "' must be a number.");
-                    int r = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    obj = args[1];
-                    if (!(obj is double))
-                        throw new ArgumentException("Second arguments to '" + Name + "' must be a number.");
-                    int i = (int)((double)obj % System.Math.Pow(2, 32));
-
-                    return Invoke(r, i, args);
-                }
-
-                protected abstract MultipleReturn Invoke(int a, int b, object[] args);
+                return (uint)(x / System.Math.Pow(2, disp));
             }
-
-            sealed class arshift : BitBase
+            static uint band(params uint[] args)
             {
-                public arshift(ILuaEnvironment E) : base(E, "arshift", false) { }
-
-                protected override MultipleReturn Invoke(int r, int i, object[] args)
-                {
-                    if (i < 0 || (r & (1 << 31)) == 0)
-                    {
-                        i *= -1;
-
-                        if (System.Math.Abs(i) > 31)
-                            return new MultipleReturn(0.0);
-                        else if (i >= 0)
-                            return new MultipleReturn((double)(uint)(r << i));
-                        else
-                            return new MultipleReturn((double)(uint)(r >> -i));
-                    }
-                    else
-                    {
-                        if (i >= 31)
-                            r = -1;
-                        else
-                            r = ((r >> i) | ~(-1 >> i));
-
-                        return new MultipleReturn((double)(uint)r);
-                    }
-                }
+                return args.Aggregate((a, b) => a & b);
             }
-            sealed class band : LuaFrameworkMethod
+            static uint bnot(uint x)
             {
-                public band(ILuaEnvironment E) : base(E, "bit32.band") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'bit32.band'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("Arguments to 'bit32.band' must be numbers.");
-
-                    uint ret = (uint)((double)obj % System.Math.Pow(2, 32));
-
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        obj = args[i];
-                        if (!(obj is double))
-                            throw new ArgumentException("Arguments to 'bit32.band' must be numbers.");
-
-                        ret &= (uint)((double)obj % System.Math.Pow(2, 32));
-                    }
-                    return new MultipleReturn((double)ret);
-                }
+                return ~x;
             }
-            sealed class bnot : LuaFrameworkMethod
+            static uint bor(params uint[] args)
             {
-                public bnot(ILuaEnvironment E) : base(E, "bit32.bnot") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting one argument to function 'bit32.bnot'.");
-
-                    object obj = args[0];
-
-                    if (obj is double)
-                    {
-                        uint x = (uint)((double)obj % System.Math.Pow(2, 32));
-
-                        return new MultipleReturn((double)(-1u - x));
-                    }
-                    else
-                        throw new ArgumentException("First argument to function 'bit32.bnot' must be a number.");
-                }
+                return args.Aggregate((a, b) => a | b);
             }
-            sealed class bor : LuaFrameworkMethod
+            static bool btest(params uint[] args)
             {
-                public bor(ILuaEnvironment E) : base(E, "bit32.bor") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'bit32.bor'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("Arguments to 'bit32.bor' must be numbers.");
-
-                    uint ret = (uint)((double)obj % System.Math.Pow(2, 32));
-
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        obj = args[i];
-                        if (!(obj is double))
-                            throw new ArgumentException("Arguments to 'bit32.bor' must be numbers.");
-
-                        ret |= (uint)((double)obj % System.Math.Pow(2, 32));
-                    }
-                    return new MultipleReturn((double)ret);
-                }
+                return bor(args) != 0;
             }
-            sealed class btest : LuaFrameworkMethod
+            static uint bxor(params uint[] args)
             {
-                public btest(ILuaEnvironment E) : base(E, "bit32.btest") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'bit32.btest'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("Arguments to 'bit32.btest' must be numbers.");
-
-                    uint ret = (uint)((double)obj % System.Math.Pow(2, 32));
-
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        obj = args[i];
-                        if (!(obj is double))
-                            throw new ArgumentException("Arguments to 'bit32.btest' must be numbers.");
-
-                        ret &= (uint)((double)obj % System.Math.Pow(2, 32));
-                    }
-                    return new MultipleReturn(ret != 0);
-                }
+                return args.Aggregate((a, b) => a ^ b);
             }
-            sealed class bxor : LuaFrameworkMethod
+            static uint extract(uint source, int field, int width = 1)
             {
-                public bxor(ILuaEnvironment E) : base(E, "bit32.bxor") { }
+                if (field > 31 || width + field > 31 || field < 0 || width < 0)
+                    throw new ArgumentException("Attempt to access bits outside the allowed range.");
 
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args.Length < 1)
-                        throw new ArgumentException("Expecting at least one argument to function 'bit32.bxor'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("Arguments to 'bit32.bxor' must be numbers.");
-
-                    uint ret = (uint)((double)obj % System.Math.Pow(2, 32));
-
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        obj = args[i];
-                        if (!(obj is double))
-                            throw new ArgumentException("Arguments to 'bit32.bxor' must be numbers.");
-
-                        ret ^= (uint)((double)obj % System.Math.Pow(2, 32));
-                    }
-                    return new MultipleReturn((double)ret);
-                }
+                uint mask = (uint)((1 << width) - 1);
+                return ((source >> field) & mask);
             }
-            sealed class extract : BitBase
+            static uint replace(uint source, uint repl, int field, int width = 1)
             {
-                public extract(ILuaEnvironment E) : base(E, "extract", true) { }
+                if (field > 31 || width + field > 31 || field < 0 || width < 0)
+                    throw new ArgumentException("Attempt to access bits outside the allowed range.");
 
-                protected override MultipleReturn Invoke(int n, int field, object[] args)
-                {
-                    object obj = args.Length > 2 ? args[2] : null;
-                    int width = 1;
-                    if (obj is double)
-                        width = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    if (field > 31 || width + field > 31)
-                        throw new ArgumentException("Attempt to access bits outside the allowed range.");
-                    if (width < 1)
-                        throw new ArgumentException("Cannot specify a zero width.");
-
-                    int m = (~((-1 << 1) << ((width - 1))));
-                    return new MultipleReturn((double)((n >> field) & m));
-                }
+                uint mask = (uint)((1 << width) - 1);
+                repl &= mask;
+                source &= ~(mask << field);
+                return (source | (repl << field));
             }
-            sealed class replace : LuaFrameworkMethod
+            static uint lrotate(uint x, int disp)
             {
-                public replace(ILuaEnvironment E) : base(E, "bit32.replace") { }
-
-                protected override MultipleReturn InvokeInternal(object[] args)
-                {
-                    if (args == null || args.Length < 3)
-                        throw new ArgumentException("Expecting at least three arguments to function 'bit32.replace'.");
-
-                    object obj = args[0];
-                    if (!(obj is double))
-                        throw new ArgumentException("First argument to 'bit32.replace' must be a number.");
-                    int r = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    obj = args[1];
-                    if (!(obj is double))
-                        throw new ArgumentException("Second argument to 'bit32.replace' must be a number.");
-                    int v = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    obj = args[2];
-                    if (!(obj is double))
-                        throw new ArgumentException("Third argument to 'bit32.replace' must be a number.");
-                    int field = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    obj = args.Length > 3 ? args[3] : null;
-                    int width = 1;
-                    if (obj is double)
-                        width = (int)(uint)((double)obj % System.Math.Pow(2, 32));
-
-                    if (field > 31 || field < 0 || width < 1 || width + field > 31)
-                        throw new ArgumentException("Attempt to access bits outside the allowed range.");
-
-                    int m = (~((-1 << 1) << ((width - 1))));
-                    v &= m;
-
-                    return new MultipleReturn((double)(uint)((r & ~(m << field)) | (v << field)));
-                }
+                // % will still remain negative.
+                disp %= 32;
+                if (disp >= 0)
+                    return ((x << disp) | (x >> (32 - disp)));
+                else
+                    return ((x >> -disp) | (x << (32 + disp)));
             }
-            sealed class lrotate : BitBase
+            static uint lshift(uint x, int disp)
             {
-                public lrotate(ILuaEnvironment E) : base(E, "lrotate", false) { }
-
-                protected override MultipleReturn Invoke(int x, int disp, object[] args)
-                {
-                    if (disp >= 0)
-                        return new MultipleReturn((double)((uint)(x << disp) | (uint)(x >> (32 - disp))));
-                    else
-                        return new MultipleReturn((double)((uint)(x >> -disp) | (uint)(x << (32 + disp))));
-                }
+                if (disp > 31)
+                    return 0;
+                else if (disp >= 0)
+                    return x << disp;
+                else
+                    return x >> -disp;
             }
-            sealed class lshift : BitBase
+            static uint rrotate(uint x, int disp)
             {
-                public lshift(ILuaEnvironment E) : base(E, "lshift", false) { }
-
-                protected override MultipleReturn Invoke(int x, int disp, object[] args)
-                {
-                    if (System.Math.Abs(disp) > 31)
-                        return new MultipleReturn(0.0);
-                    else if (disp >= 0)
-                        return new MultipleReturn((double)(uint)(x << disp));
-                    else
-                        return new MultipleReturn((double)(uint)(x >> -disp));
-                }
+                // % will still remain negative.
+                disp %= 32;
+                if (disp >= 0)
+                    return ((x >> disp) | (x << (32 - disp)));
+                else
+                    return ((x << -disp) | (x >> (32 + disp)));
             }
-            sealed class rrotate : BitBase
+            static uint rshift(uint x, int disp)
             {
-                public rrotate(ILuaEnvironment E) : base(E, "rrotate", false) { }
-
-                protected override MultipleReturn Invoke(int x, int disp, object[] args)
-                {
-                    if (disp < 0)
-                        return new MultipleReturn((double)((uint)(x << -disp) | (uint)(x >> (32 + disp))));
-                    else
-                        return new MultipleReturn((double)((uint)(x >> disp) | (uint)(x << (32 - disp))));
-                }
-            }
-            sealed class rshift : BitBase
-            {
-                public rshift(ILuaEnvironment E) : base(E, "rshift", false) { }
-
-                protected override MultipleReturn Invoke(int x, int disp, object[] args)
-                {
-                    if (System.Math.Abs(disp) > 31)
-                        return new MultipleReturn(0.0);
-                    else if (disp >= 0)
-                        return new MultipleReturn((double)(uint)(x >> disp));
-                    else
-                        return new MultipleReturn((double)(uint)(x << -disp));
-                }
+                if (disp > 31)
+                    return 0;
+                else if (disp >= 0)
+                    return x >> disp;
+                else
+                    return x << -disp;
             }
         }
     }

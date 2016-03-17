@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Security;
 using System.Security.Permissions;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Compiler
 {
@@ -100,7 +101,7 @@ namespace ModMaker.Lua.Compiler
         /// <exception cref="System.ArgumentNullException">If E or item is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the item tree.</exception>
-        public IMethod Compile(ILuaEnvironment E, IParseItem item, string name)
+        public ILuaValue Compile(ILuaEnvironment E, IParseItem item, string name)
         {
             if (E == null)
                 throw new ArgumentNullException("E");
@@ -123,13 +124,14 @@ namespace ModMaker.Lua.Compiler
 
             // create the type
             TypeBuilder tb = _mb.DefineType(name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed,
-                null, new[] { typeof(IMethod) });
+                typeof(LuaValueBase), Type.EmptyTypes);
             ChunkBuilder cb = new ChunkBuilder(tb, lVisitor.GlobalCaptures, lVisitor.GlobalNested);
 
             // compile the code
             CompilerVisitor cVisitor = new CompilerVisitor(cb);
             item.Accept(cVisitor);
-            return cb.CreateChunk(E);
+            var ret = cb.CreateChunk(E);this.Save("test.dll", true);
+            return ret;
         }
         /// <summary>
         /// Creates a delegate that can be called to call the given IMethod.
@@ -143,7 +145,7 @@ namespace ModMaker.Lua.Compiler
         /// <exception cref="System.ArgumentNullException">If any argument is null.</exception>
         /// <exception cref="System.NotSupportedException">If this implementation
         /// does not support created delegates.</exception>
-        public Delegate CreateDelegate(ILuaEnvironment E, Type type, IMethod method)
+        public Delegate CreateDelegate(ILuaEnvironment E, Type type, ILuaValue method)
         {
             if (E == null)
                 throw new ArgumentNullException("E");
@@ -171,85 +173,75 @@ namespace ModMaker.Lua.Compiler
             return Delegate.CreateDelegate(type, target, temp.GetMethod("Do"));
         }
 
-        Type CreateDelegateType(MethodInfo/*!*/ delegateMethod)
+        Type CreateDelegateType(MethodInfo delegateMethod)
         {
             var args = delegateMethod.GetParameters();
 
             TypeBuilder tb = NetHelpers.DefineGlobalType("$DelegateHelper");
-            FieldBuilder meth = tb.DefineField("meth", typeof(IMethod), FieldAttributes.Private);
+            FieldBuilder meth = tb.DefineField("meth", typeof(ILuaValue), FieldAttributes.Private);
             FieldBuilder E = tb.DefineField("E", typeof(ILuaEnvironment), FieldAttributes.Private);
             MethodBuilder mb = NetHelpers.CloneMethod(tb, "Do", delegateMethod);
             ILGenerator gen = mb.GetILGenerator();
-            LocalBuilder ret = gen.DeclareLocal(typeof(MultipleReturn));
 
             // loc = new object[{args.Length}];
             LocalBuilder loc = gen.CreateArray(typeof(object), args.Length);
-            // refs = new int[{args.Length}];
-            LocalBuilder refs = gen.CreateArray(typeof(int), args.Where(a => a.IsOut).Count());
-            int refC = 0;
 
-            for (int i = 1; i < args.Length; i++)
+            for (int i = 0; i < args.Length; i++)
             {
-                // loc[{i-1}] = arg_{i};
+                // loc[i] = arg_{i+1};
                 gen.Emit(OpCodes.Ldloc, loc);
-                gen.Emit(OpCodes.Ldc_I4, i-1);
-                gen.Emit(OpCodes.Ldarg, i);
+                gen.Emit(OpCodes.Ldc_I4, i);
+                gen.Emit(OpCodes.Ldarg, i+1);
                 if (args[i].ParameterType.IsValueType)
                     gen.Emit(OpCodes.Box, args[i].ParameterType);
                 gen.Emit(OpCodes.Stelem, typeof(object));
-
-                if (args[i].IsOut)
-                {
-                    // refs[{refC}] = {i};
-                    gen.Emit(OpCodes.Ldloc, refs);
-                    gen.Emit(OpCodes.Ldc_I4, refC);
-                    gen.Emit(OpCodes.Ldc_I4, i);
-                    gen.Emit(OpCodes.Stelem, typeof(int));
-                    refC++;
-                }
             }
 
-            // ret = this.meth.Invoke(null, false, refs, loc);
+            // ILuaMultiValue methodArgs = E.Runtime.CreateMultiValueFromObj(loc);
+            LocalBuilder methodArgs = gen.DeclareLocal(typeof(ILuaMultiValue));
+            gen.Emit(OpCodes.Ldfld, E);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Ldloc, loc);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValueFromObj"));
+            gen.Emit(OpCodes.Stloc, methodArgs);
+
+            // ret = this.meth.Invoke(LuaNil.Nil, false, -1, methodArgs)
+            LocalBuilder ret = gen.DeclareLocal(typeof(ILuaMultiValue));
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, meth);
             gen.Emit(OpCodes.Ldnull);
+            gen.Emit(OpCodes.Ldfld, typeof(LuaNil).GetField("Nil", BindingFlags.Static | BindingFlags.Public));
             gen.Emit(OpCodes.Ldc_I4_0);
-            gen.Emit(OpCodes.Ldloc, refs);
-            gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt, typeof(IMethod).GetMethod("Invoke", new[] { typeof(object), typeof(bool), typeof(int[]), typeof(object[]) }));
+            gen.Emit(OpCodes.Ldc_I4_M1);
+            gen.Emit(OpCodes.Ldloc, methodArgs);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
             gen.Emit(OpCodes.Stloc, ret);
 
-            // store any by-ref parameters in the arguments
+            // Store any by-ref parameters in the arguments
             for (int i = 0; i < args.Length; i++)
             {
                 if (args[i].IsOut)
                 {
-                    // arg_{i} = loc[{i}];
-                    gen.Emit(OpCodes.Ldloc, loc);
+                    // arg_{i+1} = methodArgs[{i}].As<T>();
+                    gen.Emit(OpCodes.Ldloc, methodArgs);
                     gen.Emit(OpCodes.Ldc_I4, i);
-                    gen.Emit(OpCodes.Ldelem, typeof(object));
-                    gen.Emit(OpCodes.Unbox_Any, args[i].ParameterType);
-                    gen.Emit(OpCodes.Starg, i);
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(args[i].ParameterType));
+                    gen.Emit(OpCodes.Starg, i+1);
                 }
             }
 
-            // return E.Runtime.ConvertType(ret[0], {info.Return});
+            // return ret.As<{info.Return}>();
             if (delegateMethod.ReturnType != null && delegateMethod.ReturnType != typeof(void))
             {
-                gen.Emit(OpCodes.Ldarg_0);
-                gen.Emit(OpCodes.Ldfld, E);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
                 gen.Emit(OpCodes.Ldloc, ret);
-                gen.Emit(OpCodes.Ldc_I4_0);
-                gen.Emit(OpCodes.Callvirt, typeof(MultipleReturn).GetMethod("get_Item"));
-                gen.Emit(OpCodes.Ldtoken, delegateMethod.ReturnType);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("ConvertType"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(delegateMethod.ReturnType));
             }
             gen.Emit(OpCodes.Ret);
 
-            //// public <>_type_(ILuaEnvironment E, LuaMethod method)
+            //// public <>_type_(ILuaEnvironment E, ILuaValue method)
             ConstructorBuilder cb = tb.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard,
-                new[] { typeof(ILuaEnvironment), typeof(IMethod) });
+                new[] { typeof(ILuaEnvironment), typeof(ILuaValue) });
             gen = cb.GetILGenerator();
 
             // base();

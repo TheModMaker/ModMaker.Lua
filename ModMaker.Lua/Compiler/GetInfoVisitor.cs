@@ -1,4 +1,4 @@
-﻿using ModMaker.Lua.Parser;
+using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
 using System;
 using System.Linq;

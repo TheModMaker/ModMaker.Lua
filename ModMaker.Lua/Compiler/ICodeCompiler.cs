@@ -1,4 +1,4 @@
-﻿using ModMaker.Lua.Parser;
+using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using System;
 
@@ -24,9 +24,9 @@ namespace ModMaker.Lua.Compiler
         /// <exception cref="System.ArgumentNullException">If E or item is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the item tree.</exception>
-        IMethod Compile(ILuaEnvironment E, IParseItem item, string name);
+        ILuaValue Compile(ILuaEnvironment E, IParseItem item, string name);
         /// <summary>
-        /// Creates a delegate that can be called to call the given IMethod.
+        /// Creates a delegate that can be called to call the given ILuaValue.
         /// </summary>
         /// <param name="E">The current environment.</param>
         /// <param name="type">The type of the delegate.</param>
@@ -37,6 +37,6 @@ namespace ModMaker.Lua.Compiler
         /// <exception cref="System.ArgumentNullException">If any argument is null.</exception>
         /// <exception cref="System.NotSupportedException">If this implementation
         /// does not support created delegates.</exception>
-        Delegate CreateDelegate(ILuaEnvironment E, Type type, IMethod method);
+        Delegate CreateDelegate(ILuaEnvironment E, Type type, ILuaValue method);
     }
 }

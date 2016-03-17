@@ -1,4 +1,4 @@
-﻿using ModMaker.Lua.Compiler;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 using System;
 
@@ -55,7 +55,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="name">The name of the global variable.</param>
         /// <returns>The value of the variable.</returns>
-        object this[string name] { get; set; }
+        ILuaValue this[string name] { get; set; }
 
         /// <summary>
         /// Registers a delegate to the globals table.

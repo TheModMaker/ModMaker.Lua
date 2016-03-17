@@ -1,4 +1,4 @@
-﻿-- A general test for all the features of Lua and ModMaker.Lua.
+-- A general test for some the features of Lua and ModMaker.Lua.
 
 do
 	io.write("General assignment...\t")
@@ -7,6 +7,7 @@ do
 	local t = {}
 	t[1] = "Foo"
 	t[2] = "Foo2"
+	assert(#{} == 0, "Table length comparison.")
 	assert(#t == 2, "Table length comparison.")
 	assert((t[1] == "Foo") and (t[2] == "Foo2"), "Table get/set values.")
 
@@ -86,34 +87,34 @@ if DoThreads then
 	io.write("Coroutines...\t")
 
 	local function foo (a)
-		assert(a == 2, "Coroutines")
+		assert(a == 2, "Coroutines pass to nested function")
 		return coroutine.yield(2*a)
     end
 
     co = coroutine.create(function (a,b)
-		assert((a == 1) and (b == 10), "Coroutines")
+		assert((a == 1) and (b == 10), "Coroutines passes from create")
 		local r = foo(a+1)
-		assert(r == "r", "Coroutines")
+		assert(r == "r", "Coroutines returns from yield, nested")
 
 		local r, s = coroutine.yield(a+b, a-b)
-		assert((r == "x") and (s == "y"), "Coroutines")
+		assert((r == "x") and (s == "y"), "Coroutines returns from yield")
 
 		return b, "end"
     end)
      
 	local a, b, c = coroutine.resume(co, 1, 10);
-	assert(a and (b == 4), "Coroutines")
+	assert(a and (b == 4), "Coroutines returns from resume")
 	a, b, c = coroutine.resume(co, "r")
-	assert(a and (b == 11) and (c == -9), "Coroutines")
+	assert(a and (b == 11) and (c == -9), "Coroutines returns from resume")
 	a, b, c = coroutine.resume(co, "x", "y")
-	assert(a and (b == 10) and (c == "end"), "Coroutines")
+	assert(a and (b == 10) and (c == "end"), "Coroutines returns from resume at end")
 	a, b, c = coroutine.resume(co, "x", "y")
-	assert(not a and (b == "cannot resume dead coroutine"), "Coroutines")
+	assert(not a and (b == "cannot resume dead coroutine"), "Coroutines fails for dead thread")
 
 	io.write("\tPass\n")
 end
 
--- recusion and proper tail-calls
+--[[ recusion and proper tail-calls
 if TailCalls then
 	io.write("Proper tail calls...\t")
 
@@ -128,7 +129,7 @@ if TailCalls then
 	recurse(1)
 
 	io.write("Pass\n")
-end
+end]]
 
 -- traditional OOP
 do
@@ -196,17 +197,22 @@ do
 	function MyLuaClass:Some()
 		return 12
 	end
+
+	function MyLuaClass:Test()
+	  return 'foobar'
+    end
 	
 	MyLuaClass.Field1 = 12
 	MyLuaClass.Field2 = { out = 234 }
 
 	local temp = MyLuaClass()
 	assert(temp, "Lua defined type")
-	assert(temp.Do() == true, "Lua defined type")
-	assert(temp:Some() == 12, "Lua defined type")
-	assert(temp.Field1 == 12, "Lua defined type")
-	assert(type(temp.Field2) == "table", "Lua defined type")
-	assert(temp.Field2.out == 234, "Lua defined type")
+	assert(temp.Do() == true, "MyLuaClass::Do should return true")
+	assert(temp:Some() == 12, "MyLuaClass::Some should return 12")
+	assert(temp:Test() == 'foobar', "MyLuaClass::Test should return 'foobar'")
+	assert(temp.Field1 == 12, "MyLuaClass::Field1 should be 12")
+	assert(type(temp.Field2) == "table", "MyLuaClass::Field2 should be a table")
+	assert(temp.Field2.out == 234, "MyLuaClass::Field2.out should be 234")
 
 	io.write("Pass\n")
 end

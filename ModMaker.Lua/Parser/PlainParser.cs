@@ -1,6 +1,7 @@
-﻿using ModMaker.Lua.Parser.Items;
+using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Globalization;
 
 namespace ModMaker.Lua.Parser
@@ -878,8 +879,9 @@ namespace ModMaker.Lua.Parser
                 {
                     ex.Push(new UnaryInfo(2, last.StartPos, last.StartLine));
                 }
-                else if (last.Value == "#")
+                else
                 {
+                    Contract.Assert(last.Value == "#");
                     ex.Push(new UnaryInfo(3, last.StartPos, last.StartLine));
                 }
                 last = input.Peek();

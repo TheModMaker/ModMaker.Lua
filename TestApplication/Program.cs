@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,21 +36,21 @@ namespace TestApplication
 
         static void Main(string[] args)
         {
-            // create the Lua object
+            // Create the Lua object.
             Lua lua = new Lua();
             dynamic E = lua.Environment;
 
-            E.TailCalls = Lua.UseDynamicTypes;
+            //E.TailCalls = Lua.UseDynamicTypes;
             E.DoThreads = true;
 
-            // expose a type to Lua
+            // Expose these to Lua.
             lua.Register(typeof(ITest));
             lua.Register((Test)Foo);
 
-            // load and execute a Lua file
+            // Load and execute a Lua file.
             lua.DoFile("Tests.lua");
             
-            // keep the console window open
+            // Keep the console window open.
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }

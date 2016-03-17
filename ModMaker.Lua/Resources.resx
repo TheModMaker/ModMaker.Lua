@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -121,6 +121,14 @@
     <value>An object with the name '{0}' is already registered.</value>
     <comment>Registration</comment>
   </data>
+  <data name="BadBinOp" xml:space="preserve">
+    <value>The given binary operation is not valid.</value>
+    <comment>General</comment>
+  </data>
+  <data name="BadCast" xml:space="preserve">
+    <value>Cannot cast an object of type {0} to the type {1}.</value>
+    <comment>Runtime</comment>
+  </data>
   <data name="BadIndexType" xml:space="preserve">
     <value>Index of a '{0}' must be a {1}.</value>
     <comment>General</comment>
@@ -137,12 +145,20 @@
     <value>A variable marked with LuaIgnoreAttribute with a given BehavesAs must inherit from that type.</value>
     <comment>LuaIgnore</comment>
   </data>
+  <data name="CannotArithmetic" xml:space="preserve">
+    <value>Attempt to perform arithmetic on a '{0}' value.</value>
+    <comment>General</comment>
+  </data>
   <data name="CannotCall" xml:space="preserve">
     <value>Attempt to call a '{0}' type.</value>
     <comment>General</comment>
   </data>
   <data name="CannotContainNull" xml:space="preserve">
     <value>{0} cannot contain a null value.</value>
+    <comment>General</comment>
+  </data>
+  <data name="CannotEnumerate" xml:space="preserve">
+    <value>Attemt to enumerate a '{0}' type.</value>
     <comment>General</comment>
   </data>
   <data name="CannotHideMember" xml:space="preserve">
@@ -196,6 +212,10 @@
   <data name="ErrorResolveLabel" xml:space="preserve">
     <value>Error while resolving labels, make sure not to change UserData during compilation.</value>
     <comment>Compile</comment>
+  </data>
+  <data name="ExistingOverload" xml:space="preserve">
+    <value>There is already an overload specified with the index '{0}'.</value>
+    <comment>Runtime</comment>
   </data>
   <data name="FunctionCallAfterOverload" xml:space="preserve">
     <value>Must have a function call after specifying an overload.</value>
@@ -280,6 +300,10 @@
   <data name="MustBeOn" xml:space="preserve">
     <value>Must be on a '{0}' when calling {1}.</value>
     <comment>Parsing</comment>
+  </data>
+  <data name="MustHaveVisitor" xml:space="preserve">
+    <value>LuaValue types must inherit ILuaValueVisitor.</value>
+    <comment>General</comment>
   </data>
   <data name="NameOrExpForVar" xml:space="preserve">
     <value>Must give a name or expression for a variable definition.</value>

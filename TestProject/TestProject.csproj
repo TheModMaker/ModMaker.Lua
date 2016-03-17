@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -50,10 +50,11 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PlainParserTest.cs" />
+    <Compile Include="Base\HelpersTest.cs" />
+    <Compile Include="Base\PlainParserTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="LuaRuntimeTest.cs" />
-    <Compile Include="TokenizerTest.cs" />
+    <Compile Include="Net\LuaRuntimeTest.cs" />
+    <Compile Include="Base\TokenizerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ModMaker.Lua.Net\ModMaker.Lua.Net.csproj">

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,6 +7,7 @@ using ModMaker.Lua.Runtime;
 using System.Globalization;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -22,7 +23,7 @@ namespace ModMaker.Lua.Runtime
         /// <param name="E">The environment to load to.</param>
         /// <param name="name">The name of the module to find.</param>
         /// <returns>The loaded module, or null if it could not be loaded.</returns>
-        object Load(ILuaEnvironment E, string name);
+        ILuaValue Load(ILuaEnvironment E, string name);
     }
 
     /// <summary>
@@ -31,7 +32,7 @@ namespace ModMaker.Lua.Runtime
     /// </summary>
     public sealed class ModuleBinder : IModuleBinder
     {
-        Dictionary<string, object> _loaded = new Dictionary<string, object>();
+        Dictionary<string, ILuaValue> _loaded = new Dictionary<string, ILuaValue>();
 
         /// <summary>
         /// Creates a new ModuleBinder with default settings.
@@ -76,7 +77,7 @@ namespace ModMaker.Lua.Runtime
         /// <param name="E">The environment to load to.</param>
         /// <returns>The loaded module, or null if it could not be loaded.</returns>
         /// <exception cref="System.ArgumentNullException">If E or name is null.</exception>
-        public object Load(ILuaEnvironment E, string name)
+        public ILuaValue Load(ILuaEnvironment E, string name)
         {
             if (E == null)
                 throw new ArgumentNullException("E");
@@ -92,7 +93,7 @@ namespace ModMaker.Lua.Runtime
                 string path = s.Replace("?", name);
                 if (File.Exists(path))
                 {
-                    object o = ProcessFile(path, name, name, E, _e);
+                    ILuaValue o = ProcessFile(path, name, name, E, _e);
                     if (o != null)
                     {
                         _loaded.Add(name, o);
@@ -106,7 +107,7 @@ namespace ModMaker.Lua.Runtime
                     path = s.Replace("?", name.Substring(0, i));
                     if (File.Exists(path))
                     {
-                        object o = ProcessFile(path, name, name.Substring(i + 1), E, _e);
+                        ILuaValue o = ProcessFile(path, name, name.Substring(i + 1), E, _e);
                         if (o != null)
                         {
                             _loaded.Add(name, o);
@@ -120,7 +121,7 @@ namespace ModMaker.Lua.Runtime
                 "' because a valid module could not be located.  See $Exception.InnerExceptions to see why.", _e);
         }
 
-        object ProcessFile(string path, string name, string partname, ILuaEnvironment E, List<Exception> _e)
+        ILuaValue ProcessFile(string path, string name, string partname, ILuaEnvironment E, List<Exception> _e)
         {
             if (path.EndsWith(".lua", StringComparison.OrdinalIgnoreCase))
             {
@@ -132,7 +133,7 @@ namespace ModMaker.Lua.Runtime
 
                 var item = PlainParser.Parse(E.Parser, System.IO.File.ReadAllText(path), System.IO.Path.GetFileNameWithoutExtension(path));
                 var chunk = E.CodeCompiler.Compile(E, item, null);
-                return chunk.Invoke(null, false, new int[0], new object[0]);
+                return chunk.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty).Single();
             }
             else if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
             {
@@ -206,11 +207,12 @@ namespace ModMaker.Lua.Runtime
         }
         static bool ValidType(Type t)
         {
-            return typeof(IMethod).IsAssignableFrom(t) && t.GetConstructor(new Type[0]) != null;
+            return typeof(ILuaValue).IsAssignableFrom(t) && 
+                (t.GetConstructor(new Type[0]) != null || t.GetConstructor(new[] { typeof(ILuaEnvironment) }) != null);
         }
-        static object ProcessType(Type t, ILuaEnvironment E)
+        static ILuaValue ProcessType(Type t, ILuaEnvironment E)
         {
-            if (!typeof(IMethod).IsAssignableFrom(t))
+            if (!typeof(ILuaValue).IsAssignableFrom(t))
                 return null;
 
             ConstructorInfo ci = t.GetConstructor(new Type[0]);
@@ -219,15 +221,15 @@ namespace ModMaker.Lua.Runtime
                 ci = t.GetConstructor(new Type[] { typeof(ILuaEnvironment) });
                 if (ci != null)
                 {
-                    IMethod mod = (IMethod)ci.Invoke(new[] { E });
-                    return mod.Invoke(null, false, new int[0], new object[0]);
+                    ILuaValue mod = (ILuaValue)ci.Invoke(new[] { E });
+                    return mod.Invoke(LuaNil.Nil, false, -1, E.Runtime.CreateMultiValue()).Single();
                 }
                 return null;
             }
             else
             {
-                IMethod mod = (IMethod)ci.Invoke(null);
-                return mod.Invoke(null, false, new int[0], new object[0]);
+                ILuaValue mod = (ILuaValue)ci.Invoke(null);
+                return mod.Invoke(LuaNil.Nil, false, -1, E.Runtime.CreateMultiValue()).Single();
             }
         }
     }

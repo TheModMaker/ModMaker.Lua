@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua
 {
@@ -16,7 +17,7 @@ namespace ModMaker.Lua
     {
         static bool __dynamic = false;
         ILuaEnvironment _E;
-        List<IMethod> _chunks;
+        List<ILuaValue> _chunks;
 
         /// <summary>
         /// Creates a new Lua object using the default environment, runtime, 
@@ -49,7 +50,7 @@ namespace ModMaker.Lua
                 );
             }
 
-            this._chunks = new List<IMethod>();
+            this._chunks = new List<ILuaValue>();
             this._E = environment;
         }
 
@@ -87,7 +88,7 @@ namespace ModMaker.Lua
         /// <param name="index">The zero-based index in the order they were 
         /// loaded.</param>
         /// <returns>The lua chunk at that index.</returns>
-        public IMethod this[int index] { get { return _chunks[index]; } }
+        public ILuaValue this[int index] { get { return _chunks[index]; } }
 
         /// <summary>
         /// Registers a delegate for use with this Lua object.
@@ -159,7 +160,7 @@ namespace ModMaker.Lua
                 List<object> ret = new List<object>();
                 foreach (var item in _chunks)
                 {
-                    ret.AddRange(item.Invoke(null, false, null, args));
+                    ret.AddRange(item.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args)).Select(v => v.GetValue()));
                 }
                 return ret.ToArray();
             }
@@ -179,7 +180,9 @@ namespace ModMaker.Lua
             {
                 if (index >= _chunks.Count || index < 0)
                     throw new IndexOutOfRangeException(Resources.ChunkOutOfRange);
-                return _chunks[index].Invoke(null, false, null, args).Values;
+                return _chunks[index].Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+                        .Select(v => v.GetValue())
+                        .ToArray();
             }
         }
 
@@ -197,7 +200,9 @@ namespace ModMaker.Lua
         public object[] DoFile(string path, params object[] args)
         {
             var ret = Load(path);
-            return ret.Invoke(null, false, null, args).Values;
+            return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+                .Select(v => v.GetValue())
+                .ToArray();
         }
         /// <summary>
         /// Loads and executes the file from the given stream.  The chunk is
@@ -213,7 +218,9 @@ namespace ModMaker.Lua
         public object[] DoFile(Stream stream, params object[] args)
         {
             var ret = Load(stream);
-            return ret.Invoke(null, false, null, args).Values;
+            return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+                .Select(v => v.GetValue())
+                .ToArray();
         }
         /// <summary>
         /// Loads and executes the specified text. The chunk is
@@ -229,10 +236,12 @@ namespace ModMaker.Lua
         public object[] DoText(string chunk, params object[] args)
         {
             var ret = LoadText(chunk);
-            return ret.Invoke(null, false, null, args).Values;
+            return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+                .Select(v => v.GetValue())
+                .ToArray();
         }
 
-        #region public IMethod Load(...)
+        #region public ILuaValue Load(...)
 
         /// <summary>
         /// Loads a LuaChunk from a specified file.
@@ -255,7 +264,7 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
         /// syntax errors in the file.</exception>
-        public IMethod Load(string path)
+        public ILuaValue Load(string path)
         {
             int i;
             return Load(path, null, false, out i);
@@ -282,7 +291,7 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
         /// syntax errors in the file.</exception>
-        public IMethod Load(string path, bool @override)
+        public ILuaValue Load(string path, bool @override)
         {
             int i;
             return Load(path, null, @override, out i);
@@ -309,7 +318,7 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
         /// syntax errors in the file.</exception>
-        public IMethod Load(string path, string name)
+        public ILuaValue Load(string path, string name)
         {
             int i;
             return Load(path, name, false, out i);
@@ -338,7 +347,7 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
         /// syntax errors in the file.</exception>
-        public IMethod Load(string path, string name, bool @override)
+        public ILuaValue Load(string path, string name, bool @override)
         {
             int i;
             return Load(path, name, @override, out i);
@@ -368,7 +377,7 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
         /// syntax errors in the file.</exception>
-        public IMethod Load(string path, string name, bool @override, out int index)
+        public ILuaValue Load(string path, string name, bool @override, out int index)
         {
             if (path == null)
                 throw new ArgumentNullException("path");
@@ -386,7 +395,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod Load(Stream stream)
+        public ILuaValue Load(Stream stream)
         {
             int i;
             return this.Load(stream, null, false, out i);
@@ -400,7 +409,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod Load(Stream stream, string name)
+        public ILuaValue Load(Stream stream, string name)
         {
             int i;
             return this.Load(stream, name, false, out i);
@@ -414,7 +423,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod Load(Stream stream, bool @override)
+        public ILuaValue Load(Stream stream, bool @override)
         {
             int i;
             return this.Load(stream, null, @override, out i);
@@ -430,7 +439,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod Load(Stream stream, string name, bool @override)
+        public ILuaValue Load(Stream stream, string name, bool @override)
         {
             int i;
             return Load(stream, name, @override, out i);
@@ -447,7 +456,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod Load(Stream stream, string name, bool @override, out int index)
+        public ILuaValue Load(Stream stream, string name, bool @override, out int index)
         {
             if (stream == null)
                 throw new ArgumentNullException("stream");
@@ -479,7 +488,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod LoadText(string chunk)
+        public ILuaValue LoadText(string chunk)
         {
             int i;
             return this.LoadText(chunk, null, false, out i);
@@ -493,7 +502,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod LoadText(string chunk, string name)
+        public ILuaValue LoadText(string chunk, string name)
         {
             int i;
             return this.LoadText(chunk, name, false, out i);
@@ -507,7 +516,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod LoadText(string chunk, bool @override)
+        public ILuaValue LoadText(string chunk, bool @override)
         {
             int i;
             return this.LoadText(chunk, null, @override, out i);
@@ -522,7 +531,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod LoadText(string chunk, string name, bool @override)
+        public ILuaValue LoadText(string chunk, string name, bool @override)
         {
             int i;
             return this.LoadText(chunk, name, @override, out i);
@@ -538,7 +547,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
         /// syntax errors in the file.</exception>
-        public IMethod LoadText(string chunk, string name, bool @override, out int index)
+        public ILuaValue LoadText(string chunk, string name, bool @override, out int index)
         {
             if (chunk == null)
                 throw new ArgumentNullException("chunk");
@@ -688,8 +697,8 @@ namespace ModMaker.Lua
             var ret = E.CodeCompiler.Compile(E,
                 PlainParser.Parse(E.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path)),
                 Path.GetFileNameWithoutExtension(path));
-            ret.Invoke(null, false, new int[0], new object[0]);
-            return names.Select(s => E[s]).ToArray();
+            ret.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
+            return names.Select(s => E[s].GetValue()).ToArray();
         }
         /// <summary>
         /// Gets a variable from a given Lua file using the default
@@ -830,8 +839,8 @@ namespace ModMaker.Lua
             var ret = E.CodeCompiler.Compile(E,
                 PlainParser.Parse(E.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path)),
                 Path.GetFileNameWithoutExtension(path));
-            ret.Invoke(null, false, new int[0], new object[0]);
-            return names.Select(s => (T)E.Runtime.ConvertType(E[s], typeof(T))).ToArray();
+            ret.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
+            return names.Select(s => E[s].As<T>()).ToArray();
         }
 
         #endregion
