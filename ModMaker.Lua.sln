@@ -10,7 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		License.txt = License.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApplication", "TestApplication\TestApplication.csproj", "{5774D025-A1B8-409F-B613-A4453AF3EB90}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example Project", "Example Project\Example Project.csproj", "{5774D025-A1B8-409F-B613-A4453AF3EB90}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModMaker.Lua.Portable", "ModMaker.Lua.Portable\ModMaker.Lua.Portable.csproj", "{468C290D-9818-4B53-A9EE-24D690733743}"
 EndProject
@@ -18,7 +18,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModMaker.Lua.Net", "ModMake
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModMaker.Lua", "ModMaker.Lua\ModMaker.Lua.csproj", "{C8175F68-427C-45EE-B50B-2C9D8FB9FC51}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{F5F61680-1D99-4E55-AA7C-F3B24DCE862D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unit Tests", "Unit Tests\Unit Tests.csproj", "{F5F61680-1D99-4E55-AA7C-F3B24DCE862D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

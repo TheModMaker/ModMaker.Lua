@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Globalization;
 
-namespace TestProject
+namespace UnitTests.Base
 {
     /// <summary>
     ///This is a test class for TokenizerTest and is intended

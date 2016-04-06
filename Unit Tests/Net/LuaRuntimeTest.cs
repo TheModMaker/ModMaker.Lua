@@ -9,7 +9,7 @@ using System.IO;
 using ModMaker.Lua;
 using System.Collections.Generic;
 
-namespace TestProject
+namespace UnitTests.Net
 {
     // TODO: Fix tests.
 

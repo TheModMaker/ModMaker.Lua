@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
 
-namespace TestProject
+namespace UnitTests.Base
 {
     /// <summary>
     /// This is a test class for PlainParserTest and is intended

@@ -8,7 +8,7 @@ using ModMaker.Lua.Runtime;
 using System.Reflection.Emit;
 using System.Linq.Expressions;
 
-namespace TestApplication
+namespace ExampleProject
 {
     /// <summary>
     /// An interface to derive from in Lua code.
