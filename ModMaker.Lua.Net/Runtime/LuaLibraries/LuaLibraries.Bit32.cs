@@ -12,97 +12,126 @@ namespace ModMaker.Lua.Runtime
             public static void Initialize(ILuaEnvironment E)
             {
                 ILuaValue bit32 = E.Runtime.CreateTable();
-                Register(E, bit32, (Func<double, double, uint>)arshift);
-                Register(E, bit32, (Func<uint[], uint>)band);
-                Register(E, bit32, (Func<uint, uint>)bnot);
-                Register(E, bit32, (Func<uint[], uint>)bor);
-                Register(E, bit32, (Func<uint[], bool>)btest);
-                Register(E, bit32, (Func<uint[], uint>)bxor);
-                Register(E, bit32, (Func<uint, int, int, uint>)extract);
-                Register(E, bit32, (Func<uint, uint, int, int, uint>)replace);
-                Register(E, bit32, (Func<uint, int, uint>)lrotate);
-                Register(E, bit32, (Func<uint, int, uint>)lshift);
-                Register(E, bit32, (Func<uint, int, uint>)rrotate);
-                Register(E, bit32, (Func<uint, int, uint>)rshift);
+                Register(E, bit32, (Func<double, int, uint>)arshift);
+                Register(E, bit32, (Func<double[], uint>)band);
+                Register(E, bit32, (Func<double, uint>)bnot);
+                Register(E, bit32, (Func<double[], uint>)bor);
+                Register(E, bit32, (Func<double[], bool>)btest);
+                Register(E, bit32, (Func<double[], uint>)bxor);
+                Register(E, bit32, (Func<double, int, int, uint>)extract);
+                Register(E, bit32, (Func<double, double, int, int, uint>)replace);
+                Register(E, bit32, (Func<double, int, uint>)lrotate);
+                Register(E, bit32, (Func<double, int, uint>)lshift);
+                Register(E, bit32, (Func<double, int, uint>)rrotate);
+                Register(E, bit32, (Func<double, int, uint>)rshift);
 
                 E.GlobalsTable.SetItemRaw(E.Runtime.CreateValue("bit32"), bit32);
             }
 
-            static uint arshift(double x, double disp)
+            // NOTE: This uses double as an argument since using Convert.ToUint will fail to
+            // convert larger numbers.  So we accept a double and then cast to uint manually
+            // which will truncate the number to 2^32.
+
+            [IgnoreExtraArguments]
+            static uint arshift(double x, int disp)
             {
                 if (System.Math.Abs(disp) > 31)
-                    return 0;
+                    return x >= 0x800000 && disp > 0 ? 0xffffffff : 0;
 
-                return (uint)(x / System.Math.Pow(2, disp));
+                var xAsInt = (int)((uint)x & 0xffffffff);
+                if (disp >= 0)
+                    return (uint)(xAsInt >> disp);
+                else
+                    return (uint)xAsInt << -disp;
             }
-            static uint band(params uint[] args)
+            static uint band(params double[] args)
             {
-                return args.Aggregate((a, b) => a & b);
+                return args.Select(a => (uint)a).Aggregate(uint.MaxValue, (a, b) => a & b);
             }
-            static uint bnot(uint x)
+            [IgnoreExtraArguments]
+            static uint bnot(double x)
             {
-                return ~x;
+                return ~(uint)x;
             }
-            static uint bor(params uint[] args)
+            static uint bor(params double[] args)
             {
-                return args.Aggregate((a, b) => a | b);
+                return args.Select(a => (uint)a).Aggregate(0u, (a, b) => a | b);
             }
-            static bool btest(params uint[] args)
+            static bool btest(params double[] args)
             {
-                return bor(args) != 0;
+                return band(args) != 0;
             }
-            static uint bxor(params uint[] args)
+            static uint bxor(params double[] args)
             {
-                return args.Aggregate((a, b) => a ^ b);
+                return args.Select(a => (uint)a).Aggregate(0u, (a, b) => a ^ b);
             }
-            static uint extract(uint source, int field, int width = 1)
+            [IgnoreExtraArguments]
+            static uint extract(double sourceDouble, int field, int width = 1)
             {
-                if (field > 31 || width + field > 31 || field < 0 || width < 0)
-                    throw new ArgumentException("Attempt to access bits outside the allowed range.");
+                if (width + field > 31 || field < 0 || width < 0)
+                {
+                    throw new ArgumentException(
+                            "Attempt to access bits outside the allowed range.");
+                }
 
+                uint source = (uint)sourceDouble;
                 uint mask = (uint)((1 << width) - 1);
                 return ((source >> field) & mask);
             }
-            static uint replace(uint source, uint repl, int field, int width = 1)
+            [IgnoreExtraArguments]
+            static uint replace(double sourceDouble, double replDouble, int field, int width = 1)
             {
-                if (field > 31 || width + field > 31 || field < 0 || width < 0)
-                    throw new ArgumentException("Attempt to access bits outside the allowed range.");
+                uint source = (uint)sourceDouble;
+                uint repl = (uint)replDouble;
+                if (width + field > 31 || field < 0 || width < 0)
+                {
+                    throw new ArgumentException(
+                            "Attempt to access bits outside the allowed range.");
+                }
 
-                uint mask = (uint)((1 << width) - 1);
+                uint mask = (1u << width) - 1;
                 repl &= mask;
                 source &= ~(mask << field);
                 return (source | (repl << field));
             }
-            static uint lrotate(uint x, int disp)
+            [IgnoreExtraArguments]
+            static uint lrotate(double xDouble, int disp)
             {
                 // % will still remain negative.
+                uint x = (uint)xDouble;
                 disp %= 32;
                 if (disp >= 0)
                     return ((x << disp) | (x >> (32 - disp)));
                 else
                     return ((x >> -disp) | (x << (32 + disp)));
             }
-            static uint lshift(uint x, int disp)
+            [IgnoreExtraArguments]
+            static uint lshift(double xDouble, int disp)
             {
-                if (disp > 31)
+                uint x = (uint)xDouble;
+                if (System.Math.Abs(disp) > 31)
                     return 0;
                 else if (disp >= 0)
                     return x << disp;
                 else
                     return x >> -disp;
             }
-            static uint rrotate(uint x, int disp)
+            [IgnoreExtraArguments]
+            static uint rrotate(double xDouble, int disp)
             {
                 // % will still remain negative.
+                uint x = (uint)xDouble;
                 disp %= 32;
                 if (disp >= 0)
                     return ((x >> disp) | (x << (32 - disp)));
                 else
                     return ((x << -disp) | (x >> (32 + disp)));
             }
-            static uint rshift(uint x, int disp)
+            [IgnoreExtraArguments]
+            static uint rshift(double xDouble, int disp)
             {
-                if (disp > 31)
+                uint x = (uint)xDouble;
+                if (System.Math.Abs(disp) > 31)
                     return 0;
                 else if (disp >= 0)
                     return x >> disp;

@@ -112,7 +112,7 @@ namespace ModMaker.Lua
         /// <returns>The newly created type.</returns>
         public static TypeBuilder DefineGlobalType(string prefix)
         {
-            return _mb.DefineType(prefix + "_" + (_tid++));
+            return GetModuleBuilder().DefineType(prefix + "_" + (_tid++));
         }
 
         /// <summary>

@@ -33,11 +33,13 @@ namespace ModMaker.Lua.Runtime
 
             string concat(ILuaTable table, string sep = null, int i = 1, int j = -1)
             {
+                CheckNotNull("table.concat", table);
                 int len = (int)(table.Length().AsDouble() ?? 0);
+                if (i >= len)
+                    return "";
+
                 i = normalizeIndex_(len, i);
                 j = normalizeIndex_(len, j);
-                if (j < i)
-                    return "";
 
                 StringBuilder str = new StringBuilder();
                 for (; i <= j; i++)
@@ -58,6 +60,8 @@ namespace ModMaker.Lua.Runtime
             }
             void insert(ILuaTable table, ILuaValue pos, ILuaValue value = null)
             {
+                CheckNotNull("table.insert", table);
+                CheckNotNull("table.insert", pos);
                 double i;
                 double len = table.Length().AsDouble() ?? 0;
                 if (value == null)
@@ -66,10 +70,15 @@ namespace ModMaker.Lua.Runtime
                     i = len + 1;
                 }
                 else
+                {
                     i = pos.AsDouble() ?? 0;
+                }
 
                 if (i > len + 1 || i < 1 || i % 1 != 0)
-                    throw new ArgumentException("Position given to function 'table.insert' is outside valid range.");
+                {
+                    throw new ArgumentException(
+                            "Position given to function 'table.insert' is outside valid range.");
+                }
 
                 for (double d = len; d >= i; d--)
                 {
@@ -90,6 +99,8 @@ namespace ModMaker.Lua.Runtime
             }
             ILuaValue remove(ILuaTable table, int? pos = null)
             {
+                CheckNotNull("table.remove", table);
+
                 double len = table.Length().AsDouble() ?? 0;
                 pos = pos ?? (int)len;
                 if (pos > len + 1 || pos < 1)
@@ -110,7 +121,7 @@ namespace ModMaker.Lua.Runtime
             }
             void sort(ILuaTable table, ILuaValue comp = null)
             {
-                double len = table.Length().AsDouble() ?? 0;
+                CheckNotNull("table.sort", table);
                 var comparer = new SortComparer(E, comp);
 
                 ILuaValue[] elems = unpack(table).OrderBy(k => k, comparer).ToArray();
@@ -121,10 +132,11 @@ namespace ModMaker.Lua.Runtime
                 }
             }
             [MultipleReturn]
-            IEnumerable<ILuaValue> unpack(ILuaTable table, int i = 1, int? j = null)
+            IEnumerable<ILuaValue> unpack(ILuaTable table, int i = 1, int? jOrNull = null)
             {
-                double len = table.Length().AsDouble() ?? 0;
-                j = j ?? (int)len;
+                CheckNotNull("table.unpack", table);
+                int len = (int)(table.Length().AsDouble() ?? 0);
+                int j = jOrNull ?? len;
                 for (; i <= j; i++)
                 {
                     yield return table.GetItemRaw(E.Runtime.CreateValue(i));
@@ -149,7 +161,7 @@ namespace ModMaker.Lua.Runtime
                     if (method_ != null)
                     {
                         ILuaMultiValue ret = method_.Invoke(
-                            null, false, -1, E_.Runtime.CreateMultiValueFromObj(x, y));
+                            LuaNil.Nil, false, -1, E_.Runtime.CreateMultiValueFromObj(x, y));
                         return ret.IsTrue ? -1 : 1;
                     }
 

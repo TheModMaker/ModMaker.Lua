@@ -130,7 +130,7 @@ namespace ModMaker.Lua.Compiler
             // compile the code
             CompilerVisitor cVisitor = new CompilerVisitor(cb);
             item.Accept(cVisitor);
-            var ret = cb.CreateChunk(E);this.Save("test.dll", true);
+            var ret = cb.CreateChunk(E);
             return ret;
         }
         /// <summary>
@@ -153,7 +153,7 @@ namespace ModMaker.Lua.Compiler
                 throw new ArgumentNullException("type");
             if (method == null)
                 throw new ArgumentNullException("method");
-            if (typeof(Delegate).IsAssignableFrom(type))
+            if (!typeof(Delegate).IsAssignableFrom(type.BaseType))
                 throw new ArgumentException(Resources.DeriveFromDelegate);
 
             // search through the cache for a compatible delegate helper

@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Runtime
                 if (min == null)
                     return rand_.NextDouble();
                 else if (max == null)
-                    return rand_.Next(min.Value);
+                    return rand_.Next(1, min.Value);
                 else
                     return rand_.Next(min.Value, max.Value);
             }

@@ -910,7 +910,7 @@ namespace ModMaker.Lua.Parser
                     Read(input, ref debug);
                     try
                     {
-                        o = new LiteralItem(Convert.ToDouble(int.Parse(last.Value.Substring(1),
+                        o = new LiteralItem(Convert.ToDouble(long.Parse(last.Value.Substring(1),
                             NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture))) { Debug = last };
                     }
                     catch (FormatException e)
@@ -1097,7 +1097,7 @@ namespace ModMaker.Lua.Parser
                             else if (input.Peek().Value == ")")
                                 break;
                             else
-                                throw new SyntaxException(string.Format(Resources.TokenInvalidExpecting2, last.Value, "function call", ",", ")"), input.Name, last);
+                                throw new SyntaxException(string.Format(Resources.TokenInvalidExpecting2, input.Peek().Value, "function call", ",", ")"), input.Name, last);
                         }
 
                         if (input.Peek() == null)

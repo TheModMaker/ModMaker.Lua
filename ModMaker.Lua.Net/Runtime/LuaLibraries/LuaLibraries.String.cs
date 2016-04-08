@@ -18,34 +18,39 @@ namespace ModMaker.Lua.Runtime
             public static void Initialize(ILuaEnvironment E)
             {
                 var str = E.Runtime.CreateTable();
-                Register(E, str, (Func<string, int, int?, IEnumerable<char>>)byte_, "byte");
+                Register(E, str, (Func<string, int, int?, IEnumerable<int>>)byte_, "byte");
                 Register(E, str, (Func<int[], string>)char_, "char");
                 Register(E, str, (Func<string, string, int, bool, object[]>)find);
                 Register(E, str, (Func<string, object[], string>)format);
                 Register(E, str, (Func<string, string, object>)gmatch);
-                Register(E, str, (Func<string, string, ILuaValue, string>)gsub);
+                Register(E, str, (Func<string, string, ILuaValue, int, string>)gsub);
                 Register(E, str, (Func<string, int>)len);
                 Register(E, str, (Func<string, string>)lower);
                 Register(E, str, (Func<string, string, int, IEnumerable<string>>)match);
                 Register(E, str, (Func<string, int, string, string>)rep);
                 Register(E, str, (Func<string, string>)reverse);
-                Register(E, str, (Func<string, int, int?, string>)sub);
+                Register(E, str, (Func<string, int, int, string>)sub);
                 Register(E, str, (Func<string, string>)upper);
 
                 E.GlobalsTable.SetItemRaw(E.Runtime.CreateValue("string"), str);
             }
 
             [MultipleReturn]
-            static IEnumerable<char> byte_(string source, int i = 1, int? j = null)
+            static IEnumerable<int> byte_(string source, int i = 1, int? j = null)
             {
-                return sub(source, i, j);
+                CheckNotNull("string.byte", source);
+                return sub(source, i, j ?? i).Select(c => (int)c);
             }
             static string char_(params int[] chars)
             {
                 StringBuilder ret = new StringBuilder(chars.Length);
                 foreach (int c in chars)
                 {
-                    if (c <= 0xFFFF)
+                    if (c < 0)
+                    {
+                        throw new ArgumentException("Character out of range for 'string.char'.");
+                    }
+                    else if (c <= 0xFFFF)
                     {
                         // This may be a surrogate pair, assume they know what they are doing.
                         ret.Append((char)c);
@@ -65,62 +70,81 @@ namespace ModMaker.Lua.Runtime
             [MultipleReturn]
             static object[] find(string source, string pattern, int start = 1, bool plain = false)
             {
+                CheckNotNull("string.find", source);
+                CheckNotNull("string.find", pattern);
+                if (start >= source.Length)
+                    return new object[0];
+
                 start = normalizeIndex_(source.Length, start);
                 if (plain)
                 {
-                    int i = source.IndexOf(pattern, start, StringComparison.CurrentCulture);
+                    int i = source.IndexOf(pattern, start - 1, StringComparison.CurrentCulture);
                     if (i == -1)
                         return new object[0];
                     else
-                        return new object[] { i, (i + pattern.Length) };
+                        return new object[] { i + 1, (i + pattern.Length) };
                 }
 
                 Regex reg = new Regex(pattern);
-                Match match = reg.Match(source, start);
-                if (match == null)
+                Match match = reg.Match(source, start - 1);
+                if (match == null || !match.Success)
                     return new object[0];
 
-                return new object[] { match.Index, (match.Index + match.Length) }
-                    .Concat(match.Captures.Cast<Capture>().Select(c => c.Value))
+                return new object[] { match.Index + 1, (match.Index + match.Length) }
+                    .Concat(match.Groups.Cast<Group>().Skip(1).Select(c => c.Value))
                     .ToArray();
             }
             static string format(string format, params object[] args)
             {
+                CheckNotNull("string.format", format);
                 return System.String.Format(format, args);
             }
             static object gmatch(string source, string pattern)
             {
+                CheckNotNull("string.gmatch", source);
+                CheckNotNull("string.gmatch", pattern);
                 var helper = new gmatchIter(Regex.Matches(source, pattern));
                 return (Func<object[], string[]>)helper.gmatch_iter;
             }
-            static string gsub(string source, string pattern, ILuaValue repl)
+            static string gsub(string source, string pattern, ILuaValue repl, int n = int.MaxValue)
             {
-                return Regex.Replace(source, pattern, new gsubHelper(repl).Match);
+                CheckNotNull("string.gsub", source);
+                CheckNotNull("string.gsub", pattern);
+                return Regex.Replace(source, pattern, new gsubHelper(repl, n).Match);
             }
             static int len(string str)
             {
+                CheckNotNull("string.len", str);
                 return str.Length;
             }
             static string lower(string str)
             {
+                CheckNotNull("string.lower", str);
                 return str.ToLower(CultureInfo.CurrentCulture);
             }
             [MultipleReturn]
             static IEnumerable<string> match(string source, string pattern, int start = 1)
             {
+                CheckNotNull("string.match", source);
+                CheckNotNull("string.match", pattern);
                 start = normalizeIndex_(source.Length, start);
                 Regex reg = new Regex(pattern);
-                Match match = reg.Match(source, start);
-                if (match == null)
+                Match match = reg.Match(source, start - 1);
+                if (match == null || !match.Success)
                     return new string[0];
 
-                return match.Captures.Cast<Capture>().Select(c => c.Value);
+                if (match.Groups.Count == 1)
+                    return new[] { match.Value };
+                else
+                    return match.Groups.Cast<Group>().Skip(1).Select(c => c.Value);
             }
             static string rep(string str, int rep, string sep = null)
             {
+                CheckNotNull("string.rep", str);
                 if (rep < 1)
                     return "";
 
+                sep = sep ?? "";
                 StringBuilder ret = new StringBuilder((str.Length + sep.Length) * rep);
                 for (int i = 0; i < rep - 1; i++)
                 {
@@ -132,12 +156,19 @@ namespace ModMaker.Lua.Runtime
             }
             static string reverse(string str)
             {
-                return new string(str.Reverse().ToArray());
+                CheckNotNull("string.reverse", str);
+                // Ensure the reverse does not break surrogate pairs.
+                var matches = Regex.Matches(str, @"\p{IsHighSurrogates}\p{IsLowSurrogates}|.");
+                return matches.Cast<Match>().Select(c => c.Value).Reverse().Aggregate("", (a, b) => a + b);
             }
-            static string sub(string source, int i = 1, int? j = null)
+            static string sub(string source, int i, int j = -1)
             {
+                CheckNotNull("string.sub", source);
+                if (i > source.Length)
+                    return "";
+
                 int start = normalizeIndex_(source.Length, i);
-                int end = j != null ? normalizeIndex_(source.Length, j.Value) : start;
+                int end = normalizeIndex_(source.Length, j);
                 if (start > end)
                     return "";
 
@@ -145,6 +176,7 @@ namespace ModMaker.Lua.Runtime
             }
             static string upper(string str)
             {
+                CheckNotNull("string.upper", str);
                 return str.ToUpper(CultureInfo.CurrentCulture);
             }
 
@@ -165,7 +197,10 @@ namespace ModMaker.Lua.Runtime
                     Match cur = matches[index];
                     index++;
 
-                    return cur.Groups.Cast<Group>().Select(c => c.Value).ToArray();
+                    if (cur.Groups.Count == 1)
+                        return new[] { cur.Groups[0].Value };
+                    else
+                        return cur.Groups.Cast<Group>().Select(c => c.Value).Skip(1).ToArray();
                 }
 
                 MatchCollection matches;
@@ -173,8 +208,11 @@ namespace ModMaker.Lua.Runtime
             }
             class gsubHelper
             {
-                public gsubHelper(ILuaValue value)
+                public gsubHelper(ILuaValue value, int max)
                 {
+                    count_ = 0;
+                    max_ = max;
+
                     if (value.ValueType == LuaValueType.String)
                         string_ = (string)value.GetValue();
                     else if (value.ValueType == LuaValueType.Table)
@@ -187,6 +225,10 @@ namespace ModMaker.Lua.Runtime
 
                 public string Match(Match match)
                 {
+                    if (count_ >= max_)
+                        return match.Value;
+
+                    count_++;
                     if (string_ != null)
                     {
                         return Regex.Replace(string_, @"%[0-9%]", m =>
@@ -199,7 +241,8 @@ namespace ModMaker.Lua.Runtime
                     }
                     else if (table_ != null)
                     {
-                        ILuaValue value = table_.GetItemRaw(new LuaString(match.Value));
+                        string key = match.Groups.Count == 0 ? match.Value : match.Groups[1].Value;
+                        ILuaValue value = table_.GetItemRaw(new LuaString(key));
                         if (value != null && value.IsTrue)
                             return value.ToString();
                     }
@@ -219,6 +262,8 @@ namespace ModMaker.Lua.Runtime
                     return match.Value;
                 }
 
+                int count_;
+                int max_;
                 string string_;
                 ILuaTable table_;
                 ILuaValue method_;

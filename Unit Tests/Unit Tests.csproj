@@ -52,6 +52,11 @@
   <ItemGroup>
     <Compile Include="Base\HelpersTest.cs" />
     <Compile Include="Base\PlainParserTest.cs" />
+    <Compile Include="Net\Runtime\LuaLibraries\Bit32.cs" />
+    <Compile Include="Net\Runtime\LuaLibraries\LibraryTestBase.cs" />
+    <Compile Include="Net\Runtime\LuaLibraries\Math.cs" />
+    <Compile Include="Net\Runtime\LuaLibraries\String.cs" />
+    <Compile Include="Net\Runtime\LuaLibraries\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Net\LuaRuntimeTest.cs" />
     <Compile Include="Base\TokenizerTest.cs" />

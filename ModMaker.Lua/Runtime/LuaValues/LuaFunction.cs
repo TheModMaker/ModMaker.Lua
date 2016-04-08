@@ -147,7 +147,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>A delegate that will call this function.</returns>
         public T As<T>(ILuaEnvironment E)
         {
-            throw new NotImplementedException();
+            return (T)(object)E.CodeCompiler.CreateDelegate(E, typeof(T), this);
         }
 
         /// <summary>

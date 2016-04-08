@@ -831,7 +831,7 @@ namespace ModMaker.Lua
             for (int i = 0; i < min; i++)
             {
                 // Skip params array since it's handled below.
-                if (i == min - 1 && hasParams)
+                if (i == param.Length - 1 && hasParams)
                     continue;
 
                 var paramType = param[i].ParameterType;

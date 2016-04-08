@@ -74,5 +74,13 @@ namespace ModMaker.Lua.Runtime
                 return i;
         }
 
+        static void CheckNotNull(string name, object o)
+        {
+            if (o == null)
+            {
+                throw new ArgumentNullException(
+                    "Argument to function '" + name + "' cannot be nil.");
+            }
+        }
     }
 }
