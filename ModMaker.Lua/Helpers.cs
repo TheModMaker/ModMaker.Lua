@@ -3,7 +3,6 @@ using ModMaker.Lua.Runtime.LuaValues;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -33,7 +32,6 @@ namespace ModMaker.Lua
 
             public DisposableHelper(Action act)
             {
-                Contract.Requires(act != null);
                 this.act = act;
             }
 
@@ -200,20 +198,6 @@ namespace ModMaker.Lua
             /// </summary>
             public readonly bool IsParams;
 
-            [ContractInvariantMethod]
-            void Invariant()
-            {
-                Contract.Invariant(Arguments != null);
-                Contract.Invariant(Method != null);
-                Contract.Invariant(ConversionAmounts != null);
-                Contract.Invariant(ConversionTypes != null);
-
-                Contract.Invariant(ConversionAmounts.Length == ConversionTypes.Length);
-                Contract.Invariant(Contract.ForAll(ConversionAmounts, i => i >= 0));
-                Contract.Invariant(ParamsOrOptional >= 0);
-                Contract.Invariant(LuaValueCount >= 0);
-            }
-            
             /// <summary>
             /// Creates a new OverloadInfo object from the given method.
             /// </summary>
@@ -224,11 +208,6 @@ namespace ModMaker.Lua
             /// not valid.</returns>
             public static OverloadInfo<T> Create(T method, object target, ILuaMultiValue args)
             {
-                Contract.Requires(method != null);
-                Contract.Requires(args != null);
-                Contract.Ensures(Contract.Result<OverloadInfo<T>>() == null || 
-                                 Contract.Result<OverloadInfo<T>>().Arguments == args);
-
                 // Ignore any methods marked with LuaIgnore.
                 if (method.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length > 0)
                     return null;
@@ -260,8 +239,6 @@ namespace ModMaker.Lua
                 // Provide support for a params array.
                 if (param.Length > 0 && param[param.Length - 1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0)
                 {
-                    Contract.Assert(param[param.Length - 1].ParameterType.IsArray);
-
                     isParams = true;
                     paramsOrOptional = args.Count - param.Length;
 
@@ -370,9 +347,6 @@ namespace ModMaker.Lua
             /// <returns>A value that defines which overload is better.</returns>
             public int Compare(OverloadInfo<T> other)
             {
-                Contract.Requires(other != null);
-                Contract.Requires(other.Arguments == Arguments);
-
                 int ret;
                 if (CompareFormalParameters(other, out ret))
                     return ret;
@@ -501,7 +475,6 @@ namespace ModMaker.Lua
                     case LuaCastType.SameType:
                         return typeB;
                     case LuaCastType.Interface:
-                        Contract.Assert(typeB == LuaCastType.Interface);
                         return typeB;
                     case LuaCastType.BaseClass:
                         if (typeB == LuaCastType.UserDefined || typeB == LuaCastType.ExplicitUserDefined)
@@ -516,7 +489,6 @@ namespace ModMaker.Lua
                         else
                             return typeA;
                     default:
-                        Contract.Assert(false);
                         throw new NotImplementedException();
                 }
             }
@@ -531,11 +503,6 @@ namespace ModMaker.Lua
             /// <param name="amount">Will contain the amount of the cast.</param>
             static void GetCastInfo(MethodInfo getCastInfo, ILuaValue target, Type destType, out LuaCastType castType, out int amount)
             {
-                Contract.Requires(getCastInfo != null);
-                Contract.Requires(target != null);
-                Contract.Requires(destType != null);
-                Contract.Ensures(Contract.ValueAtReturn(out amount) >= 0);
-
                 try
                 {
                     // These are out args, so the initial value can be null 
@@ -546,7 +513,6 @@ namespace ModMaker.Lua
                     // Out arguments modify the args array.
                     castType = (LuaCastType)args[0];
                     amount = (int)args[1];
-                    Contract.Assume(amount >= 0);
                 }
                 catch (NotSupportedException)
                 {
@@ -574,8 +540,6 @@ namespace ModMaker.Lua
         /// <returns>An IDisposable object.</returns>
         public static IDisposable Disposable(Action act)
         {
-            Contract.Requires(act != null);
-            Contract.Ensures(Contract.Result<IDisposable>() != null);
             return new DisposableHelper(act);
         }
 
@@ -594,7 +558,6 @@ namespace ModMaker.Lua
         /// <exception cref="System.TypeLoadException">A custom attribute type cannot be loaded.</exception>
         public static T GetCustomAttribute<T>(this MemberInfo element) where T : Attribute
         {
-            Contract.Requires(element != null);
             return (T)Attribute.GetCustomAttribute(element, typeof(T));
         }
         /// <summary>
@@ -612,7 +575,6 @@ namespace ModMaker.Lua
         /// <exception cref="System.TypeLoadException">A custom attribute type cannot be loaded.</exception>
         public static T GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute
         {
-            Contract.Requires(element != null);
             return (T)Attribute.GetCustomAttribute(element, typeof(T), inherit);
         }
 
@@ -657,10 +619,6 @@ namespace ModMaker.Lua
         /// <returns>The cast type that is used.</returns>
         public static LuaCastType TypesCompatible(Type sourceType, Type destType, out MethodInfo method, out int amount)
         {
-            Contract.Requires(sourceType != null);
-            Contract.Requires(destType != null);
-            Contract.Ensures(Contract.ValueAtReturn(out amount) >= 0);
-
             method = null;
             amount = 0;
 
@@ -733,7 +691,6 @@ namespace ModMaker.Lua
                 .ToArray();
 
             // check the possible choices
-            Contract.Assert(possible != null);
             if (possible.Length > 0)
             {
                 for (int i = 0; i < possible.Length; i++)
@@ -766,10 +723,6 @@ namespace ModMaker.Lua
         public static bool GetCompatibleMethod<T>(IEnumerable<Tuple<T, object>> methods, ILuaMultiValue args,
             out T resultMethod, out object resultTarget) where T : MethodBase
         {
-            Contract.Requires(methods != null);
-            Contract.Requires(Contract.ForAll(methods, m => m != null && m.Item1 != null));
-            Contract.Requires(args != null);
-
             resultMethod = null;
             resultTarget = null;
 
@@ -815,7 +768,6 @@ namespace ModMaker.Lua
         public static object[] ConvertForArgs(ILuaMultiValue args, MethodBase method)
         {
             var param = method.GetParameters();
-            Contract.Assert(param != null);
 
             var ret = new object[param.Length];
             var min = Math.Min(param.Length, args.Count);
@@ -852,7 +804,6 @@ namespace ModMaker.Lua
             // Get optional parameters.
             for (int i = min; i < param.Length; i++)
             {
-                Contract.Assert(param[i].IsOptional || hasParams);
                 ret[i] = param[i].DefaultValue;
             }
 
@@ -907,9 +858,6 @@ namespace ModMaker.Lua
         public static ILuaValue GetSetMember(Type targetType, object target, ILuaValue index, 
                                              ILuaValue value = null)
         {
-            Contract.Requires(index != null);
-            Contract.Requires(targetType != null);
-
             // TODO: Consider how to get settings here.
             /*if (!E.Settings.AllowReflection &&
                 typeof(MemberInfo).IsAssignableFrom(targetType))
@@ -1084,10 +1032,6 @@ namespace ModMaker.Lua
         static ILuaValue GetSetIndex(Type targetType, object target, ILuaMultiValue indicies, 
                                      ILuaValue value = null)
         {
-            Contract.Requires(targetType != null);
-            Contract.Requires(indicies != null);
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             // Arrays do not actually define an 'Item' method so we need to access the indexer
             // directly.
             Array targetArray = target as Array;

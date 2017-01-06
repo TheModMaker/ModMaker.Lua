@@ -1,7 +1,6 @@
 using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -16,7 +15,6 @@ namespace ModMaker.Lua.Runtime
     /// 
     /// Similarly, the Enumerator method may throw if on an invalid type.
     /// </remarks>
-    [ContractClass(typeof(LuaValueContract))]
     public interface ILuaValue : IEquatable<ILuaValue>, IComparable<ILuaValue>
     {
         /// <summary>
@@ -33,13 +31,11 @@ namespace ModMaker.Lua.Runtime
         /// wrap something, it simply returns this.
         /// </summary>
         /// <returns>The value for this object.</returns>
-        [Pure]
         object GetValue();
         /// <summary>
         /// Converts the given value to a number, or returns null.
         /// </summary>
         /// <returns>The current value as a double, or null.</returns>
-        [Pure]
         double? AsDouble();
 
         /// <summary>
@@ -48,7 +44,6 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <typeparam name="T">The type to cast to.</typeparam>
         /// <returns>Whether this object can be cast to the given type.</returns>
-        [Pure]
         bool TypesCompatible<T>();
         /// <summary>
         /// Gets information about the cast between the current type
@@ -68,7 +63,6 @@ namespace ModMaker.Lua.Runtime
         /// smaller value is attempted.  They are only used for
         /// comparison; their value is never used directly.
         /// </remarks>
-        [Pure]
         void GetCastInfo<T>(out LuaCastType type, out int distance);
         /// <summary>
         /// Gets the value of the object cast to the given type.
@@ -78,7 +72,6 @@ namespace ModMaker.Lua.Runtime
         /// <returns>The value of the object as the given type.</returns>
         /// <exception cref="System.InvalidCastException">If the type cannot
         /// be converted to the type.</exception>
-        [Pure]
         T As<T>();
 
         /// <summary>
@@ -86,7 +79,6 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="index">The index to use.</param>
         /// <returns>The value at the given index.</returns>
-        [Pure]
         ILuaValue GetIndex(ILuaValue index);
         /// <summary>
         /// Indexes the value and assigns it a value.
@@ -120,38 +112,32 @@ namespace ModMaker.Lua.Runtime
         /// This can be used for comparisons, but it should have the same
         /// behaviour as IComparable and IEquatable.
         /// </remarks>
-        [Pure]
         ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other);
 
         /// <summary>
         /// Gets the unary minus of the value.
         /// </summary>
         /// <returns>The unary minus of the value.</returns>
-        [Pure]
         ILuaValue Minus();
         /// <summary>
         /// Gets the boolean negation of the value.
         /// </summary>
         /// <returns>The boolean negation of the value.</returns>
-        [Pure]
         ILuaValue Not();
         /// <summary>
         /// Gets the length of the value.
         /// </summary>
         /// <returns>The length of the value.</returns>
-        [Pure]
         ILuaValue Length();
         /// <summary>
         /// Gets the raw-length of the value.
         /// </summary>
         /// <returns>The length of the value.</returns>
-        [Pure]
         ILuaValue RawLength();
         /// <summary>
         /// Removes and multiple arguments and returns as a single item.
         /// </summary>
         /// <returns>Either this, or the first in a multi-value.</returns>
-        [Pure]
         ILuaValue Single();
     }
 
@@ -166,85 +152,5 @@ namespace ModMaker.Lua.Runtime
         /// Gets the value defined in this object.
         /// </summary>
         T Value { get; }
-    }
-
-    /// <summary>
-    /// A helper class for the contract of ILuaValue.
-    /// </summary>
-    [ContractClassFor(typeof(ILuaValue))]
-    abstract class LuaValueContract : ILuaValue
-    {
-        public ILuaValue GetIndex(ILuaValue index)
-        {
-            Contract.Requires<ArgumentNullException>(index != null);
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-
-        public void SetIndex(ILuaValue index, ILuaValue value)
-        {
-            Contract.Requires<ArgumentNullException>(index != null);
-            Contract.Ensures(GetIndex(index) == value);
-        }
-
-        public ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int o, ILuaMultiValue args)
-        {
-            Contract.Requires<ArgumentNullException>(self != null);
-            Contract.Requires<ArgumentNullException>(args != null);
-            Contract.Ensures(Contract.Result<ILuaMultiValue>() != null);
-            return null;
-        }
-
-        public ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other)
-        {
-            Contract.Requires<ArgumentNullException>(other != null);
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-
-        public ILuaValue Minus()
-        {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-
-        public ILuaValue Not()
-        {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-
-        public ILuaValue Length()
-        {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-        public ILuaValue RawLength()
-        {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            return null;
-        }
-
-        public ILuaValue Single()
-        {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-            Contract.Ensures(!(Contract.Result<ILuaValue>() is ILuaMultiValue));
-            return null;
-        }
-
-        public abstract bool IsTrue { get; }
-        public abstract LuaValueType ValueType { get; }
-        public abstract bool Equals(ILuaValue other);
-        public abstract int CompareTo(ILuaValue other);
-        public abstract object GetValue();
-        public abstract double? AsDouble();
-        public abstract T As<T>();
-        public abstract bool TypesCompatible<T>();
-        public void GetCastInfo<T>(out LuaCastType type, out int distance)
-        {
-            Contract.Ensures(Contract.ValueAtReturn(out distance) >= 0);
-            type = LuaCastType.NoCast;
-            distance = 0;
-        }
     }
 }

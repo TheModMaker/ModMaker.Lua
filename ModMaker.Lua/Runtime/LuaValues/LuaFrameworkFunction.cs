@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
@@ -10,7 +9,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
     /// One of the methods that are defined by this framework.  The methods
     /// will subclass this type.
     /// </summary>
-    [ContractClass(typeof(LuaFrameworkFunctionContract))]
     public abstract class LuaFrameworkFunction : LuaFunction
     {
         /// <summary>
@@ -21,8 +19,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         protected LuaFrameworkFunction(ILuaEnvironment E, string name)
             : base(name)
         {
-            Contract.Requires(E != null);
-            Contract.Requires(name != null);
             Environment = E;
         }
 
@@ -61,23 +57,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         {
             if (methodCall) args = new LuaMultiValue(new[] { target }.Concat(args).ToArray());
             return InvokeInternal(args);
-        }
-    }
-    
-    /// <summary>
-    /// Defines a contract for LuaFrameworkFunction.
-    /// </summary>
-    [ContractClassFor(typeof(LuaFrameworkFunction))]
-    abstract class LuaFrameworkFunctionContract : LuaFrameworkFunction
-    {
-        private LuaFrameworkFunctionContract(string name)
-            : base(null, name) { }
-        
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args)
-        {
-            Contract.Requires(args != null, "args");
-            Contract.Ensures(Contract.Result<ILuaMultiValue>() != null);
-            return null;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -46,13 +45,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         public LuaDefinedFunction(ILuaEnvironment E, string name, MethodInfo method, object target)
             : base(name)
         {
-            Contract.Requires<ArgumentNullException>(E != null, "E");
-            Contract.Requires<ArgumentNullException>(method != null, "method");
-            Contract.Requires<ArgumentNullException>(target != null, "target");
-            Contract.Ensures(_Method != null);
-
             LuaFunc func = (LuaFunc)Delegate.CreateDelegate(typeof(LuaFunc), target, method);
-            Contract.Assume(func != null);
 
             this._Method = func;
             this._E = E;

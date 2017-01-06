@@ -1,7 +1,6 @@
 using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -20,7 +19,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
     /// code and a default implementation of LuaValues.Function.  See
     /// LuaOverloadFunction and LuaDefinedFunction for more info.
     /// </remarks>
-    [ContractClass(typeof(LuaFunctionContract))]
     public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor, IDisposable
     {
         bool _disposed = false;
@@ -91,8 +89,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// not support adding overloads.</exception>
         public virtual void AddOverload(Delegate d)
         {
-            Contract.Requires<ArgumentNullException>(d != null, "d");
-            Contract.Requires<ArgumentException>(d.GetInvocationList().Length < 2);
             throw new NotSupportedException("Cannot add overloads to the current method.");
         }
 
@@ -514,8 +510,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>The result of the operation.</returns>
         private ILuaValue DefaultArithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Requires(other != null);
-
             switch (type)
             {
                 case BinaryOperationType.Concat:
@@ -563,7 +557,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         {
             var ret = InvokeInternal(LuaNil.Nil, false, -1, 
                                      LuaMultiValue.CreateMultiValueFromObj(args));
-            Contract.Assert(ret != null);
             result = ret.GetValue();
             return true;
         }
@@ -594,25 +587,5 @@ namespace ModMaker.Lua.Runtime.LuaValues
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// Defines a contract for LuaFunction.
-    /// </summary>
-    [ContractClassFor(typeof(LuaFunction))]
-    abstract class LuaFunctionContract : LuaFunction
-    {
-        private LuaFunctionContract(string name)
-            : base(name) { }
-        
-        protected override ILuaMultiValue InvokeInternal(ILuaValue target, bool methodCall,
-                                                         int overload, ILuaMultiValue args)
-        {
-            Contract.Requires(target != null, "target");
-            Contract.Requires(args != null, "args");
-            Contract.Requires(!methodCall || target != LuaNil.Nil);
-            Contract.Ensures(Contract.Result<ILuaMultiValue>() != null);
-            return null;
-        }
     }
 }

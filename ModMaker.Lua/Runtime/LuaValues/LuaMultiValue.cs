@@ -2,7 +2,6 @@ using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
@@ -28,7 +27,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>A new multi-value object.</returns>
         public static ILuaMultiValue CreateMultiValueFromObj(params object[] args)
         {
-            Contract.Requires(args != null);
             var temp = args.Select(o => CreateValue(o)).ToArray();
             return new LuaMultiValue(temp);
         }
@@ -41,15 +39,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="args">The arguments of the function.</param>
         public LuaMultiValue(params ILuaValue[] args)
         {
-            Contract.Requires<ArgumentNullException>(args != null, "args");
-            Contract.Requires<ArgumentException>(Contract.ForAll(args, a => a != null),
-                "Multi-value cannot contain null values.");
-            Contract.Ensures(this.values_ != null);
-            Contract.Ensures(!object.ReferenceEquals(this.values_, args));
-            Contract.Ensures(this.values_.Length > 0);
-            Contract.Ensures(Contract.ForAll(this.values_, v => v != null));
-            Contract.Ensures(Contract.ForAll(this.values_, v => !(v is ILuaMultiValue)));
-
             this.values_ = args.Take(args.Length - 1)
                 .Select(v => v.Single())
                 .Concat(args.Length > 0 && args[args.Length - 1] is ILuaMultiValue ? ((IEnumerable<ILuaValue>)args[args.Length - 1]) : args.Skip(args.Length - 1))
@@ -65,13 +54,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="args">The arguments of the function.</param>
         LuaMultiValue(ILuaValue[] args, int dummy)
         {
-            Contract.Requires(args != null, "args");
-            Contract.Requires<ArgumentException>(Contract.ForAll(args, a => a != null),
-                "Multi-value cannot contain null values.");
-            Contract.Ensures(this.values_ != null);
-            Contract.Ensures(this.values_.Length > 0);
-            Contract.Ensures(this.values_.All(v => v != null && !(v is ILuaMultiValue)));
-
             this.values_ = args;
             this.Count = this.values_.Length;
             if (this.values_.Length == 0)
@@ -219,8 +201,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return values_[0].Arithmetic(type, other);
         }
 
@@ -238,8 +218,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaBoolean self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -256,8 +234,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaClass self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -274,8 +250,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaFunction self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return ((ILuaValue)self).Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -292,8 +266,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaNil self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -310,8 +282,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -328,8 +298,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -346,8 +314,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaValues.LuaTable self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
         /// <summary>
@@ -364,8 +330,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
             return self.Arithmetic(type, values_[0]);
         }
 
@@ -378,9 +342,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>A new ILuaMultiValue object with the values in this object.</returns>
         public ILuaMultiValue AdjustResults(int number)
         {
-            Contract.Ensures(Contract.Result<ILuaMultiValue>() != null);
-            Contract.Ensures(Contract.Result<ILuaMultiValue>().Count == number || number < 0);
-
             if (number < 0) number = 0;
 
             ILuaValue[] temp = new ILuaValue[number];

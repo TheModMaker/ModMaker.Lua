@@ -2,7 +2,6 @@ using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -48,9 +47,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Requires(other != null, "other");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return base.ArithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
         }
 
@@ -60,8 +56,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>The unary minus of the value.</returns>
         public override ILuaValue Minus()
         {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return new LuaNumber(-Value);
         }
 
@@ -79,9 +73,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             // Cannot use DefaultArithmetic since self and this are swapped.
             switch (type)
             {
@@ -133,9 +124,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             var t = self.ToNumber();
             if (t != null)
                 return Arithmetic(type, t);
@@ -156,9 +144,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return self.ArithmeticFrom(type, this);
         }
     }

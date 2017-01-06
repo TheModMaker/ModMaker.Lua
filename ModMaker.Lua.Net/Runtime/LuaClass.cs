@@ -6,7 +6,6 @@ using System.Reflection.Emit;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using ModMaker.Lua.Runtime.LuaValues;
-using System.Diagnostics.Contracts;
 
 namespace ModMaker.Lua.Runtime
 {
@@ -179,8 +178,6 @@ namespace ModMaker.Lua.Runtime
         /// <returns>An instance of the type.</returns>
         public object CreateInstance(params ILuaValue[] args)
         {
-            Contract.Requires(args != null);
-
             if (_created == null)
                 CreateType();
 

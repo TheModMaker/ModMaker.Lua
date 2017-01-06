@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -43,8 +42,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// <param name="item">The item to add, can be null for nullable types.</param>
             public void Add(T item)
             {
-                Contract.Requires(item != null);
-
                 // Try to find a null slot.
                 for (int i = 0; i < backing.Count; i++)
                 {
@@ -69,8 +66,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// is occupied by another fixed object.</exception>
             public void Add(T item, int index)
             {
-                Contract.Requires(item != null);
-                Contract.Requires(index >= 0);
                 if (backing.Count > index && backing[index] != null && backing[index].Item1)
                     throw new InvalidOperationException(string.Format(Resources.ExistingOverload, index));
 
@@ -108,10 +103,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// <exception cref="System.ArgumentNullException">If items or indicies is null.</exception>
             public void AddRange(IEnumerable<T> items, Func<T, int?> indicies)
             {
-                Contract.Requires(items != null);
-                Contract.Requires(indicies != null);
-                Contract.Requires(Contract.ForAll(items, a => a != null));
-
                 foreach (var item in items)
                 {
                     int? ind = indicies(item);
@@ -150,7 +141,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// be used to iterate through the collection.</returns>
             public IEnumerator<T> GetEnumerator()
             {
-                Contract.Ensures(Contract.Result<IEnumerator<T>>() != null);
                 foreach (var item in backing)
                 {
                     if (item != null)
@@ -159,7 +149,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                Contract.Ensures(Contract.Result<IEnumerator>() != null);
                 return GetEnumerator();
             }
         }
@@ -180,13 +169,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods, IEnumerable<object> targets)
             : base(name)
         {
-            Contract.Requires<ArgumentNullException>(methods != null, "methods");
-            Contract.Requires<ArgumentNullException>(targets != null, "targets");
-            Contract.Requires<ArgumentException>(Contract.ForAll(methods, m => m != null), 
-                "A null MethodInfo given.");
-            Contract.Requires<ArgumentException>(targets.Count() == methods.Count(), 
-                "There must be the same number of methods.");
-
             this.methods = new OverloadList<Tuple<MethodInfo, object>>();
             this.methods.AddRange(methods.Zip(targets, (a, b) => Tuple.Create(a, b)), m =>
             {

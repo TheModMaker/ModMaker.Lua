@@ -1,7 +1,6 @@
 using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 
 namespace ModMaker.Lua.Runtime.LuaValues
 {
@@ -35,10 +34,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </summary>
         /// <param name="value">The value it contains.</param>
         public LuaString(string value)
-            : base(value) 
-        {
-            Contract.Requires<ArgumentNullException>(value != null, "value");
-        }
+            : base(value) {}
 
         /// <summary>
         /// Gets the value type of the value.
@@ -81,9 +77,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Requires(other != null);
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return base.ArithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
         }
 
@@ -101,9 +94,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             var t = this.ToNumber();
             if (t != null)
                 return t.Arithmetic(type, self);
@@ -124,9 +114,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             var t = self.ToNumber();
             if (t != null)
                 return Arithmetic(type, t);
@@ -147,9 +134,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return self.ArithmeticFrom(type, this);
         }
     }

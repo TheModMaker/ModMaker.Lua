@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 
@@ -28,9 +27,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         LuaGlobalFunction(ILuaEnvironment E, Type type)
             : base(type.Name)
         {
-            Contract.Requires<ArgumentNullException>(E != null, "E");
-            Contract.Requires<ArgumentNullException>(type != null, "type");
-            Contract.Ensures(_Type != null);
             this._Type = type;
             this._E = E;
         }
@@ -46,10 +42,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// ILuaValue.</exception>
         public static LuaGlobalFunction Create(ILuaEnvironment E, Type type)
         {
-            Contract.Requires<ArgumentNullException>(E != null, "E");
-            Contract.Requires<ArgumentNullException>(type != null, "type");
-            Contract.Requires<ArgumentException>(typeof(ILuaValue).IsAssignableFrom(type), "The type must implement IMethod.");
-
             return new LuaGlobalFunction(E, type);
         }
 
@@ -74,7 +66,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         protected override ILuaMultiValue InvokeInternal(ILuaValue target, bool memberCall, int overload, ILuaMultiValue args)
         {
             ILuaValue method = (ILuaValue)Activator.CreateInstance(_Type, new[] { _E });
-            Contract.Assume(method != null);
             return method.Invoke(LuaNil.Nil, false, -1, args);
         }
     }

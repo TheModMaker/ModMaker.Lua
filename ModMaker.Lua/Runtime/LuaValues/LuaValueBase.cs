@@ -3,7 +3,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -321,8 +320,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>The result of the operation.</returns>
         private ILuaValue DefaultArithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Requires(other != null);
-
             switch (type)
             {
                 case BinaryOperationType.Concat:
@@ -356,8 +353,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>The result of the meta-method, or null if not found.</returns>
         internal static ILuaValue AttempMetamethod(BinaryOperationType type, ILuaValue self, ILuaValue other)
         {
-            Contract.Requires(self != null && other != null);
-
             if (type == BinaryOperationType.And || type == BinaryOperationType.Or)
                 return null;
 

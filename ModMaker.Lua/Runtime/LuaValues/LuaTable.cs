@@ -2,7 +2,6 @@ using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -214,8 +213,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other)
         {
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return base.ArithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
         }
         /// <summary>
@@ -232,9 +229,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </exception>
         public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self)
         {
-            Contract.Requires<ArgumentNullException>(self != null, "self");
-            Contract.Ensures(Contract.Result<ILuaValue>() != null);
-
             return self.ArithmeticFrom(type, this);
         }
 
