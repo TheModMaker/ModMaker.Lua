@@ -5,20 +5,14 @@
     <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C8175F68-427C-45EE-B50B-2C9D8FB9FC51}</ProjectGuid>
+    <ProjectGuid>{389CF7EC-CE64-4D6B-BDD7-6168E697D7BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ModMaker.Lua</RootNamespace>
     <AssemblyName>ModMaker.Lua</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile328</TargetFrameworkProfile>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>4.0</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -47,15 +41,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssertException.cs" />
+    <Compile Include="Compiler\ChunkBuilder.cs" />
+    <Compile Include="Compiler\CodeCompiler.cs" />
+    <Compile Include="Compiler\CompilerVisitor.cs" />
     <Compile Include="Compiler\GetInfoTree.cs" />
     <Compile Include="Compiler\GetInfoVisitor.cs" />
     <Compile Include="Compiler\ICodeCompiler.cs" />
     <Compile Include="Errors.cs" />
+    <Compile Include="Extensions\Lua.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="IgnoreExtraArgumentsAttribute.cs" />
+    <Compile Include="Lua.cs" />
     <Compile Include="LuaIgnoreAttribute.cs" />
     <Compile Include="LuaSettings.cs" />
     <Compile Include="MultipleReturnAttribute.cs" />
+    <Compile Include="NetHelpers.cs" />
     <Compile Include="Parser\IParseItem.cs" />
     <Compile Include="Parser\IParseItemVisitor.cs" />
     <Compile Include="Parser\IParser.cs" />
@@ -89,12 +89,26 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Runtime\ILuaEnvironment.cs" />
+    <Compile Include="Runtime\ILuaEnvironmentNet.cs" />
     <Compile Include="Runtime\ILuaMultiValue.cs" />
     <Compile Include="Runtime\ILuaRuntime.cs" />
     <Compile Include="Runtime\ILuaTable.cs" />
     <Compile Include="Runtime\ILuaThread.cs" />
     <Compile Include="Runtime\ILuaValue.cs" />
     <Compile Include="Runtime\ILuaValueVisitor.cs" />
+    <Compile Include="Runtime\LuaEnvironmentNet.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Bit32.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Coroutines.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.IO.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Math.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Module.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.OS.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Standard.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.String.cs" />
+    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Table.cs" />
+    <Compile Include="Runtime\LuaRuntimeNet.cs" />
+    <Compile Include="Runtime\LuaThread.cs" />
     <Compile Include="Runtime\LuaValues\LuaBoolean.cs" />
     <Compile Include="Runtime\LuaValues\LuaClass.cs" />
     <Compile Include="Runtime\LuaValues\LuaDefinedFunction.cs" />
@@ -111,12 +125,18 @@
     <Compile Include="Runtime\LuaValues\LuaUserData.cs" />
     <Compile Include="Runtime\LuaValues\LuaValueBase.cs" />
     <Compile Include="Runtime\LuaValueType.cs" />
+    <Compile Include="Runtime\ModuleBinder.cs" />
     <Compile Include="Runtime\OverloadAttribute.cs" />
+    <Compile Include="Runtime\ThreadPool.cs" />
+    <Compile Include="Runtime\WorkerThread.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Whitelist.txt" />
   </ItemGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <ItemGroup>
+    <Reference Include="System" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -62,12 +62,8 @@
     <Compile Include="Base\TokenizerTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ModMaker.Lua.Net\ModMaker.Lua.Net.csproj">
-      <Project>{8f655e4a-3ce1-4a8b-b641-bf7a12ffb295}</Project>
-      <Name>ModMaker.Lua.Net</Name>
-    </ProjectReference>
     <ProjectReference Include="..\ModMaker.Lua\ModMaker.Lua.csproj">
-      <Project>{c8175f68-427c-45ee-b50b-2c9d8fb9fc51}</Project>
+      <Project>{389cf7ec-ce64-4d6b-bdd7-6168e697d7bb}</Project>
       <Name>ModMaker.Lua</Name>
     </ProjectReference>
   </ItemGroup>

@@ -2,6 +2,7 @@ using System.Resources;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
@@ -11,12 +12,12 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("ModMaker.Lua")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCopyright("Copyright © 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguage("en")]
 
-[assembly: System.Security.SecurityTransparent]
+[assembly: AllowPartiallyTrustedCallers]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -31,5 +32,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyVersion("0.9.3.3")]
 [assembly: AssemblyFileVersion("0.9.3.3")]
 
-[assembly: InternalsVisibleTo("ModMaker.Lua.Net")]
 [assembly: InternalsVisibleTo("TestProject")]

@@ -13,8 +13,6 @@ namespace ModMaker.Lua.Runtime
     /// </summary>
     public interface ILuaTable : ILuaValue, IEnumerable<KeyValuePair<ILuaValue, ILuaValue>>
     {
-        // TODO: Add contract class.
-
         /// <summary>
         /// Gets or sets the metatable for the table.
         /// </summary>
