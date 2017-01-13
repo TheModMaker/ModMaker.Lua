@@ -5,9 +5,9 @@ using ModMaker.Lua.Runtime.LuaValues;
 using System;
 using System.Linq;
 
-namespace UnitTests.Net.Runtime.LuaLibraries
+namespace UnitTests.Runtime.LuaLibraries
 {
-    public class LibraryTestBase
+    public class LibraryTestBase : TestBase
     {
         /// <summary>
         /// A custom type that is passed to Lua for testing.
@@ -20,26 +20,10 @@ namespace UnitTests.Net.Runtime.LuaLibraries
             public UserData() { }
         }
 
-        public static void assertEqualsDelta(double expected, double actual, string message)
-        {
-            Assert.AreEqual(expected, actual, 0.0000001, message);
-        }
-
         protected LibraryTestBase()
         {
-            Lua = new Lua();
-            Lua.Register((Action<object, object, string>)Assert.AreEqual, "assertEquals");
-            Lua.Register((Action<bool, string>)Assert.IsTrue, "assertTrue");
-            Lua.Register((Action<bool, string>)Assert.IsFalse, "assertFalse");
-            Lua.Register((Action<double, double, string>)assertEqualsDelta);
-            Lua.Register((Action<string>)Assert.Fail, "fail");
             Lua.Register(typeof(UserData));
         }
-
-        /// <summary>
-        /// Gets the current Lua instance.
-        /// </summary>
-        protected Lua Lua { get; private set; }
 
         /// <summary>
         /// Runs a test that tests invalid arguments passed to a method.  It will run the test

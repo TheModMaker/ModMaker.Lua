@@ -3,7 +3,7 @@ using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
 using System;
 
-namespace UnitTests.Net.Runtime.LuaLibraries
+namespace UnitTests.Runtime.LuaLibraries
 {
     [TestClass]
     public class Table : LibraryTestBase

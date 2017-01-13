@@ -5,13 +5,13 @@ using System.Globalization;
 using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
 
-namespace UnitTests.Base
+namespace UnitTests.Parser
 {
     /// <summary>
     /// This is a test class for PlainParserTest and is intended
     /// to contain all PlainParserTest Unit Tests
     ///</summary>
-    [TestClass()]
+    [TestClass]
     public class PlainParserTest
     {
         private TestContext testContextInstance;

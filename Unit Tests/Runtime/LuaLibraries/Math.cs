@@ -2,7 +2,7 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua.Runtime;
 
-namespace UnitTests.Net.Runtime.LuaLibraries
+namespace UnitTests.Runtime.LuaLibraries
 {
     [TestClass]
     public class Math : LibraryTestBase

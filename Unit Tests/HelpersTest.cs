@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
 
-namespace UnitTests.Base
+namespace UnitTests
 {
     /// <summary>
     /// This is a test class for the ModMaker.Lua.Helpers class.  

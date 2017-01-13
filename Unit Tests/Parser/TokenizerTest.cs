@@ -3,13 +3,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Globalization;
 
-namespace UnitTests.Base
+namespace UnitTests.Parser
 {
     /// <summary>
     ///This is a test class for TokenizerTest and is intended
     ///to contain all TokenizerTest Unit Tests
     ///</summary>
-    [TestClass()]
+    [TestClass]
     public class TokenizerTest
     {
         private TestContext testContextInstance;
