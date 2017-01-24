@@ -916,7 +916,6 @@ namespace ModMaker.Lua
 
                 // Find all visible members with the given name
                 MemberInfo[] members = targetType.GetMember(name)
-                    .Where(m => !(m is MethodInfo) || !((MethodInfo)m).Attributes.HasFlag(MethodAttributes.Abstract))
                     .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
                     .ToArray();
                 // TODO: Implement accessibility.
@@ -937,6 +936,9 @@ namespace ModMaker.Lua
             // Perform the action on the given member.  Although this only checks the first
             // member, the only type that can return more than one with the same name is
             // a method and can only be other methods.
+            if (members.Length == 0)
+                return LuaNil.Nil;
+
             FieldInfo field = members[0] as FieldInfo;
             PropertyInfo property = members[0] as PropertyInfo;
             MethodInfo method = members[0] as MethodInfo;

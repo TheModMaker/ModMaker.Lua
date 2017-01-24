@@ -164,7 +164,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 }
             }
 
-            InvokeConstructor(_data.CtorGen, _data.EnvField, _data.TargetField);
+            InvokeConstructor(_data.CtorGen, _data.EnvField);
 
             _created = _data.TB.CreateType();
         }
@@ -212,15 +212,18 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="returnType">The return type of the method.</param>
         /// <param name="methodField">The field (of type LuaValueType.Function) that contains the method to call.</param>
         /// <param name="arguments">The local variable (of type ILuaMultiValue) that contains the arguments to pass to the method.</param>
-        /// <param name="_E">The field that holds the environment.</param>
-        static void CallFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField, LocalBuilder arguments, FieldBuilder target)
+        /// <param name="E">The field that holds the environment.</param>
+        static void CallFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField, LocalBuilder arguments, FieldBuilder E)
         {
-            //$PUSH this.{methodField}.Invoke(this.{target}, false, -1, arguments);
+            //$PUSH this.{methodField}.Invoke(E.Runtime.CreateValue(this), true, -1, arguments);
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, methodField);
             gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, target);
-            gen.Emit(OpCodes.Ldc_I4_0);
+            gen.Emit(OpCodes.Ldfld, E);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Ldarg_0);
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
+            gen.Emit(OpCodes.Ldc_I4_1);
             gen.Emit(OpCodes.Ldc_I4_M1);
             gen.Emit(OpCodes.Ldloc, arguments);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
@@ -266,7 +269,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// Adds the code to invoke the constructor.
         /// </summary>
         /// <param name="ctorgen">The generator to add the code to.</param>
-        static void InvokeConstructor(ILGenerator ctorgen, FieldBuilder _E, FieldBuilder target)
+        static void InvokeConstructor(ILGenerator ctorgen, FieldBuilder _E)
         {
             // call the Lua defined constructor method.
 
@@ -275,40 +278,28 @@ namespace ModMaker.Lua.Runtime.LuaValues
             ctorgen.Emit(OpCodes.Ldarg, 5);
             ctorgen.Emit(OpCodes.Brfalse, end);
 
-            // ILuaValue[] temp = new ILuaValue[1];
-            LocalBuilder temp = ctorgen.CreateArray(typeof(ILuaValue), 1);
-
-            // temp[0] = E.Runtime.CreateValue(this);
-            ctorgen.Emit(OpCodes.Ldloc, temp);
-            ctorgen.Emit(OpCodes.Ldc_I4_0);
+            // ILuaValue target = E.Runtime.CreateValue(this);
+            LocalBuilder target = ctorgen.DeclareLocal(typeof(ILuaValue));
             ctorgen.Emit(OpCodes.Ldarg_0);
             ctorgen.Emit(OpCodes.Ldfld, _E);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
             ctorgen.Emit(OpCodes.Ldarg_0);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
-            ctorgen.Emit(OpCodes.Stelem, typeof(ILuaValue));
+            ctorgen.Emit(OpCodes.Stloc, target);
 
-            // temp = temp.Union(ctorArgs).ToArray();
-            ctorgen.Emit(OpCodes.Ldloc, temp);
-            ctorgen.Emit(OpCodes.Ldarg, 4);
-            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethods().Where(m => m.Name == "Union" && m.GetParameters().Length == 2).First().MakeGenericMethod(typeof(ILuaValue)));
-            ctorgen.Emit(OpCodes.Call, typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(typeof(ILuaValue)));
-            ctorgen.Emit(OpCodes.Stloc, temp);
-
-            // ILuaMultiValue args = this.E.Runtime.CreateMultiValue(temp);
+            // ILuaMultiValue args = this.E.Runtime.CreateMultiValue(ctorArgs);
             LocalBuilder args = ctorgen.DeclareLocal(typeof(ILuaMultiValue));
             ctorgen.Emit(OpCodes.Ldarg_0);
             ctorgen.Emit(OpCodes.Ldfld, _E);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-            ctorgen.Emit(OpCodes.Ldloc, temp);
+            ctorgen.Emit(OpCodes.Ldarg, 4);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
             ctorgen.Emit(OpCodes.Stloc, args);
 
-            // ctor.Invoke(this.{target}, false, -1, args);
+            // ctor.Invoke(target, true, -1, args);
             ctorgen.Emit(OpCodes.Ldarg, 5);
-            ctorgen.Emit(OpCodes.Ldarg_0);
-            ctorgen.Emit(OpCodes.Ldfld, target);
-            ctorgen.Emit(OpCodes.Ldc_I4_0);
+            ctorgen.Emit(OpCodes.Ldloc, target);
+            ctorgen.Emit(OpCodes.Ldc_I4_1);
             ctorgen.Emit(OpCodes.Ldc_I4_M1);
             ctorgen.Emit(OpCodes.Ldloc, args);
             ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
@@ -364,28 +355,21 @@ namespace ModMaker.Lua.Runtime.LuaValues
                     throw new InvalidOperationException(Resources.OverloadOutOfRange);
 
                 // set the backing parrent object.
+                name = type.FullName + "." + name;
                 if (members[0].MemberType == MemberTypes.Method)
                 {
                     if (value.ValueType != LuaValueType.Function)
                         throw new InvalidOperationException(string.Format(Resources.MustBeFunction, name));
 
-                    var item = parent._items.Find(i => i.Name == name);
-                    if (item == null)
-                    {
-                        item = parent.CreateItem(name, new[] { members[overload == -1 ? 0 : overload] });
-                        parent._items.Add(item);
-                    }
+                    Item item = parent.CreateItem(name, new[] { members[overload == -1 ? 0 : overload] });
                     item.Assign(value);
+                    parent._items.Add(item);
                 }
                 else if (members[0].MemberType == MemberTypes.Property)
                 {
-                    var item = parent._items.Find(i => i.Name == name);
-                    if (item == null)
-                    {
-                        item = parent.CreateItem(name, members);
-                        parent._items.Add(item);
-                    }
+                    Item item = parent.CreateItem(name, members);
                     item.Assign(value);
+                    parent._items.Add(item);
                 }
             }
 
@@ -470,7 +454,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                     }
 
                     if (mems != null)
-                        i = CreateItem(inter.FullName + "." + name, mems);
+                        i = CreateItem(name, mems);
                 }
 
                 // If still not found, create a new field.
@@ -538,7 +522,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 ModuleBuilder mb = ab.DefineDynamicModule("DynamicAssembly2.dll");
                 this.TB = mb.DefineType(name, TypeAttributes.Class | TypeAttributes.BeforeFieldInit | TypeAttributes.Public, baseType, _interfaces);
                 this.EnvField = TB.DefineField("$Env", typeof(ILuaEnvironment), FieldAttributes.Private);
-                this.TargetField = TB.DefineField("$Target", typeof(ILuaValue), FieldAttributes.Private);
 
                 // public ctor(ILuaValue[] methods, ILuaValue[] initialValues, LuaEnvironment E, ILuaValue[] ctorArgs, ILuaValue ctor);
                 {
@@ -557,13 +540,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
                     CtorGen.Emit(OpCodes.Ldarg_0);
                     CtorGen.Emit(OpCodes.Ldarg_3);
                     CtorGen.Emit(OpCodes.Stfld, EnvField);
-
-                    // this.$Target = E.Runtime.CreateTable();
-                    CtorGen.Emit(OpCodes.Ldarg_0);
-                    CtorGen.Emit(OpCodes.Ldarg_3);
-                    CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-                    CtorGen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateTable"));
-                    CtorGen.Emit(OpCodes.Stfld, TargetField);
                 }
             }
 
@@ -574,7 +550,6 @@ namespace ModMaker.Lua.Runtime.LuaValues
             public ILGenerator CtorGen;
             public TypeBuilder TB;
             public FieldBuilder EnvField;
-            public FieldBuilder TargetField;
             public ILuaEnvironment Env;
             public int FID;
             public AssemblyBuilder AB;
@@ -664,22 +639,21 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 var meth = NetHelpers.CloneMethod(data.TB, name, BoundTo);
                 ILGenerator gen = meth.GetILGenerator();
 
-                // ILuaValue[] loc = new ILuaValue[{param.length + 1}];
-                LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length + 1);
-
-                // loc[0] = $Target;
-                gen.Emit(OpCodes.Ldloc, loc);
-                gen.Emit(OpCodes.Ldc_I4_0);
-                gen.Emit(OpCodes.Ldarg_0);
-                gen.Emit(OpCodes.Ldfld, data.TargetField);
-                gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
+                // ILuaValue[] loc = new ILuaValue[{param.length}];
+                LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length);
 
                 for (int ind = 0; ind < param.Length; ind++)
                 {
-                    // loc[{ind + 1}] = arg_{ind};
+                    // loc[{ind}] = E.Runtime.CreateValue(arg_{ind});
                     gen.Emit(OpCodes.Ldloc, loc);
-                    gen.Emit(OpCodes.Ldc_I4, ind + 1);
-                    gen.Emit(OpCodes.Ldarg, ind);
+                    gen.Emit(OpCodes.Ldc_I4, ind);
+                    gen.Emit(OpCodes.Ldarg_0);
+                    gen.Emit(OpCodes.Ldfld, data.EnvField);
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                    gen.Emit(OpCodes.Ldarg, ind + 1);
+                    if (!param[ind].ParameterType.IsClass)
+                        gen.Emit(OpCodes.Box, param[ind].ParameterType);
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
                     gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
                 }
 
@@ -692,10 +666,10 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
                 gen.Emit(OpCodes.Stloc, args);
 
-                CallFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.TargetField);
+                CallFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.EnvField);
 
                 // link our new method to the method it's bound to.
-                //data.TB.DefineMethodOverride(meth, BoundTo);
+                data.TB.DefineMethodOverride(meth, BoundTo);
                 data.Methods.Add(BoundTo);
             }
         }
@@ -813,7 +787,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                         gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
                         gen.Emit(OpCodes.Stloc, loc);
 
-                        CallFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.TargetField);
+                        CallFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
                     }
 
                     // link our new method to the method this item is bound to.
@@ -860,7 +834,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                         gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
                         gen.Emit(OpCodes.Stloc, args);
 
-                        CallFieldAndReturn(gen, null, field, args, data.TargetField);
+                        CallFieldAndReturn(gen, null, field, args, data.EnvField);
                     }
 
                     // link our new method to the method it is bound to.

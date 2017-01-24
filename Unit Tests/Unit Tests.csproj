@@ -59,6 +59,7 @@
     <Compile Include="Runtime\LuaLibraries\String.cs" />
     <Compile Include="Runtime\LuaLibraries\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Runtime\LuaClass.cs" />
     <Compile Include="Runtime\LuaRuntimeTest.cs" />
     <Compile Include="Parser\TokenizerTest.cs" />
   </ItemGroup>

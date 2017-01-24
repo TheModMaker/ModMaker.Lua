@@ -314,7 +314,8 @@ namespace ModMaker.Lua.Runtime
                     throw new InvalidOperationException("More than one type found for name '" + name + "'");
                 Type type = typesa[0];
 
-                if ((type.Attributes & TypeAttributes.Public) != TypeAttributes.Public)
+                if ((type.Attributes & TypeAttributes.Public) != TypeAttributes.Public &&
+                    (type.Attributes & TypeAttributes.NestedPublic) != TypeAttributes.NestedPublic)
                     throw new InvalidOperationException("Base class and interfaces must be public");
 
                 if (type.IsClass)
@@ -324,7 +325,7 @@ namespace ModMaker.Lua.Runtime
                     {
                         if (type.IsSealed)
                             throw new InvalidOperationException("Cannot derive from a sealed class.");
-                        if (type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null) == null)
+                        if (type.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null) == null)
                             throw new InvalidOperationException("Cannot derive from a type without an empty constructor.");
 
                         b = type;

@@ -393,7 +393,7 @@ namespace ModMaker.Lua.Compiler
         {
             NameItem[] args = function.Arguments.ToArray();
             if (function.InstanceName != null)
-                args = new[] { new NameItem("self") }.Union(args).ToArray();
+                args = new[] { new NameItem("self") }.Concat(args).ToArray();
 
             // ILuaMultiValue function(ILuaEnvironment E, ILuaMultiValue args, ILuaValue target, bool memberCall);
             funcName = funcName ?? "<>__" + (_mid++);
