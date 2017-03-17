@@ -1,14 +1,14 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua.Runtime;
+using NUnit.Framework;
 
 namespace UnitTests.Runtime.LuaLibraries
 {
-    [TestClass]
+    [TestFixture]
     public class String : LibraryTestBase
     {
         #region byte
-        [TestMethod]
+        [Test]
         public void byte_()
         {
             Lua.DoText(@"
@@ -29,7 +29,7 @@ assertEquals(3,      select('#', string.byte('ABCDEF', 4, 10)),      'byte: end 
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void byte_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.byte({0})");
@@ -39,7 +39,7 @@ assertEquals(3,      select('#', string.byte('ABCDEF', 4, 10)),      'byte: end 
         #endregion
 
         #region char
-        [TestMethod]
+        [Test]
         public void char_()
         {
             Lua.DoText(@"
@@ -53,23 +53,24 @@ assertEquals('" + "\ud801\udc37" + @"',   string.char(0x10437),        'char: ha
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void char_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "string.char({0})");
             RunInvalidTypeTests(LuaValueType.Number, "string.char(3, 4, {0}, 1)");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void char_BadArgument()
         {
-            Lua.DoText(@"string.char(2, -1)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.char(2, -1)");
+            });
         }
         #endregion
 
         #region find
-        [TestMethod]
+        [Test]
         public void find()
         {
             Lua.DoText(@"
@@ -88,7 +89,7 @@ assertEquals(4,     string.find('aXaXX+a', 'XX+', 1, true),     'find: plain')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void find_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.find({0}, 'cat')");
@@ -96,23 +97,25 @@ assertEquals(4,     string.find('aXaXX+a', 'XX+', 1, true),     'find: plain')
             RunInvalidTypeTests(LuaValueType.Number, "string.find('cat', 'cat', {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void find_NotEnoughArgs()
         {
-            Lua.DoText(@"string.find()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.find()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void find_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.find('foobar')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.find('foobar')");
+            });
         }
         #endregion
 
         #region format
-        [TestMethod]
+        [Test]
         public void format()
         {
             Lua.DoText(@"
@@ -121,22 +124,23 @@ assertEquals('ABCD',  string.format('ABCD'),       'format: no format')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void format_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.format({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void format_NoArgs()
         {
-            Lua.DoText(@"string.format()");
+            Assert.Throws<ArgumentException>(delegate {
+              Lua.DoText(@"string.format()");
+            });
         }
         #endregion
 
         #region gmatch
-        [TestMethod]
+        [Test]
         public void gmatch()
         {
             Lua.DoText(@"
@@ -158,30 +162,32 @@ assertEquals(0,       select('#', func()), 'gmatch: captures (3)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void gmatch_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.gmatch({0}, 'cat')");
             RunInvalidTypeTests(LuaValueType.String, "string.gmatch('cat', {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void gmatch_NotEnoughArgs()
         {
-            Lua.DoText(@"string.gmatch()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.gmatch()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void gmatch_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.gmatch('cat')");
+            Assert.Throws<ArgumentException>(delegate {
+              Lua.DoText(@"string.gmatch('cat')");
+            });
         }
         #endregion
 
         #region gsub
-        [TestMethod]
+        [Test]
         public void gsub()
         {
             Lua.DoText(@"
@@ -198,37 +204,40 @@ assertEquals('makes lua code', string.gsub('makes #xyz #abc', '#(\\w+)', t), 'gs
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void gsub_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.gsub({0}, 'cat', '')");
             RunInvalidTypeTests(LuaValueType.String, "string.gsub('cat', {0}, '')");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void gsub_NotEnoughArgs()
         {
-            Lua.DoText(@"string.gsub()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.gsub()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void gsub_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.gsub('cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.gsub('cat')");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void gsub_NotEnoughArgs3()
         {
-            Lua.DoText(@"string.gsub('cat', 'cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.gsub('cat', 'cat')");
+            });
         }
         #endregion
 
         #region len
-        [TestMethod]
+        [Test]
         public void len()
         {
             Lua.DoText(@"
@@ -239,22 +248,23 @@ assertEquals(6, string.len('" + "a\u94ac\ud852xa\udf62" + @"'), 'len: Unicode')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void len_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.len({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void len_NotEnoughArgs()
         {
-            Lua.DoText(@"string.len()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.len()");
+            });
         }
         #endregion
 
         #region lower
-        [TestMethod]
+        [Test]
         public void lower()
         {
             Lua.DoText(@"
@@ -264,22 +274,23 @@ assertEquals('τυφχψω',  string.lower('ΤΥΦΧΨΩ'),  'lower: Unicode')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void lower_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.lower({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void lower_NotEnoughArgs()
         {
-            Lua.DoText(@"string.lower()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.lower()");
+            });
         }
         #endregion
 
         #region match
-        [TestMethod]
+        [Test]
         public void match()
         {
             Lua.DoText(@"
@@ -297,7 +308,7 @@ assertEquals(nil,     y,  'match: with start (2)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void match_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.match({0}, 'cat')");
@@ -305,23 +316,25 @@ assertEquals(nil,     y,  'match: with start (2)')
             RunInvalidTypeTests(LuaValueType.Number, "string.match('cat', 'c', {0})", allowNil:true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void match_NotEnoughArgs()
         {
-            Lua.DoText(@"string.match()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.match()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void match_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.match('cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.match('cat')");
+            });
         }
         #endregion
 
         #region rep
-        [TestMethod]
+        [Test]
         public void rep()
         {
             Lua.DoText(@"
@@ -332,7 +345,7 @@ assertEquals('Xa,Xa,Xa', string.rep('Xa', 3, ','), 'rep: with sep')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void rep_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.rep({0}, 8)");
@@ -340,23 +353,25 @@ assertEquals('Xa,Xa,Xa', string.rep('Xa', 3, ','), 'rep: with sep')
             RunInvalidTypeTests(LuaValueType.String, "string.rep('cat', 8, {0})", allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rep_NotEnoughArgs()
         {
-            Lua.DoText(@"string.rep()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.rep()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rep_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.rep('cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.rep('cat')");
+            });
         }
         #endregion
 
         #region reverse
-        [TestMethod]
+        [Test]
         public void reverse()
         {
             Lua.DoText(@"
@@ -367,22 +382,23 @@ assertEquals('" + "\ud801\udc37a" + @"', string.reverse('" + "a\ud801\udc37" + @
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void reverse_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.reverse({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void reverse_NotEnoughArgs()
         {
-            Lua.DoText(@"string.reverse()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.reverse()");
+            });
         }
         #endregion
 
         #region sub
-        [TestMethod]
+        [Test]
         public void sub()
         {
             Lua.DoText(@"
@@ -395,7 +411,7 @@ assertEquals('',    string.sub('ABCDE', 4, 1),  'sub: start > end')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void sub_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.sub({0}, 3)");
@@ -403,23 +419,25 @@ assertEquals('',    string.sub('ABCDE', 4, 1),  'sub: start > end')
             RunInvalidTypeTests(LuaValueType.Number, "string.sub('cat', 2, {0})", allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void sub_NotEnoughArgs()
         {
-            Lua.DoText(@"string.sub()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.sub()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void sub_NotEnoughArgs2()
         {
-            Lua.DoText(@"string.sub('cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.sub('cat')");
+            });
         }
         #endregion
 
         #region upper
-        [TestMethod]
+        [Test]
         public void upper()
         {
             Lua.DoText(@"
@@ -429,17 +447,18 @@ assertEquals('ΤΥΦΧΨΩ',  string.upper('τυφχψω'),  'upper: Unicode')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void upper_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.String, "string.upper({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void upper_NotEnoughArgs()
         {
-            Lua.DoText(@"string.upper()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"string.upper()");
+            });
         }
         #endregion
     }

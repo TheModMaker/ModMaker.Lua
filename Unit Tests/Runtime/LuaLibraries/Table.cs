@@ -1,15 +1,15 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
+using NUnit.Framework;
 using System;
 
 namespace UnitTests.Runtime.LuaLibraries
 {
-    [TestClass]
+    [TestFixture]
     public class Table : LibraryTestBase
     {
         #region concat
-        [TestMethod]
+        [Test]
         public void concat()
         {
             Lua.DoText(@"
@@ -21,7 +21,7 @@ assertEquals('c,3',   table.concat({1,'c',3,4}, ',', 2, 3), 'concat: with start 
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void concat_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Table, "table.concat({0})");
@@ -33,16 +33,17 @@ assertEquals('c,3',   table.concat({1,'c',3,4}, ',', 2, 3), 'concat: with start 
                                 allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void concat_NotEnoughArgs()
         {
-            Lua.DoText(@"table.concat()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.concat()");
+            });
         }
         #endregion
 
         #region insert
-        [TestMethod]
+        [Test]
         public void insert()
         {
             Lua.DoText(@"
@@ -61,44 +62,48 @@ assertEquals(2,  t[3], 'insert: insert element(3)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void insert_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Table, "table.insert({0}, 'c')");
             RunInvalidTypeTests(LuaValueType.Number, "table.insert({{1,2,3}}, {0}, 'c')");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void insert_InvalidArg()
         {
-            Lua.DoText(@"table.insert({1,2}, -3, 'cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.insert({1,2}, -3, 'cat')");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void insert_InvalidArg2()
         {
-            Lua.DoText(@"table.insert({1,2}, 10, 'cat')");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.insert({1,2}, 10, 'cat')");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void insert_NotEnoughArgs()
         {
-            Lua.DoText(@"table.insert()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.insert()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void insert_NotEnoughArgs2()
         {
-            Lua.DoText(@"table.insert({1,2,3})");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.insert({1,2,3})");
+            });
         }
         #endregion
 
         #region pack
-        [TestMethod]
+        [Test]
         public void pack()
         {
             Lua.DoText(@"
@@ -116,7 +121,7 @@ assertEquals(0, t.n, 'pack: empty n')
         #endregion
 
         #region remove
-        [TestMethod]
+        [Test]
         public void remove()
         {
             Lua.DoText(@"
@@ -135,7 +140,7 @@ assertEquals(2,   x,    'remove: pos return')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void remove_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Table, "table.remove({0}, 0)");
@@ -143,30 +148,33 @@ assertEquals(2,   x,    'remove: pos return')
                                 allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void remove_InvalidArg()
         {
-            Lua.DoText(@"table.remove({1,2}, -3)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.remove({1,2}, -3)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void remove_InvalidArg2()
         {
-            Lua.DoText(@"table.remove({1,2}, 10)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.remove({1,2}, 10)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void remove_NotEnoughArgs()
         {
-            Lua.DoText(@"table.remove()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.remove()");
+            });
         }
         #endregion
 
         #region sort
-        [TestMethod]
+        [Test]
         public void sort()
         {
             Lua.DoText(@"
@@ -190,7 +198,7 @@ assertEquals(1, t[5], 'sort: comp(1)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void sort_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Table, "table.sort({0}, 0)");
@@ -198,16 +206,17 @@ assertEquals(1, t[5], 'sort: comp(1)')
                                 allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void sort_NotEnoughArgs()
         {
-            Lua.DoText(@"table.sort()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.sort()");
+            });
         }
         #endregion
 
         #region unpack
-        [TestMethod]
+        [Test]
         public void unpack()
         {
             Lua.DoText(@"
@@ -233,7 +242,7 @@ assertEquals(2, select('#', table.unpack(t, 5, 6)),   'unpack: start > #t')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void unpack_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Table, "table.unpack({0})");
@@ -243,11 +252,12 @@ assertEquals(2, select('#', table.unpack(t, 5, 6)),   'unpack: start > #t')
                     LuaValueType.Number, "table.unpack({{1,2,3}}, 2, {0})", allowNil: true);
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void unpack_NotEnoughArgs()
         {
-            Lua.DoText(@"table.unpack()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"table.unpack()");
+            });
         }
         #endregion
     }

@@ -1,7 +1,7 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
+using NUnit.Framework;
 using System;
 
 namespace UnitTests
@@ -15,11 +15,11 @@ namespace UnitTests
         protected TestBase()
         {
             Lua = new Lua();
-            Lua.Register((Action<object, object, string>)Assert.AreEqual, "assertEquals");
-            Lua.Register((Action<object, string>)Assert.IsNotNull, "assertNotNull");
-            Lua.Register((Action<bool, string>)Assert.IsTrue, "assertTrue");
-            Lua.Register((Action<bool, string>)Assert.IsFalse, "assertFalse");
             Lua.Register((Action<string>)Assert.Fail, "fail");
+            Lua.Register((Action<object, object, string>)assertEquals);
+            Lua.Register((Action<bool, string>)assertTrue);
+            Lua.Register((Action<bool, string>)assertFalse);
+            Lua.Register((Action<object, string>)assertNotNull);
             Lua.Register((Action<double, double, string>)assertEqualsDelta);
             Lua.Register((Action<string, ILuaValue>)assertThrows);
         }
@@ -28,6 +28,26 @@ namespace UnitTests
         /// Gets the current Lua instance.
         /// </summary>
         protected Lua Lua { get; private set; }
+
+        static void assertNotNull(object actual, string message)
+        {
+            Assert.IsNotNull(actual, message);
+        }
+
+        static void assertEquals(object expected, object actual, string message)
+        {
+            Assert.AreEqual(expected, actual, message);
+        }
+
+        static void assertTrue(bool actual, string message)
+        {
+            Assert.IsTrue(actual, message);
+        }
+
+        static void assertFalse(bool actual, string message)
+        {
+            Assert.IsFalse(actual, message);
+        }
 
         static void assertEqualsDelta(double expected, double actual, string message)
         {
@@ -41,7 +61,7 @@ namespace UnitTests
             {
                 value.Invoke(LuaNil.Nil, false, -1, Lua.Environment.Runtime.CreateMultiValue());
             }
-            catch(Exception)
+            catch (Exception)
             {
                 throws = true;
             }

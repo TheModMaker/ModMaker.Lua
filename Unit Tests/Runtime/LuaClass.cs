@@ -1,13 +1,13 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
+using NUnit.Framework;
 using System;
 using System.Reflection;
 
 namespace UnitTests.Runtime
 {
-    [TestClass]
+    [TestFixture]
     public class LuaClassTest : TestBase
     {
         public abstract class BaseClass
@@ -48,7 +48,7 @@ namespace UnitTests.Runtime
 
 
         #region NoBaseClass
-        [TestMethod]
+        [Test]
         public void NoBaseClass_InstanceInLua()
         {
             Lua.DoText(@"
@@ -67,7 +67,7 @@ assertEquals('abc', inst.method(), 'member should exist')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void NoBaseClass_InstanceInCs()
         {
             Lua.DoText(@"
@@ -90,7 +90,7 @@ Foobar.field = 123
             Assert.AreEqual((double)123, value);
         }
 
-        [TestMethod]
+        [Test]
         public void NoBaseClass_CanCallOtherMembers()
         {
             Lua.DoText(@"
@@ -111,7 +111,7 @@ inst:method()
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void NoBaseClass_CanDefineLuaConstructor()
         {
             Lua.DoText(@"
@@ -130,7 +130,7 @@ assertEquals(123, inst.field, 'constructor set field')
         #endregion
 
         #region BaseClass
-        [TestMethod]
+        [Test]
         public void BaseClass_InstanceInLua()
         {
             Lua.DoText(@"
@@ -143,7 +143,7 @@ assertEquals(15, inst.VirtualMethod(), 'virtual method')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_InheritsFromType()
         {
             Lua.DoText(@"class Foobar : BaseClass");
@@ -151,10 +151,10 @@ assertEquals(15, inst.VirtualMethod(), 'virtual method')
             var cls = GetLuaClass("Foobar");
             object inst = cls.CreateInstance();
             Assert.IsNotNull(inst);
-            Assert.IsInstanceOfType(inst, typeof(BaseClass));
+            Assert.IsInstanceOf<BaseClass>(inst);
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_OverridesMethod()
         {
             Lua.DoText(@"
@@ -171,7 +171,7 @@ end
             Assert.AreEqual((double)1000, ((BaseClass)inst).VirtualMethod());
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_CanAddMethods()
         {
             Lua.DoText(@"
@@ -190,7 +190,7 @@ assertEquals(123, inst:NewMethod(), 'NewMethod')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_OverridesMethodWithArguments()
         {
             Lua.DoText(@"
@@ -208,7 +208,7 @@ end
             ((BaseClass)inst).MethodIntArg(123);
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_CanCallOtherMembers()
         {
             Lua.DoText(@"
@@ -240,7 +240,7 @@ inst:TestMethod()
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_CantReplaceField()
         {
             Lua.DoText(@"
@@ -257,7 +257,7 @@ end)
 
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_CantReplaceMethodWithField()
         {
             Lua.DoText(@"
@@ -270,7 +270,7 @@ end)
 
         }
 
-        [TestMethod]
+        [Test]
         public void BaseClass_ThrowsNotImplemented()
         {
             Lua.DoText(@"class Foobar : BaseClass");
@@ -290,7 +290,7 @@ end)
 
         #region Interfaces
 
-        [TestMethod]
+        [Test]
         public void Interface_InstanceInLua()
         {
             Lua.DoText(@"
@@ -307,7 +307,7 @@ assertEquals(1, inst.VirtualMethod(), 'virtual method')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void Interface_InheritsFromType()
         {
             Lua.DoText(@"
@@ -321,10 +321,10 @@ end
             var cls = GetLuaClass("Foobar");
             object inst = cls.CreateInstance();
             Assert.IsNotNull(inst);
-            Assert.IsInstanceOfType(inst, typeof(Interface));
+            Assert.IsInstanceOf<Interface>(inst);
         }
 
-        [TestMethod]
+        [Test]
         public void Interface_ImplementsMethod()
         {
             Lua.DoText(@"
@@ -341,7 +341,7 @@ end
             Assert.AreEqual((double)1000, ((Interface)inst).VirtualMethod());
         }
 
-        [TestMethod]
+        [Test]
         public void Interface_ThrowsNotImplemented()
         {
             Lua.DoText(@"class Foobar : Interface");
@@ -358,7 +358,7 @@ end
             catch (NotImplementedException) { }
         }
 
-        [TestMethod]
+        [Test]
         public void Interface_MultipleInheritance()
         {
             Lua.DoText(@"
@@ -378,7 +378,7 @@ end");
             Assert.AreEqual((double)555, ((Interface2)inst).OtherMethod());
         }
 
-        [TestMethod]
+        [Test]
         public void Interface_ExplicitImplementation()
         {
             Lua.DoText(@"
@@ -409,7 +409,7 @@ assertEquals(nil, inst.Ambiguous, 'no member when explicit')");
             ILuaValue luaName = Lua.Environment.Runtime.CreateValue(name);
             ILuaValue cls = Lua.Environment.GlobalsTable.GetItemRaw(luaName);
 
-            Assert.IsInstanceOfType(cls, typeof(LuaClass));
+            Assert.IsInstanceOf<LuaClass>(cls);
             return ((LuaClass)cls);
         }
     }

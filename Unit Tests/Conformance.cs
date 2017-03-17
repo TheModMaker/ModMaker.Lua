@@ -1,11 +1,11 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class ConformanceTest : TestBase
     {
-        [TestMethod]
+        [Test]
         public void ParenthesesCollapseMultiValues()
         {
             Lua.DoText(@"

@@ -1,7 +1,7 @@
 using ModMaker.Lua.Parser;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Globalization;
+using NUnit.Framework;
 
 namespace UnitTests.Parser
 {
@@ -9,62 +9,14 @@ namespace UnitTests.Parser
     ///This is a test class for TokenizerTest and is intended
     ///to contain all TokenizerTest Unit Tests
     ///</summary>
-    [TestClass]
+    [TestFixture]
     public class TokenizerTest
     {
-        private TestContext testContextInstance;
-
-        /// <summary>
-        ///Gets or sets the test context which provides
-        ///information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
-        #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
-        //[ClassInitialize()]
-        //public static void MyClassInitialize(TestContext testContext)
-        //{
-        //}
-        //
-        //Use ClassCleanup to run code after all tests in a class have run
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-        //}
-        //
-        //Use TestInitialize to run code before running each test
-        //[TestInitialize()]
-        //public void MyTestInitialize()
-        //{
-        //}
-        //
-        //Use TestCleanup to run code after each test has run
-        //[TestCleanup()]
-        //public void MyTestCleanup()
-        //{
-        //}
-        //
-        #endregion
-
         /// <summary>
         /// A general test with valid input for a
         /// sequence of Tokenizer.Read().
         ///</summary>
-        [TestMethod]
+        [Test]
         public void GeneralReadTest()
         {
             var reader = StringInfo.GetTextElementEnumerator(
@@ -113,7 +65,7 @@ end"
         /// A test of Read, Peek, and PushBack for
         /// Tokenizer.
         ///</summary>
-        [TestMethod]
+        [Test]
         public void ReadPeekPushBackTest()
         {
             var reader = StringInfo.GetTextElementEnumerator(@"function test()");
@@ -152,7 +104,7 @@ end"
         /// <summary>
         /// A test of long string for the tokenizer.
         ///</summary>
-        [TestMethod]
+        [Test]
         public void LongStringTest()
         {
             var reader = StringInfo.GetTextElementEnumerator(
@@ -176,7 +128,7 @@ end"
         /// <summary>
         /// A test of an invalid comment.
         ///</summary>
-        [TestMethod]
+        [Test]
         public void StringErrorTest()
         {
             // newline in string literal.
@@ -197,7 +149,7 @@ end"
             }
             catch (Exception e)
             {
-                Assert.IsInstanceOfType(e, typeof(SyntaxException));
+                Assert.IsInstanceOf<SyntaxException>(e);
             }
 
             // only one grave (`) per literal.
@@ -214,7 +166,7 @@ end"
             }
             catch (Exception e)
             {
-                Assert.IsInstanceOfType(e, typeof(SyntaxException));
+                Assert.IsInstanceOf<SyntaxException>(e);
             }
 
             // only number after a grave(`).
@@ -231,7 +183,7 @@ end"
             }
             catch (Exception e)
             {
-                Assert.IsInstanceOfType(e, typeof(SyntaxException));
+                Assert.IsInstanceOf<SyntaxException>(e);
             }
         }
     }

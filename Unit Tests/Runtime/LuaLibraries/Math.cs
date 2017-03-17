@@ -1,13 +1,13 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua.Runtime;
+using NUnit.Framework;
 
 namespace UnitTests.Runtime.LuaLibraries
 {
-    [TestClass]
+    [TestFixture]
     public class Math : LibraryTestBase
     {
-        [TestMethod]
+        [Test]
         public void General()
         {
             // Combine many of the methods together since they are just imported.
@@ -36,7 +36,7 @@ assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void General_InvalidTypes()
         {
             // Combine many of the methods together since they are just imported.
@@ -59,7 +59,7 @@ assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
             }
         }
 
-        [TestMethod]
+        [Test]
         public void frexp()
         {
             Lua.DoText(@"
@@ -73,7 +73,7 @@ assertEquals(     15,              b, 'frexp: negative(2)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void max()
         {
             Lua.DoText(@"
@@ -83,21 +83,22 @@ assertEquals(8,       math.max(8),                        'max: one argument')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void max_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "math.max(2, {0})");
             RunInvalidTypeTests(LuaValueType.Number, "math.max({0}, 4, 2)");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void max_ZeroArgs()
         {
-            Lua.DoText(@"math.max()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"math.max()");
+            });
         }
 
-        [TestMethod]
+        [Test]
         public void min()
         {
             Lua.DoText(@"
@@ -107,21 +108,22 @@ assertEquals(8,    math.min(8),                        'min: one argument')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void min_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "math.min(2, {0})");
             RunInvalidTypeTests(LuaValueType.Number, "math.min({0}, 4, 2)");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void min_ZeroArgs()
         {
-            Lua.DoText(@"math.min()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"math.min()");
+            });
         }
 
-        [TestMethod]
+        [Test]
         public void modf()
         {
             Lua.DoText(@"
@@ -147,20 +149,21 @@ assertEqualsDelta(0,          b, 'modf: zero(2)')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void modf_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "math.modf({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void modf_ZeroArgs()
         {
-            Lua.DoText(@"math.modf()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"math.modf()");
+            });
         }
 
-        [TestMethod]
+        [Test]
         public void random()
         {
             // NOTE: Although the multiple runs will produce the same results, the actual value of
@@ -192,7 +195,7 @@ assertEquals(c, math.random(24, 68), 'random: two-arg makes same values')
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void randon_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "math.randomseed({0})");

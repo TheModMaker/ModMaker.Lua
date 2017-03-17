@@ -1,14 +1,14 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua.Runtime;
+using NUnit.Framework;
 using System;
 
 namespace UnitTests.Runtime.LuaLibraries
 {
-    [TestClass]
+    [TestFixture]
     public class Bit32 : LibraryTestBase
     {
         #region arshift
-        [TestMethod]
+        [Test]
         public void arshift()
         {
             Lua.DoText(@"
@@ -32,23 +32,24 @@ assertEquals(0xffffff88, bit32.arshift(-0xf, -3),         'arshift(left): negati
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void arshift_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.arshift({0}, 2)");
             RunInvalidTypeTests(LuaValueType.Number, "bit32.arshift(2, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void arshift_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.arshift(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.arshift(0xf00)");
+            });
         }
         #endregion
 
         #region band
-        [TestMethod]
+        [Test]
         public void band()
         {
             Lua.DoText(@"
@@ -62,7 +63,7 @@ assertEquals(0x0f,       bit32.band(0xff0000000f, 0xff0000000f), 'band: larger t
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void band_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.band({0})");
@@ -71,7 +72,7 @@ assertEquals(0x0f,       bit32.band(0xff0000000f, 0xff0000000f), 'band: larger t
         #endregion
 
         #region bnot
-        [TestMethod]
+        [Test]
         public void bnot()
         {
             Lua.DoText(@"
@@ -84,22 +85,23 @@ assertEquals(0xffffefdb, bit32.bnot(0x4500001024),      'bnot: larger than 32-bi
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void bnot_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.bnot({0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void bnot_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.bnot()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.bnot()");
+            });
         }
         #endregion
 
         #region bor
-        [TestMethod]
+        [Test]
         public void bor()
         {
             Lua.DoText(@"
@@ -112,7 +114,7 @@ assertEquals(0xff,       bit32.bor(0xff000000f0, 0xff0000000f), 'bor: larger tha
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void bor_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.bor({0})");
@@ -121,7 +123,7 @@ assertEquals(0xff,       bit32.bor(0xff000000f0, 0xff0000000f), 'bor: larger tha
         #endregion
 
         #region btest
-        [TestMethod]
+        [Test]
         public void btest()
         {
             Lua.DoText(@"
@@ -134,7 +136,7 @@ assertEquals(false, bit32.btest(0xff000000f0, 0xff0000000f), 'btest: larger than
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void btest_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.btest({0})");
@@ -143,7 +145,7 @@ assertEquals(false, bit32.btest(0xff000000f0, 0xff0000000f), 'btest: larger than
         #endregion
 
         #region bxor
-        [TestMethod]
+        [Test]
         public void bxor()
         {
             Lua.DoText(@"
@@ -156,7 +158,7 @@ assertEquals(0xff,       bit32.bxor(0xff000000f0, 0xff0000000f), 'bxor: larger t
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void bxor_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.bxor({0})");
@@ -165,7 +167,7 @@ assertEquals(0xff,       bit32.bxor(0xff000000f0, 0xff0000000f), 'bxor: larger t
         #endregion
 
         #region extract
-        [TestMethod]
+        [Test]
         public void extract()
         {
             Lua.DoText(@"
@@ -176,7 +178,7 @@ assertEquals(0x1e,    bit32.extract(0xff0305d2f0, 3, 6),      'extract: larger t
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void extract_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.extract({0}, 0)");
@@ -184,44 +186,49 @@ assertEquals(0x1e,    bit32.extract(0xff0305d2f0, 3, 6),      'extract: larger t
             RunInvalidTypeTests(LuaValueType.Number, "bit32.extract(4, 3, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void extract_TooLargeIndex()
         {
-            Lua.DoText(@"bit32.extract(0x3, 34)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.extract(0x3, 34)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void extract_TooLargeSize()
         {
-            Lua.DoText(@"bit32.extract(0x3, 3, 42)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.extract(0x3, 3, 42)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void extract_TooLargeIndexPlusSize()
         {
-            Lua.DoText(@"bit32.extract(0x3, 21, 12)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.extract(0x3, 21, 12)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void extract_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.extract()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.extract()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void extract_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.extract(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.extract(0xf00)");
+            });
         }
         #endregion
 
         #region replace
-        [TestMethod]
+        [Test]
         public void replace()
         {
             Lua.DoText(@"
@@ -234,7 +241,7 @@ assertEquals(0xd0f0,     bit32.replace(0xff0000d2f0, 0x23, 6, 4),  'replace: lar
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void replace_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.replace({0}, 0)");
@@ -243,51 +250,57 @@ assertEquals(0xd0f0,     bit32.replace(0xff0000d2f0, 0x23, 6, 4),  'replace: lar
             RunInvalidTypeTests(LuaValueType.Number, "bit32.replace(4, 3, 4, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_TooLargeIndex()
         {
-            Lua.DoText(@"bit32.replace(0x3, 0x0, 34)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace(0x3, 0x0, 34)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_TooLargeSize()
         {
-            Lua.DoText(@"bit32.replace(0x3, 0x0, 3, 42)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace(0x3, 0x0, 3, 42)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_TooLargeIndexPlusSize()
         {
-            Lua.DoText(@"bit32.replace(0x3, 0x0, 21, 12)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace(0x3, 0x0, 21, 12)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.replace()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.replace(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace(0xf00)");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void replace_NotEnoughArgs3()
         {
-            Lua.DoText(@"bit32.replace(0xf00, 0x00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.replace(0xf00, 0x00)");
+            });
         }
         #endregion
 
         #region lrotate
-        [TestMethod]
+        [Test]
         public void lrotate()
         {
             Lua.DoText(@"
@@ -301,30 +314,32 @@ assertEquals(0xd2f00,    bit32.lrotate(0xff0000d2f0, 4),       'lrotate: larger 
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void lrotate_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.lrotate({0}, 0)");
             RunInvalidTypeTests(LuaValueType.Number, "bit32.lrotate(4, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void lrotate_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.lrotate()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.lrotate()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void lrotate_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.lrotate(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.lrotate(0xf00)");
+            });
         }
         #endregion
 
         #region lshift
-        [TestMethod]
+        [Test]
         public void lshift()
         {
             Lua.DoText(@"
@@ -338,30 +353,32 @@ assertEquals(0xd2f00,    bit32.lshift(0xff0000d2f0, 4),       'lshift: larger th
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void lshift_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.lshift({0}, 0)");
             RunInvalidTypeTests(LuaValueType.Number, "bit32.lshift(4, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void lshift_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.lshift()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.lshift()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void lshift_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.lshift(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.lshift(0xf00)");
+            });
         }
         #endregion
 
         #region rrotate
-        [TestMethod]
+        [Test]
         public void rrotate()
         {
             Lua.DoText(@"
@@ -375,30 +392,32 @@ assertEquals(0xd2f,      bit32.rrotate(0xff0000d2f0, 4),       'rrotate: larger 
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void rrotate_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.rrotate({0}, 0)");
             RunInvalidTypeTests(LuaValueType.Number, "bit32.rrotate(4, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rrotate_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.rrotate()");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.rrotate()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rrotate_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.rrotate(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.rrotate(0xf00)");
+            });
         }
         #endregion
 
         #region rshift
-        [TestMethod]
+        [Test]
         public void rshift()
         {
             Lua.DoText(@"
@@ -412,30 +431,32 @@ assertEquals(0xd2f,      bit32.rshift(0xff0000d2f0, 4),       'rshift: larger th
 ");
         }
 
-        [TestMethod]
+        [Test]
         public void rshift_InvalidTypes()
         {
             RunInvalidTypeTests(LuaValueType.Number, "bit32.rshift({0}, 0)");
             RunInvalidTypeTests(LuaValueType.Number, "bit32.rshift(4, {0})");
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rshift_NotEnoughArgs()
         {
-            Lua.DoText(@"bit32.rshift()");
+            Assert.Throws<ArgumentException>(delegate {
+              Lua.DoText(@"bit32.rshift()");
+            });
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(ArgumentException))]
+        [Test]
         public void rshift_NotEnoughArgs2()
         {
-            Lua.DoText(@"bit32.rshift(0xf00)");
+            Assert.Throws<ArgumentException>(delegate {
+                Lua.DoText(@"bit32.rshift(0xf00)");
+            });
         }
         #endregion
 
-        [Ignore]  // TODO: Enable once coalesce is supported.
-        [TestMethod]
+        [Ignore("Disabled until coalesce is supported")]
+        [Test]
         public void coalesce()
         {
             Lua.DoText(@"

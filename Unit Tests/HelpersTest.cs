@@ -1,7 +1,4 @@
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ModMaker.Lua;
-using ModMaker.Lua.Runtime;
+using NUnit.Framework;
 
 namespace UnitTests
 {
@@ -9,7 +6,7 @@ namespace UnitTests
     /// This is a test class for the ModMaker.Lua.Helpers class.  
     /// This contains all the tests methods for the class.
     /// </summary>
-    [TestClass]
+    [TestFixture]
     public class HelpersTest
     {
         // TODO: Fix tests.

@@ -1,7 +1,6 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ModMaker.Lua;
 using ModMaker.Lua.Runtime;
-using ModMaker.Lua.Runtime.LuaValues;
+using NUnit.Framework;
 using System;
 using System.Linq;
 

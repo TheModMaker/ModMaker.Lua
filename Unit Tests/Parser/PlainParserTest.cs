@@ -1,9 +1,7 @@
 using ModMaker.Lua.Parser;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 using System.Globalization;
-using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
+using NUnit.Framework;
 
 namespace UnitTests.Parser
 {
@@ -11,57 +9,9 @@ namespace UnitTests.Parser
     /// This is a test class for PlainParserTest and is intended
     /// to contain all PlainParserTest Unit Tests
     ///</summary>
-    [TestClass]
+    [TestFixture]
     public class PlainParserTest
     {
-        private TestContext testContextInstance;
-
-        /// <summary>
-        /// Gets or sets the test context which provides
-        /// information about and functionality for the current test run.
-        ///</summary>
-        public TestContext TestContext
-        {
-            get
-            {
-                return testContextInstance;
-            }
-            set
-            {
-                testContextInstance = value;
-            }
-        }
-
-        #region Additional test attributes
-        // 
-        //You can use the following additional attributes as you write your tests:
-        //
-        //Use ClassInitialize to run code before running the first test in the class
-        //[ClassInitialize()]
-        //public static void MyClassInitialize(TestContext testContext)
-        //{
-        //}
-        //
-        //Use ClassCleanup to run code after all tests in a class have run
-        //[ClassCleanup()]
-        //public static void MyClassCleanup()
-        //{
-        //}
-        //
-        //Use TestInitialize to run code before running each test
-        //[TestInitialize()]
-        //public void MyTestInitialize()
-        //{
-        //}
-        //
-        //Use TestCleanup to run code after each test has run
-        //[TestCleanup()]
-        //public void MyTestCleanup()
-        //{
-        //}
-        //
-        #endregion
-
         void ValidateDebug(Token debug, string prefix, string value, long startLine, long startPos, long endLine, long endPos)
         {
             Assert.AreEqual(value, debug.Value, prefix + ".Debug.Value");
@@ -75,7 +25,7 @@ namespace UnitTests.Parser
         /// A test for PlainParser.Parse with valid input
         /// testing for valid DebugInfo also.
         ///</summary>
-        [TestMethod()]
+        [Test]
         public void GenralParse()
         {
             PlainParser target = new PlainParser();
@@ -94,7 +44,7 @@ end"
 
             // check the main block
             BlockItem block = actual as BlockItem;
-            Assert.IsInstanceOfType(actual, typeof(BlockItem));
+            Assert.IsInstanceOf<BlockItem>(actual);
             Assert.IsNotNull(block.Children);
             Assert.AreEqual(3, block.Children.Count, "Block.Children.Count");
             ValidateDebug(block.Debug, "Block", "local a = 12 t = { [ 34 ] = function ( ) print ( i ) end } function Some ( a , ... ) a , b , c = ... for i = 12 , 23 do print ( i ) end end", 1, 1, 8, 4);
@@ -102,7 +52,7 @@ end"
             // check the return statement of the main block
             {
                 ReturnItem ret = block.Return;
-                Assert.IsInstanceOfType(block.Return, typeof(ReturnItem));
+                Assert.IsInstanceOf<ReturnItem>(block.Return);
                 ValidateDebug(ret.Debug, "Block.Return", null, 0, 0, 0, 0);
                 Assert.IsNotNull(ret.Expressions);
                 Assert.AreEqual(0, ret.Expressions.Count);
