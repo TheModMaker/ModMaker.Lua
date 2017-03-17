@@ -39,6 +39,11 @@ namespace ModMaker.Lua.Parser.Items
         /// </summary>
         public bool Local { get; set; }
         /// <summary>
+        /// Gets or sets whether the last expression is single.  Namely whether the last expression
+        /// is wrapped in parentheses, e.g. i = (foo()).
+        /// </summary>
+        public bool IsLastExpressionSingle { get; set; }
+        /// <summary>
         /// Gets or sets the debug info for this item.
         /// </summary>
         public Token Debug { get; set; }

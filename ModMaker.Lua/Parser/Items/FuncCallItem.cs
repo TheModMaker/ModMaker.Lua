@@ -67,6 +67,7 @@ namespace ModMaker.Lua.Parser.Items
             this.args = new List<ArgumentInfo>();
             this.InstanceName = instance;
             this.IsTailCall = false;
+            this.IsLastArgSingle = false;
             this.Overload = overload;
         }
 
@@ -102,6 +103,11 @@ namespace ModMaker.Lua.Parser.Items
         /// if changed.
         /// </summary>
         public bool Statement { get; set; }
+        /// <summary>
+        /// Gets or sets whether the last argument in this call should be single.  Namely that the
+        /// last argument is wrapped in parentheses, e.g. foo(2, (call())).
+        /// </summary>
+        public bool IsLastArgSingle { get; set; }
         /// <summary>
         /// Gets or sets the instance name of the call or null if not an 
         /// instance call.

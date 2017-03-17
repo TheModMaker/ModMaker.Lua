@@ -34,6 +34,11 @@ namespace ModMaker.Lua.Parser.Items
         /// visitors.
         /// </summary>
         public object UserData { get; set; }
+        /// <summary>
+        /// Gets or sets whether the last expression should be single.  Namely whether the
+        /// last expression is wrapped in parentheses, e.g. return 1, (foo()).
+        /// </summary>
+        public bool IsLastExpressionSingle { get; set; }
 
         /// <summary>
         /// Dispatches to the specific visit method for this item type.

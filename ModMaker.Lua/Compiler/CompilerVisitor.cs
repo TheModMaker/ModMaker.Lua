@@ -490,6 +490,8 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldloc, args);
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Arguments[i].Expression.Accept(this);
+                if (i + 1 == target.Arguments.Count && target.IsLastArgSingle)
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
             
@@ -822,7 +824,8 @@ namespace ModMaker.Lua.Compiler
                 throw new ArgumentNullException("target");
 
             ILGenerator gen = compiler.CurrentGenerator;
-            if (target.Expressions.Count == 1 && target.Expressions[0] is FuncCallItem)
+            if (target.Expressions.Count == 1 && target.Expressions[0] is FuncCallItem &&
+                !target.IsLastExpressionSingle)
             {
                 ((FuncCallItem)target.Expressions[0]).IsTailCall = true;
                 target.Expressions[0].Accept(this);
@@ -838,6 +841,8 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldloc, loc);
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Expressions[i].Accept(this);
+                if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle)
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
 
@@ -955,6 +960,8 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldloc, loc);
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Expressions[i].Accept(this);
+                if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle)
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
 

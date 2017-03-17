@@ -50,6 +50,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Conformance.cs" />
     <Compile Include="HelpersTest.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Parser\PlainParserTest.cs" />

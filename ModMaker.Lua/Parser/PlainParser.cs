@@ -171,9 +171,10 @@ namespace ModMaker.Lua.Parser
                 }
                 else
                 {
+                    bool ignored;
                     Token debug = name;
                     debug.Value = "";
-                    var exp = ReadExp(input, ref debug);
+                    var exp = ReadExp(input, ref debug, out ignored);
                     if (exp is FuncCallItem)
                     {
                         (exp as FuncCallItem).Statement = true;
@@ -327,12 +328,14 @@ namespace ModMaker.Lua.Parser
             if (name.Value != "end" && name.Value != "until" && name.Value != "elseif" &&
                 name.Value != "else")
             {
-                r.AddExpression(ReadExp(input, ref debug));
+                bool isParentheses;
+                r.AddExpression(ReadExp(input, ref debug, out isParentheses));
                 while (input.Peek().Value == ",")
                 {
                     Read(input, ref debug); // read ','
-                    r.AddExpression(ReadExp(input, ref debug));
+                    r.AddExpression(ReadExp(input, ref debug, out isParentheses));
                 }
+                r.IsLastExpressionSingle = isParentheses;
 
                 if (input.Peek().Value == ";")
                 {
@@ -415,7 +418,8 @@ namespace ModMaker.Lua.Parser
                 throw new InvalidOperationException(string.Format(Resources.MustBeOn, "if", "ReadIf"));
 
             // read the initial expression
-            i.Exp = ReadExp(input, ref debug);
+            bool ignored;
+            i.Exp = ReadExp(input, ref debug, out ignored);
 
             // read 'then'
             var name = Read(input, ref debug);
@@ -434,7 +438,7 @@ namespace ModMaker.Lua.Parser
                 Read(input, ref debug); // read 'elseif'
 
                 // read the expression
-                var readExp = ReadExp(input, ref debug);
+                var readExp = ReadExp(input, ref debug, out ignored);
 
                 // read 'then'
                 name = Read(input, ref debug);
@@ -497,7 +501,8 @@ namespace ModMaker.Lua.Parser
                     input.Name, name);
 
             // read the expression
-            repeat.Expression = ReadExp(input, ref debug);
+            bool ignored;
+            repeat.Expression = ReadExp(input, ref debug, out ignored);
 
             prev.Append(debug);
             repeat.Debug = debug;
@@ -607,9 +612,10 @@ namespace ModMaker.Lua.Parser
             WhileItem w = new WhileItem();
             if (debug.Value != "while")
                 throw new InvalidOperationException(string.Format(Resources.MustBeOn, "while", "ReadWhile"));
-            
+
             // read the expression
-            w.Exp = ReadExp(input, ref debug);
+            bool ignored;
+            w.Exp = ReadExp(input, ref debug, out ignored);
 
             // read 'do'
             var name = Read(input, ref debug);
@@ -691,7 +697,8 @@ namespace ModMaker.Lua.Parser
                 Read(input, ref debug); // read ','
 
                 // read the left-hand-expression
-                var exp = ReadExp(input, ref debug);
+                bool ignored;
+                var exp = ReadExp(input, ref debug, out ignored);
                 if ((local && !(exp is NameItem)) || (!local && !(exp is IParseVariable)))
                     throw new SyntaxException(Resources.NameOrExpForVar, input.Name, debug);
                 assign.AddName((IParseVariable)exp);
@@ -700,14 +707,17 @@ namespace ModMaker.Lua.Parser
             // read the initial values
             if (input.Peek().Value == "=")
             {
+                bool isParentheses = false;
                 Read(input, ref debug); // read '='
-                assign.AddItem(ReadExp(input, ref debug));
+                assign.AddItem(ReadExp(input, ref debug, out isParentheses));
 
                 while (input.Peek().Value == ",")
                 {
+                    // readExp will reset the value of isParentheses when it starts.
                     Read(input, ref debug); // read ','
-                    assign.AddItem(ReadExp(input, ref debug));
+                    assign.AddItem(ReadExp(input, ref debug, out isParentheses));
                 }
+                assign.IsLastExpressionSingle = isParentheses;
             }
             else if (!local)
                 throw new SyntaxException(
@@ -760,12 +770,13 @@ namespace ModMaker.Lua.Parser
                     input.Name, name);
 
             // read the expression-list
+            bool ignored;
             ForGenItem f = new ForGenItem(names);
-            f.AddExpression(ReadExp(input, ref debug));
+            f.AddExpression(ReadExp(input, ref debug, out ignored));
             while (input.Peek().Value == ",")
             {
                 Read(input, ref debug); // read ","
-                f.AddExpression(ReadExp(input, ref debug));
+                f.AddExpression(ReadExp(input, ref debug, out ignored));
             }
 
             // check for 'do'
@@ -807,7 +818,8 @@ namespace ModMaker.Lua.Parser
                 throw new InvalidOperationException(string.Format(Resources.MustBeOn, "=", "ReadNumberFor"));
 
             // get the 'start' value
-            var start = ReadExp(input, ref debug);
+            bool ignored;
+            var start = ReadExp(input, ref debug, out ignored);
 
             // read ','
             temp = Read(input, ref debug);
@@ -817,7 +829,7 @@ namespace ModMaker.Lua.Parser
                     input.Name, temp);
 
             // get the 'limit'
-            var limit = ReadExp(input, ref debug);
+            var limit = ReadExp(input, ref debug, out ignored);
 
             // read ','
             IParseExp step = null;
@@ -826,7 +838,7 @@ namespace ModMaker.Lua.Parser
                 Read(input, ref debug);
 
                 // read the 'step'
-                step = ReadExp(input, ref debug);
+                step = ReadExp(input, ref debug, out ignored);
             }
 
             ForNumItem i = new ForNumItem(new NameItem(name.Value) { Debug = name }, start, limit, step);
@@ -856,13 +868,15 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <param name="token">The token to append the total token onto.</param>
+        /// <param name="isParentheses">Whether the expression is wrapped in a parentheses.</param>
         /// <returns>The expression that was read.</returns>
-        protected virtual IParseExp ReadPrefixExp(ITokenizer input, ref Token token)
+        protected virtual IParseExp ReadPrefixExp(ITokenizer input, ref Token token, out bool isParentheses)
         {
             Stack<UnaryInfo> ex = new Stack<UnaryInfo>();
             IParseExp o = null;
             Token last, debug = input.Peek();
             debug.Value = "";
+            isParentheses = false;
 
             // check for unary operators
             last = input.Peek();
@@ -927,9 +941,12 @@ namespace ModMaker.Lua.Parser
                 }
                 else if (last.Value == "(")
                 {
+                    bool ignored;
                     Read(input, ref debug);
-                    o = ReadExp(input, ref debug);
+
+                    o = ReadExp(input, ref debug, out ignored);
                     last = Read(input, ref debug);
+                    isParentheses = ex.Count == 0;
                     if (last.Value != ")")
                         throw new SyntaxException(string.Format(Resources.TokenInvalidExpecting, last.Value, "expression", ")"),
                             input.Name, last);
@@ -1025,7 +1042,8 @@ namespace ModMaker.Lua.Parser
                         if (inst != null)
                             throw new SyntaxException(Resources.IndexerAfterInstance, input.Name, last);
 
-                        var temp = ReadExp(input, ref debug);
+                        bool ignored;
+                        var temp = ReadExp(input, ref debug, out ignored);
                         last = Read(input, ref debug);
                         o = new IndexerItem(o, temp) { Debug = debug };
                         if (last.Value != "]")
@@ -1055,6 +1073,7 @@ namespace ModMaker.Lua.Parser
                     {
                         Read(input, ref debug);
                         FuncCallItem func = new FuncCallItem(o, inst, over);
+                        bool hasParentheses = false;
                         o = func;
                         inst = null;
                         over = -1;
@@ -1078,7 +1097,7 @@ namespace ModMaker.Lua.Parser
                                     byRef = false;
                             }
 
-                            var temp = ReadExp(input, ref debug);
+                            var temp = ReadExp(input, ref debug, out hasParentheses);
                             if (byRef != null && !(temp is NameItem) && !(temp is IndexerItem))
                                 throw new SyntaxException(Resources.OnlyVarByReference, input.Name, last);
                             if (temp == null)
@@ -1097,6 +1116,7 @@ namespace ModMaker.Lua.Parser
                             else
                                 throw new SyntaxException(string.Format(Resources.TokenInvalidExpecting2, input.Peek().Value, "function call", ",", ")"), input.Name, last);
                         }
+                        func.IsLastArgSingle = hasParentheses;
 
                         if (input.Peek() == null)
                             throw new SyntaxException(string.Format(Resources.UnexpectedEOF, "function call"),
@@ -1123,8 +1143,10 @@ namespace ModMaker.Lua.Parser
             //   unary operators.
             if (input.Peek().Value == "^")
             {
+                isParentheses = false;
                 Read(input, ref debug);
-                var temp = ReadPrefixExp(input, ref debug);
+                bool ignored;
+                var temp = ReadPrefixExp(input, ref debug, out ignored);
                 BinOpItem item = new BinOpItem(o, BinaryOperationType.Power, temp) { Debug = debug };
                 o = item;
             }
@@ -1172,11 +1194,11 @@ namespace ModMaker.Lua.Parser
         /// <param name="token">The Token that represents the entire expression
         /// should be appended to this variable.</param>
         /// <returns>The expression that was read.</returns>
-        protected virtual IParseExp ReadExp(ITokenizer input, ref Token token, int precedence = -1)
+        protected virtual IParseExp ReadExp(ITokenizer input, ref Token token, out bool isParentheses, int precedence = -1)
         {
             Token debug = input.Peek();
             debug.Value = "";
-            IParseExp cur = ReadPrefixExp(input, ref debug);
+            IParseExp cur = ReadPrefixExp(input, ref debug, out isParentheses);
             BinOpItem ret = null;
 
         start:
@@ -1185,8 +1207,11 @@ namespace ModMaker.Lua.Parser
             int nPrec = GetPrecedence(type);
             if (nPrec != -1 && (precedence == -1 || precedence > nPrec))
             {
-                Read(input, ref debug); // read the exp
-                var temp = ReadExp(input, ref debug, nPrec);
+                bool ignored;
+                isParentheses = false;
+                Read(input, ref debug); // read the operator
+
+                var temp = ReadExp(input, ref debug, out ignored, nPrec);
                 ret = new BinOpItem(ret ?? cur, type, temp);
                 ret.Debug = debug;
                 goto start;
@@ -1300,6 +1325,7 @@ namespace ModMaker.Lua.Parser
         /// <returns>The table that was read.</returns>
         protected virtual TableItem ReadTable(ITokenizer input, ref Token token)
         {
+            bool ignored;
             Token debug = input.Read();
             if (debug.Value != "{")
                 throw new SyntaxException(
@@ -1314,7 +1340,7 @@ namespace ModMaker.Lua.Parser
                 {
                     Read(input, ref debug); // read the "["
 
-                    var temp = ReadExp(input, ref debug);
+                    var temp = ReadExp(input, ref debug, out ignored);
                     if (temp == null)
                         throw new SyntaxException(string.Format(Resources.InvalidDefinition, "table"),
                             input.Name, debug);
@@ -1334,7 +1360,7 @@ namespace ModMaker.Lua.Parser
                             input.Name, last);
 
                     // read the expression
-                    var val = ReadExp(input, ref debug);
+                    var val = ReadExp(input, ref debug, out ignored);
                     if (val == null)
                         throw new SyntaxException(string.Format(Resources.InvalidDefinition, "table"),
                             input.Name, debug);
@@ -1343,7 +1369,7 @@ namespace ModMaker.Lua.Parser
                 }
                 else
                 {
-                    var val = ReadExp(input, ref debug);
+                    var val = ReadExp(input, ref debug, out ignored);
                     if (input.Peek().Value == "=")
                     {
                         Read(input, ref debug); // read '='
@@ -1354,7 +1380,7 @@ namespace ModMaker.Lua.Parser
                                 input.Name, debug);
 
                         // read the expression
-                        var exp = ReadExp(input, ref debug);
+                        var exp = ReadExp(input, ref debug, out ignored);
                         ret.AddItem(new LiteralItem(name.Name), exp);
                     }
                     else
