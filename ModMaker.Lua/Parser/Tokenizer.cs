@@ -43,7 +43,7 @@ namespace ModMaker.Lua.Parser
         public Tokenizer(TextElementEnumerator input, string name)
         {
             if (input == null)
-                throw new ArgumentNullException("reader");
+                throw new ArgumentNullException(nameof(input));
 
             this.peek = new Stack<Token>();
             this.input = input;

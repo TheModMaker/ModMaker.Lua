@@ -76,7 +76,7 @@ namespace ModMaker.Lua
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
 
                 lock (this)
                     _E = value;
@@ -118,7 +118,7 @@ namespace ModMaker.Lua
         public void Register(Delegate func, string name)
         {
             if (func == null)
-                throw new ArgumentNullException("func");
+                throw new ArgumentNullException(nameof(func));
             if (func.GetInvocationList().Length > 1)
                 throw new MulticastNotSupportedException(Resources.MulticastNotSupported);
             if (name == null)
@@ -139,7 +139,7 @@ namespace ModMaker.Lua
         public void Register(Type type)
         {
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             lock (this)
             {
@@ -380,7 +380,7 @@ namespace ModMaker.Lua
         public ILuaValue Load(string path, string name, bool @override, out int index)
         {
             if (path == null)
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
 
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
             {
@@ -459,7 +459,7 @@ namespace ModMaker.Lua
         public ILuaValue Load(Stream stream, string name, bool @override, out int index)
         {
             if (stream == null)
-                throw new ArgumentNullException("stream");
+                throw new ArgumentNullException(nameof(stream));
 
             using (TextReader c = new StreamReader(stream))
             {
@@ -550,7 +550,7 @@ namespace ModMaker.Lua
         public ILuaValue LoadText(string chunk, string name, bool @override, out int index)
         {
             if (chunk == null)
-                throw new ArgumentNullException("chunk");
+                throw new ArgumentNullException(nameof(chunk));
 
             lock (this)
             {
@@ -682,13 +682,13 @@ namespace ModMaker.Lua
         public static dynamic[] GetVariables(ILuaEnvironment E, string path, params string[] names)
         {
             if (names == null)
-                throw new ArgumentNullException("names");
+                throw new ArgumentNullException(nameof(names));
             if (path == null)
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
             if (names.Contains(null))
-                throw new ArgumentException(string.Format(Resources.CannotContainNull, "names"));
+                throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(names)));
 
             path = Path.GetFullPath(path);
             if (!File.Exists(path))
@@ -824,13 +824,13 @@ namespace ModMaker.Lua
         public static T[] GetVariables<T>(ILuaEnvironment E, string path, params string[] names)
         {
             if (names == null)
-                throw new ArgumentNullException("names");
+                throw new ArgumentNullException(nameof(names));
             if (path == null)
-                throw new ArgumentNullException("path");
+                throw new ArgumentNullException(nameof(path));
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
             if (names.Contains(null))
-                throw new ArgumentException(string.Format(Resources.CannotContainNull, "names"));
+                throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(names)));
 
             path = Path.GetFullPath(path);
             if (!File.Exists(path))

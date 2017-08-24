@@ -80,9 +80,9 @@ namespace ModMaker.Lua.Runtime
         public ILuaValue Load(ILuaEnvironment E, string name)
         {
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             if (_loaded.ContainsKey(name))
                 return _loaded[name];

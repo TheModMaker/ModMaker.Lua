@@ -45,7 +45,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
@@ -58,7 +58,7 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseExp index, IParseExp exp)
         {
             if (exp == null)
-                throw new ArgumentNullException("exp");
+                throw new ArgumentNullException(nameof(exp));
 
             if (index == null)
                 index = new LiteralItem(i++);

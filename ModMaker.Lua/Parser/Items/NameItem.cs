@@ -42,7 +42,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }

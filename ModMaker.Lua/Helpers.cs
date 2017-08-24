@@ -599,7 +599,7 @@ namespace ModMaker.Lua
         public static object As(this ILuaMultiValue args, int start, Type type)
         {
             MethodInfo as_ = typeof(Helpers)
-                .GetMethod("As", new[] { typeof(ILuaMultiValue), typeof(int) });
+                .GetMethod(nameof(Helpers.As), new[] { typeof(ILuaMultiValue), typeof(int) });
             MethodInfo asGeneric = as_.MakeGenericMethod(type);
             Func<ILuaMultiValue, int, object> convert = 
                 (Func<ILuaMultiValue, int, object>)Delegate.CreateDelegate(
@@ -771,7 +771,7 @@ namespace ModMaker.Lua
 
             var ret = new object[param.Length];
             var min = Math.Min(param.Length, args.Count);
-            var rootMethod = typeof(ILuaValue).GetMethod("As");
+            var rootMethod = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As));
 
             bool hasParams = param.Length > 0 &&
                 param[param.Length - 1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0;
@@ -959,7 +959,7 @@ namespace ModMaker.Lua
                     // only works if the backing type is the same as or derrived from the
                     // FieldType.  It does not even support implicit numerical conversion
                     var convert =
-                        typeof(ILuaValue).GetMethod("As").MakeGenericMethod(field.FieldType);
+                        typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(field.FieldType);
                     field.SetValue(target, convert.Invoke(value, null));
                     return null;
                 }
@@ -1061,7 +1061,7 @@ namespace ModMaker.Lua
                 {
                     // Convert to the array type.
                     Type arrayType = targetArray.GetType().GetElementType();
-                    object valueObj = typeof(ILuaValue).GetMethod("As")
+                    object valueObj = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
                         .MakeGenericMethod(arrayType).Invoke(value, null);
 
                     targetArray.SetValue(valueObj, args);

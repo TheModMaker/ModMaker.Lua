@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
@@ -99,9 +99,9 @@ namespace ModMaker.Lua.Parser.Items
         public void AddElse(IParseExp exp, BlockItem block)
         {
             if (exp == null)
-                throw new ArgumentNullException("exp");
+                throw new ArgumentNullException(nameof(exp));
             if (block == null)
-                throw new ArgumentNullException("block");
+                throw new ArgumentNullException(nameof(block));
 
             elses.Add(new ElseInfo(exp, block));
         }

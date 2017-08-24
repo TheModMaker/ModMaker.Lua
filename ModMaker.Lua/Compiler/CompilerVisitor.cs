@@ -61,7 +61,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(BinOpItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
 
@@ -79,7 +79,7 @@ namespace ModMaker.Lua.Compiler
 
                 // if (temp.IsTrue) goto end;
                 gen.Emit(OpCodes.Ldloc, temp);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("get_IsTrue"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
                 if (target.OperationType == BinaryOperationType.And)
                 {
                     // We want to break if the value is truthy and it's an OR,
@@ -104,7 +104,7 @@ namespace ModMaker.Lua.Compiler
                 target.Lhs.Accept(this);
                 gen.Emit(OpCodes.Ldc_I4, (int)target.OperationType);
                 target.Rhs.Accept(this);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Arithmetic"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Arithmetic)));
             }
 
             return target;
@@ -118,7 +118,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(BlockItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             using (compiler.LocalBlock())
             {
@@ -144,7 +144,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ClassDefItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
 
@@ -163,10 +163,10 @@ namespace ModMaker.Lua.Compiler
 
             // E.Runtime.CreateClassValue(loc, {name});
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             gen.Emit(OpCodes.Ldloc, loc);
             gen.Emit(OpCodes.Ldstr, target.Name);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateClassValue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateClassValue)));
             compiler.RemoveTemporary(loc);
 
             return target;
@@ -180,7 +180,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ForGenItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             target.Break.UserData = target.Break.UserData ?? gen.DefineLabel();
@@ -205,19 +205,19 @@ namespace ModMaker.Lua.Compiler
 
                 // enumerable = E.Runtime.GenericLoop(E, new LuaMultiValue(temp));
                 gen.Emit(OpCodes.Ldarg_1);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
                 gen.Emit(OpCodes.Ldarg_1);
                 gen.Emit(OpCodes.Ldarg_1);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
                 gen.Emit(OpCodes.Ldloc, temp);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("GenericLoop"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.GenericLoop)));
                 gen.Emit(OpCodes.Stloc, enumerable);
                 compiler.RemoveTemporary(temp);
 
                 // enumerator = enumerable.GetEnumerator();
                 gen.Emit(OpCodes.Ldloc, enumerable);
-                gen.Emit(OpCodes.Callvirt, typeof(IEnumerable<ILuaMultiValue>).GetMethod("GetEnumerator"));
+                gen.Emit(OpCodes.Callvirt, typeof(IEnumerable<ILuaMultiValue>).GetMethod(nameof(IEnumerable.GetEnumerator)));
                 gen.Emit(OpCodes.Stloc, enumerator);
 
                 // try {
@@ -226,12 +226,13 @@ namespace ModMaker.Lua.Compiler
 
                 // if (!enumerator.MoveNext) goto end;
                 gen.Emit(OpCodes.Ldloc, enumerator);
-                gen.Emit(OpCodes.Callvirt, typeof(IEnumerator).GetMethod("MoveNext"));
+                gen.Emit(OpCodes.Callvirt, typeof(IEnumerator).GetMethod(nameof(IEnumerator.MoveNext)));
                 gen.Emit(OpCodes.Brfalse, end);
 
                 // ILuaMultiValue ret = enumerator.Current;
                 gen.Emit(OpCodes.Ldloc, enumerator);
-                gen.Emit(OpCodes.Callvirt, typeof(IEnumerator<ILuaMultiValue>).GetMethod("get_Current"));
+                gen.Emit(OpCodes.Callvirt, typeof(IEnumerator<ILuaMultiValue>)
+                                               .GetProperty(nameof(IEnumerator<ILuaMultiValue>.Current)).GetGetMethod());
                 gen.Emit(OpCodes.Stloc, ret);
                 compiler.RemoveTemporary(enumerator);
 
@@ -265,7 +266,7 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldloc, enumerable);
                 gen.Emit(OpCodes.Brfalse, endFinally);
                 gen.Emit(OpCodes.Ldloc, enumerable);
-                gen.Emit(OpCodes.Callvirt, typeof(IDisposable).GetMethod("Dispose"));
+                gen.Emit(OpCodes.Callvirt, typeof(IDisposable).GetMethod(nameof(IDisposable.Dispose)));
                 gen.MarkLabel(endFinally);
                 compiler.RemoveTemporary(enumerable);
 
@@ -284,7 +285,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ForNumItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             target.Break.UserData = target.Break.UserData ?? gen.DefineLabel();
@@ -300,12 +301,12 @@ namespace ModMaker.Lua.Compiler
             {
                 // d = {Start}.AsDouble();
                 target.Start.Accept(this);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("AsDouble"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.AsDouble)));
                 gen.Emit(OpCodes.Stloc, d);
 
                 // if (d.HasValue) goto sj;
                 gen.Emit(OpCodes.Ldloca, d);
-                gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
+                gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.HasValue)).GetGetMethod());
                 gen.Emit(OpCodes.Brtrue, sj);
 
                 // err:
@@ -321,24 +322,24 @@ namespace ModMaker.Lua.Compiler
 
                 // val = d.Value;
                 gen.Emit(OpCodes.Ldloca, d);
-                gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
+                gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.Value)).GetGetMethod());
                 gen.Emit(OpCodes.Stloc, val);
 
                 if (target.Step != null)
                 {
                     // d = {Step}.AsDouble();
                     target.Step.Accept(this);
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("AsDouble"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.AsDouble)));
                     gen.Emit(OpCodes.Stloc, d);
 
                     // if (!d.HasValue) goto err;
                     gen.Emit(OpCodes.Ldloca, d);
-                    gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
+                    gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.HasValue)).GetGetMethod());
                     gen.Emit(OpCodes.Brfalse, err);
 
                     // step = d.Value;
                     gen.Emit(OpCodes.Ldloca, d);
-                    gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
+                    gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.Value)).GetGetMethod());
                 }
                 else
                 {
@@ -349,17 +350,17 @@ namespace ModMaker.Lua.Compiler
 
                 // d = {Limit}.AsDouble();
                 target.Limit.Accept(this);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("AsDouble"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.AsDouble)));
                 gen.Emit(OpCodes.Stloc, d);
 
                 // if (!d.HasValue) goto err;
                 gen.Emit(OpCodes.Ldloca, d);
-                gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_HasValue"));
+                gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.HasValue)).GetGetMethod());
                 gen.Emit(OpCodes.Brfalse, err);
 
                 // limit = d.Value;
                 gen.Emit(OpCodes.Ldloca, d);
-                gen.Emit(OpCodes.Callvirt, typeof(double?).GetMethod("get_Value"));
+                gen.Emit(OpCodes.Callvirt, typeof(double?).GetProperty(nameof(Nullable<double>.Value)).GetGetMethod());
                 gen.Emit(OpCodes.Stloc, limit);
                 compiler.RemoveTemporary(d);
 
@@ -394,10 +395,10 @@ namespace ModMaker.Lua.Compiler
                 var field = compiler.DefineLocal(target.Name);
                 field.StartSet();
                 gen.Emit(OpCodes.Ldarg_1);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
                 gen.Emit(OpCodes.Ldloc, val);
                 gen.Emit(OpCodes.Box, typeof(double));
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
                 field.EndSet();
 
                 // {Block}
@@ -429,7 +430,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(FuncCallItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             //// load the args into an array.
             ILGenerator gen = compiler.CurrentGenerator;
@@ -442,14 +443,14 @@ namespace ModMaker.Lua.Compiler
                 // self = {Prefix};
                 target.Prefix.Accept(this);
                 gen.Emit(OpCodes.Stloc, self);
-                    
+
                 // f = self.GetIndex(temp);
                 gen.Emit(OpCodes.Ldloc, self);
                 gen.Emit(OpCodes.Ldarg_1);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
                 gen.Emit(OpCodes.Ldstr, target.InstanceName);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("GetIndex"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.GetIndex)));
                 gen.Emit(OpCodes.Stloc, f);
             }
             else if (target.Prefix is IndexerItem)
@@ -474,7 +475,7 @@ namespace ModMaker.Lua.Compiler
             {
                 // self = LuaNil.Nil;
                 gen.Emit(OpCodes.Ldnull);
-                gen.Emit(OpCodes.Ldfld, typeof(LuaNil).GetField("Nil", BindingFlags.Static | BindingFlags.Public));
+                gen.Emit(OpCodes.Ldfld, typeof(LuaNil).GetField(nameof(LuaNil.Nil), BindingFlags.Static | BindingFlags.Public));
                 gen.Emit(OpCodes.Stloc, self);
 
                 // f = {Prefix};
@@ -491,16 +492,16 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Arguments[i].Expression.Accept(this);
                 if (i + 1 == target.Arguments.Count && target.IsLastArgSingle)
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
             
             // var rargs = E.Runtime.CreateMultiValue(args);
             var rargs = compiler.CreateTemporary(typeof(ILuaMultiValue));
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             gen.Emit(OpCodes.Ldloc, args);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
             gen.Emit(OpCodes.Stloc, rargs);
             compiler.RemoveTemporary(args);
 
@@ -512,7 +513,7 @@ namespace ModMaker.Lua.Compiler
             gen.Emit(OpCodes.Ldloc, rargs);
             if (target.IsTailCall)
                 gen.Emit(OpCodes.Tailcall);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
             compiler.RemoveTemporary(f);
             compiler.RemoveTemporary(self);
 
@@ -548,7 +549,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(FuncDefItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             var gen = compiler.CurrentGenerator;
             ChunkBuilder.VarDefinition field = null;
@@ -583,9 +584,9 @@ namespace ModMaker.Lua.Compiler
                     // {Prefix}.SetIndex({InstanceName}, {ImplementFunction(..)})
                     target.Prefix.Accept(this);
                     gen.Emit(OpCodes.Ldarg_1);
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
                     gen.Emit(OpCodes.Ldstr, target.InstanceName);
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
                     store = true;
                 }
                 else if (target.Prefix is IndexerItem)
@@ -612,7 +613,7 @@ namespace ModMaker.Lua.Compiler
             if (field != null)
                 field.EndSet();
             else if (store)
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("SetIndex"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.SetIndex)));
 
             return target;
         }
@@ -625,7 +626,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(GotoItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             if (target.Target == null)
                 throw new InvalidOperationException(Resources.ErrorResolveLabel);
@@ -642,14 +643,14 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(IfItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             Label next = gen.DefineLabel(), end = gen.DefineLabel();
 
             // if (!{Exp}.IsTrue) goto next;
             target.Exp.Accept(this);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("get_IsTrue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
             gen.Emit(OpCodes.Brfalse, next);
 
             // {Block}
@@ -665,7 +666,7 @@ namespace ModMaker.Lua.Compiler
                 // if (!{item.Item1}.IsTrue) goto next;
                 next = gen.DefineLabel();
                 item.Expression.Accept(this);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("get_IsTrue"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
                 gen.Emit(OpCodes.Brfalse, next);
 
                 // {item.Item2}
@@ -694,13 +695,13 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(IndexerItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             //! push {Prefix}.GetIndex({Expression})
             var gen = compiler.CurrentGenerator;
             target.Prefix.Accept(this);
             target.Expression.Accept(this);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("GetIndex"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.GetIndex)));
 
             return target;
         }
@@ -713,7 +714,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(LabelItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.UserData = target.UserData ?? compiler.CurrentGenerator.DefineLabel();
             compiler.CurrentGenerator.MarkLabel((Label)target.UserData);
@@ -729,13 +730,13 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(LiteralItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             object Value = target.Value;
 
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             if (Value == null)
             {
                 gen.Emit(OpCodes.Ldnull);
@@ -759,7 +760,7 @@ namespace ModMaker.Lua.Compiler
             }
             else
                 throw new InvalidOperationException(Resources.InvalidLiteralType);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateValue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
 
             return target;
         }
@@ -772,7 +773,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(NameItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             // get the vaue of the given name and push onto stack.
             var field = compiler.FindVariable(target);
@@ -789,7 +790,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(RepeatItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             target.Break.UserData = target.Break.UserData ?? gen.DefineLabel();
@@ -804,7 +805,7 @@ namespace ModMaker.Lua.Compiler
 
             // if (!{Exp}.IsTrue) goto start;
             target.Expression.Accept(this);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("get_IsTrue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
             gen.Emit(OpCodes.Brfalse, start);
 
             // end:
@@ -821,7 +822,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ReturnItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             if (target.Expressions.Count == 1 && target.Expressions[0] is FuncCallItem &&
@@ -842,15 +843,15 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Expressions[i].Accept(this);
                 if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle)
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
 
             //! push E.Runtime.CreateMultiValue(loc)
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
             compiler.RemoveTemporary(loc);
             
             return target;
@@ -864,15 +865,15 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(TableItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             var gen = compiler.CurrentGenerator;
             var loc = compiler.CreateTemporary(typeof(ILuaValue));
 
             // loc = E.Runtime.CreateTable();
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateTable"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateTable)));
             gen.Emit(OpCodes.Stloc, loc);
 
             foreach (var item in target.Fields)
@@ -882,7 +883,7 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldloc, loc);
                 item.Key.Accept(this);
                 item.Value.Accept(this);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("SetIndex"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.SetIndex)));
             }
 
             //! push loc;
@@ -900,7 +901,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(UnOpItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
 
@@ -909,13 +910,13 @@ namespace ModMaker.Lua.Compiler
             switch (target.OperationType)
             {
                 case UnaryOperationType.Minus:
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Minus"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Minus)));
                     break;
                 case UnaryOperationType.Not:
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Not"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Not)));
                     break;
                 case UnaryOperationType.Length:
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Length"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Length)));
                     break;
             }
 
@@ -930,7 +931,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(AssignmentItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
 
@@ -961,16 +962,16 @@ namespace ModMaker.Lua.Compiler
                 gen.Emit(OpCodes.Ldc_I4, i);
                 target.Expressions[i].Accept(this);
                 if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle)
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Single"));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
 
             // ILuaMultiValue exp = E.Runtime.CreateMultiValue(loc);
             LocalBuilder exp = compiler.CreateTemporary(typeof(ILuaMultiValue));
             gen.Emit(OpCodes.Ldarg_1);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
             gen.Emit(OpCodes.Stloc, exp);
             compiler.RemoveTemporary(loc);
 
@@ -1008,7 +1009,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(WhileItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             ILGenerator gen = compiler.CurrentGenerator;
             target.Break.UserData = target.Break.UserData ?? gen.DefineLabel();
@@ -1020,7 +1021,7 @@ namespace ModMaker.Lua.Compiler
 
             // if (!{Exp}.IsTrue) goto end;
             target.Exp.Accept(this);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("get_IsTrue"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
             gen.Emit(OpCodes.Brfalse, end);
 
             // {Block}
@@ -1061,7 +1062,7 @@ namespace ModMaker.Lua.Compiler
                 else
                     name.Expression.Accept(this);
                 getValue();
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("SetIndex"));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.SetIndex)));
                 return;
             }
             else // names[i] is NameItem

@@ -24,9 +24,9 @@ namespace ModMaker.Lua.Parser.Items
         public ForGenItem(IEnumerable<NameItem> names)
         {
             if (names == null)
-                throw new ArgumentNullException("names");
+                throw new ArgumentNullException(nameof(names));
             if (names.Contains(null))
-                throw new ArgumentException(string.Format(Resources.CannotContainNull, "Names"));
+                throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(names)));
 
             this.names = names.ToArray();
             this.exps = new List<IParseExp>();
@@ -72,7 +72,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Parser.Items
         public void AddExpression(IParseExp item)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             exps.Add(item);
         }

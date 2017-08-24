@@ -99,7 +99,7 @@ namespace ModMaker.Lua
         public LuaIgnoreAttribute(Type behavesAs)
         {
             if (behavesAs == null)
-                throw new ArgumentNullException("behavesAs");
+                throw new ArgumentNullException(nameof(behavesAs));
 
             this.AccessMembers = null; // all members are visible.
             this.IgnoreMembers = null;
@@ -148,9 +148,9 @@ namespace ModMaker.Lua
         public static bool IsMemberVisible(Type backing, string member, string[] access, string[] ignore, bool definedOnly, Type behavesAs)
         {
             if (backing == null)
-                throw new ArgumentNullException("backing");
+                throw new ArgumentNullException(nameof(backing));
             if (member == null)
-                throw new ArgumentNullException("member");
+                throw new ArgumentNullException(nameof(member));
 
             if (access != null)
             {

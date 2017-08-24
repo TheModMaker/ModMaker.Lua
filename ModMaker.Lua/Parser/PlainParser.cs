@@ -76,7 +76,7 @@ namespace ModMaker.Lua.Parser
         public IParseItem Parse(ITokenizer input, string name, string hash)
         {
             if (input == null)
-                throw new ArgumentNullException("input");
+                throw new ArgumentNullException(nameof(input));
 
             // check if the chunk is already loaded
             if (UseCache)
@@ -118,9 +118,9 @@ namespace ModMaker.Lua.Parser
         public static IParseItem Parse(IParser parser, string dump, string name)
         {
             if (parser == null)
-                throw new ArgumentNullException("parser");
+                throw new ArgumentNullException(nameof(parser));
             if (dump == null)
-                throw new ArgumentNullException("dump");
+                throw new ArgumentNullException(nameof(dump));
 
             TextElementEnumerator reader = StringInfo.GetTextElementEnumerator(dump);
             Tokenizer input = new Tokenizer(reader, name);

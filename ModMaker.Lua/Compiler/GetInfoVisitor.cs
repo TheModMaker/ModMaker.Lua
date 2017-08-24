@@ -34,7 +34,7 @@ namespace ModMaker.Lua.Compiler
         public void Resolve(IParseItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             tree = new GetInfoTree();
             target.Accept(this);
@@ -54,7 +54,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(BinOpItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Lhs.Accept(this);
             target.Rhs.Accept(this);
@@ -69,7 +69,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(BlockItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             using (tree.Block(true))
             {
@@ -100,7 +100,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ForGenItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             using (tree.Block(true))
             {
@@ -123,7 +123,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ForNumItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             using (tree.Block(true))
             {
@@ -149,7 +149,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(FuncCallItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             foreach (var item in target.Arguments)
                 item.Expression.Accept(this);
@@ -166,7 +166,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(FuncDefItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             if (target.Local)
             {
@@ -191,7 +191,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(GotoItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             tree.DefineGoto(target);
             return target;
@@ -205,7 +205,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(IfItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Exp.Accept(this);
 
@@ -238,7 +238,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(IndexerItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Prefix.Accept(this);
             target.Expression.Accept(this);
@@ -254,7 +254,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(LabelItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             tree.DefineLabel(target);
 
@@ -279,7 +279,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(NameItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             tree.GetName(target);
 
@@ -294,7 +294,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(RepeatItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Expression.Accept(this);
 
@@ -315,7 +315,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(ReturnItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             foreach (var item in target.Expressions)
                 item.Accept(this);
@@ -331,7 +331,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(TableItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             foreach (var item in target.Fields)
             {
@@ -350,7 +350,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(UnOpItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Target.Accept(this);
 
@@ -365,7 +365,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(AssignmentItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             if (target.Local)
             {
@@ -391,7 +391,7 @@ namespace ModMaker.Lua.Compiler
         public IParseItem Visit(WhileItem target)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             target.Exp.Accept(this);
 

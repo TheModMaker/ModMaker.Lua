@@ -61,7 +61,7 @@ namespace ModMaker.Lua.Parser.Items
         public FuncCallItem(IParseExp prefix, string instance, int overload)
         {
             if (prefix == null)
-                throw new ArgumentNullException("prefix");
+                throw new ArgumentNullException(nameof(prefix));
 
             this.prefix = prefix;
             this.args = new List<ArgumentInfo>();
@@ -88,7 +88,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 prefix = value;
             }
         }
@@ -138,7 +138,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
@@ -151,7 +151,7 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseExp item, bool byRef)
         {
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             args.Add(new ArgumentInfo(item, byRef));
         }

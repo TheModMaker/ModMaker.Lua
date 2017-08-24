@@ -49,7 +49,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
@@ -61,7 +61,7 @@ namespace ModMaker.Lua.Parser.Items
         public void AddItem(IParseStatement child)
         {
             if (child == null)
-                throw new ArgumentNullException("child");
+                throw new ArgumentNullException(nameof(child));
 
             this.children.Add(child);
         }
@@ -75,9 +75,9 @@ namespace ModMaker.Lua.Parser.Items
         public void AddRange(IEnumerable<IParseStatement> children)
         {
             if (children == null)
-                throw new ArgumentNullException("children");
+                throw new ArgumentNullException(nameof(children));
             if (children.Contains(null))
-                throw new ArgumentException(string.Format(Resources.CannotContainNull, "Children"));
+                throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(children)));
 
             this.children.AddRange(children);
         }

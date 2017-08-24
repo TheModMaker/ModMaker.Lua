@@ -52,7 +52,7 @@ namespace ModMaker.Lua.Compiler
         public void Save(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             if (!name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                 name += ".dll";
@@ -78,7 +78,7 @@ namespace ModMaker.Lua.Compiler
         public void Save(string name, bool doOverride)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             if (File.Exists(name) && doOverride)
                 File.Delete(name);
@@ -104,9 +104,9 @@ namespace ModMaker.Lua.Compiler
         public ILuaValue Compile(ILuaEnvironment E, IParseItem item, string name)
         {
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
             if (item == null)
-                throw new ArgumentNullException("item");
+                throw new ArgumentNullException(nameof(item));
 
             // get the name
             name = name ?? "<>_func_" + (_tid++);
@@ -148,11 +148,11 @@ namespace ModMaker.Lua.Compiler
         public Delegate CreateDelegate(ILuaEnvironment E, Type type, ILuaValue method)
         {
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
             if (method == null)
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
             if (!typeof(Delegate).IsAssignableFrom(type.BaseType))
                 throw new ArgumentException(Resources.DeriveFromDelegate);
 
@@ -200,9 +200,9 @@ namespace ModMaker.Lua.Compiler
             // ILuaMultiValue methodArgs = E.Runtime.CreateMultiValueFromObj(loc);
             LocalBuilder methodArgs = gen.DeclareLocal(typeof(ILuaMultiValue));
             gen.Emit(OpCodes.Ldfld, E);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetMethod("get_Runtime"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod("CreateMultiValueFromObj"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValueFromObj)));
             gen.Emit(OpCodes.Stloc, methodArgs);
 
             // ret = this.meth.Invoke(LuaNil.Nil, false, -1, methodArgs)
@@ -210,11 +210,11 @@ namespace ModMaker.Lua.Compiler
             gen.Emit(OpCodes.Ldarg_0);
             gen.Emit(OpCodes.Ldfld, meth);
             gen.Emit(OpCodes.Ldnull);
-            gen.Emit(OpCodes.Ldfld, typeof(LuaNil).GetField("Nil", BindingFlags.Static | BindingFlags.Public));
+            gen.Emit(OpCodes.Ldfld, typeof(LuaNil).GetField(nameof(LuaNil.Nil), BindingFlags.Static | BindingFlags.Public));
             gen.Emit(OpCodes.Ldc_I4_0);
             gen.Emit(OpCodes.Ldc_I4_M1);
             gen.Emit(OpCodes.Ldloc, methodArgs);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
+            gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
             gen.Emit(OpCodes.Stloc, ret);
 
             // Store any by-ref parameters in the arguments
@@ -226,7 +226,8 @@ namespace ModMaker.Lua.Compiler
                     gen.Emit(OpCodes.Ldloc, methodArgs);
                     gen.Emit(OpCodes.Ldc_I4, i);
                     gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
-                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(args[i].ParameterType));
+                    gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
+                                                                .MakeGenericMethod(args[i].ParameterType));
                     gen.Emit(OpCodes.Starg, i+1);
                 }
             }
@@ -235,7 +236,8 @@ namespace ModMaker.Lua.Compiler
             if (delegateMethod.ReturnType != null && delegateMethod.ReturnType != typeof(void))
             {
                 gen.Emit(OpCodes.Ldloc, ret);
-                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("As").MakeGenericMethod(delegateMethod.ReturnType));
+                gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
+                                                            .MakeGenericMethod(delegateMethod.ReturnType));
             }
             gen.Emit(OpCodes.Ret);
 

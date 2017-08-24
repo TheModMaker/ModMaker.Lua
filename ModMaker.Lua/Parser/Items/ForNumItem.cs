@@ -22,11 +22,11 @@ namespace ModMaker.Lua.Parser.Items
         public ForNumItem(NameItem name, IParseExp start, IParseExp limit, IParseExp step)
         {
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             if (start == null)
-                throw new ArgumentNullException("start");
+                throw new ArgumentNullException(nameof(start));
             if (limit == null)
-                throw new ArgumentNullException("limit");
+                throw new ArgumentNullException(nameof(limit));
 
             this.start = start;
             this.limit = limit;
@@ -53,7 +53,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 start = value;
             }
         }
@@ -67,7 +67,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 limit = value;
             }
         }
@@ -99,7 +99,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }

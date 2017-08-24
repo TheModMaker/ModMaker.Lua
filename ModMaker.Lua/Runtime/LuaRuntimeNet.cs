@@ -180,9 +180,9 @@ namespace ModMaker.Lua.Runtime
         {
             // TODO: Replace this.
             if (args == null)
-                throw new ArgumentNullException("args");
+                throw new ArgumentNullException(nameof(args));
             if (E == null)
-                throw new ArgumentNullException("E");
+                throw new ArgumentNullException(nameof(E));
 
             ILuaValue target = args[0];
             object temp = target.GetValue();

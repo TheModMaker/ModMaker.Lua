@@ -101,7 +101,7 @@ namespace ModMaker.Lua.Runtime
         public LuaEnvironmentNet(LuaSettings settings)
         {
             if (settings == null)
-                throw new ArgumentNullException("settings");
+                throw new ArgumentNullException(nameof(settings));
 
             this._globals = new LuaValues.LuaTable();
             this._runtime = LuaRuntimeNet.Create(this);
@@ -163,7 +163,7 @@ namespace ModMaker.Lua.Runtime
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 lock (this)
                     _runtime = value;
             }
@@ -180,7 +180,7 @@ namespace ModMaker.Lua.Runtime
             protected set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 lock (this)
                     _globals = value;
             }
@@ -197,7 +197,7 @@ namespace ModMaker.Lua.Runtime
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 lock (this)
                     _compiler = value;
             }
@@ -214,7 +214,7 @@ namespace ModMaker.Lua.Runtime
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 lock (this)
                     _parser = value;
             }
@@ -231,7 +231,7 @@ namespace ModMaker.Lua.Runtime
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
 
                 _modules = value;
             }
@@ -248,9 +248,9 @@ namespace ModMaker.Lua.Runtime
         public virtual void RegisterDelegate(Delegate d, string name)
         {
             if (d == null)
-                throw new ArgumentNullException("d");
+                throw new ArgumentNullException(nameof(d));
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             lock (this)
             {
@@ -282,9 +282,9 @@ namespace ModMaker.Lua.Runtime
         public virtual void RegisterType(Type t, string name)
         {
             if (t == null)
-                throw new ArgumentNullException("t");
+                throw new ArgumentNullException(nameof(t));
             if (name == null)
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
 
             lock (this)
             {
@@ -355,7 +355,7 @@ namespace ModMaker.Lua.Runtime
                 lock (this)
                     o = GlobalsTable.GetItemRaw(_runtime.CreateValue(indexes[0]));
 
-                MethodInfo asMethod = typeof(ILuaValue).GetMethod("As").MakeGenericMethod(binder.ReturnType);
+                MethodInfo asMethod = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
                 result = asMethod.Invoke(o, null);
                 if (result is double)
                     result = new NumberProxy((double)result);
@@ -419,7 +419,7 @@ namespace ModMaker.Lua.Runtime
             lock (this)
                 o = GlobalsTable.GetItemRaw(_runtime.CreateValue(binder.Name));
 
-            MethodInfo asMethod = typeof(ILuaValue).GetMethod("As").MakeGenericMethod(binder.ReturnType);
+            MethodInfo asMethod = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
             result = asMethod.Invoke(o, null);
             if (result is double)
                 result = new NumberProxy((double)result);

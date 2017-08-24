@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Parser.Items
         public UnOpItem(IParseExp target, UnaryOperationType type)
         {
             if (target == null)
-                throw new ArgumentNullException("target");
+                throw new ArgumentNullException(nameof(target));
 
             this.target = target;
             this.OperationType = type;
@@ -57,7 +57,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 target = value;
             }
         }
@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }

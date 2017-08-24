@@ -93,9 +93,9 @@ namespace ModMaker.Lua.Parser.Items
         public BinOpItem(IParseExp lhs, BinaryOperationType type, IParseExp rhs)
         {
             if (lhs == null)
-                throw new ArgumentNullException("lhs");
+                throw new ArgumentNullException(nameof(lhs));
             if (rhs == null)
-                throw new ArgumentNullException("rhs");
+                throw new ArgumentNullException(nameof(rhs));
 
             this.lhs = lhs;
             this.rhs = rhs;
@@ -112,7 +112,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 this.lhs = value;
             }
         }
@@ -126,7 +126,7 @@ namespace ModMaker.Lua.Parser.Items
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException("value");
+                    throw new ArgumentNullException(nameof(value));
                 this.rhs = value;
             }
         }
@@ -154,7 +154,7 @@ namespace ModMaker.Lua.Parser.Items
         public IParseItem Accept(IParseItemVisitor visitor)
         {
             if (visitor == null)
-                throw new ArgumentNullException("visitor");
+                throw new ArgumentNullException(nameof(visitor));
 
             return visitor.Visit(this);
         }
