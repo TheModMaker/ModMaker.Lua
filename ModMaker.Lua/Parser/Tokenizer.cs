@@ -233,8 +233,6 @@ namespace ModMaker.Lua.Parser
             }
 
             // otherwise simply return the read text-element
-            ret.EndPos = Position;
-            ret.EndLine = Line;
             ret.Value = last;
             return ret;
         }
@@ -282,8 +280,6 @@ namespace ModMaker.Lua.Parser
                         depth++;
                     else if (temp == "\n")
                     {
-                        ret.EndLine = Line;
-                        ret.EndPos = Position;
                         ret.Value = build.ToString();
                         return ret;
                     }
@@ -326,8 +322,6 @@ namespace ModMaker.Lua.Parser
                 }
             }
 
-            ret.EndLine = Line;
-            ret.EndPos = Position;
             ret.Value = build.ToString();
 
             if (PeekElement() == null && depth != curDepth)
@@ -478,8 +472,6 @@ namespace ModMaker.Lua.Parser
                     str.Append(temp);
             }
 
-            ret.EndPos = Position;
-            ret.EndLine = Line;
             ret.Value = str.ToString();
             return ret;
         }
@@ -525,8 +517,6 @@ namespace ModMaker.Lua.Parser
                 last = PeekElement();
             }
 
-            ret.EndLine = Line;
-            ret.EndPos = Position;
             ret.Value = str.ToString();
             return ret;
         }

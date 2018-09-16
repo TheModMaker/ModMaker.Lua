@@ -28,33 +28,21 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         public long StartPos;
         /// <summary>
-        /// The ending position of the token.
-        /// </summary>
-        public long EndPos;
-        /// <summary>
         /// The starting line of the token.
         /// </summary>
         public long StartLine;
-        /// <summary>
-        /// The ending line of the token.
-        /// </summary>
-        public long EndLine;
 
         /// <summary>
         /// Creates a new token with the given values.
         /// </summary>
         /// <param name="value">The string value of the token.</param>
         /// <param name="startPos">The starting position of the token.</param>
-        /// <param name="endPos">The ending position of the token.</param>
         /// <param name="startLine">The starting line of the token.</param>
-        /// <param name="endLine">The ending line of the token.</param>
-        public Token(string value, long startPos, long endPos, long startLine, long endLine)
+        public Token(string value, long startPos, long startLine)
         {
             this.Value = value;
             this.StartPos = startPos;
-            this.EndPos = endPos;
             this.StartLine = startLine;
-            this.EndLine = endLine;
         }
 
         /// <summary>
@@ -66,8 +54,7 @@ namespace ModMaker.Lua.Parser
         public static bool operator ==(Token lhs, Token rhs)
         {
             return lhs.Value == rhs.Value && lhs.StartPos == rhs.StartPos &&
-                lhs.EndPos == rhs.EndPos && lhs.StartLine == rhs.StartLine &&
-                lhs.EndLine == rhs.EndLine;
+                lhs.StartLine == rhs.StartLine;
         }
         /// <summary>
         /// Checks whether two tokens are not equal.
@@ -78,8 +65,7 @@ namespace ModMaker.Lua.Parser
         public static bool operator !=(Token lhs, Token rhs)
         {
             return lhs.Value != rhs.Value || lhs.StartPos != rhs.StartPos ||
-                lhs.EndPos != rhs.EndPos || lhs.StartLine != rhs.StartLine ||
-                lhs.EndLine != rhs.EndLine;
+                lhs.StartLine != rhs.StartLine;
         }
 
         /// <summary>
@@ -95,8 +81,7 @@ namespace ModMaker.Lua.Parser
             {
                 Token rhs = (Token)obj;
                 return Value == rhs.Value && StartPos == rhs.StartPos &&
-                    EndPos == rhs.EndPos && StartLine == rhs.StartLine &&
-                    EndLine == rhs.EndLine;
+                    StartLine == rhs.StartLine;
             }
             return false;
         }
@@ -109,21 +94,7 @@ namespace ModMaker.Lua.Parser
         {
             return Value.GetHashCode() ^
                 (StartPos.GetHashCode() << 6 | StartPos.GetHashCode() >> 26) ^
-                (EndPos.GetHashCode() << 12 | EndPos.GetHashCode() >> 20) ^
-                (StartLine.GetHashCode() << 18 | StartLine.GetHashCode() >> 14) ^
-                (EndLine.GetHashCode() << 24 | EndLine.GetHashCode() >> 8);
-        }
-
-        /// <summary>
-        /// Appends the given token value to this token.
-        /// </summary>
-        /// <param name="other">The other token to add to.</param>
-        public void Append(Token other)
-        {
-            this.EndLine = other.EndLine;
-            this.EndPos = other.EndPos;
-            this.Value += " " + other.Value;
-            this.Value = this.Value.Trim();
+                (StartLine.GetHashCode() << 18 | StartLine.GetHashCode() >> 14);
         }
     }
 

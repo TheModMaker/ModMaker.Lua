@@ -43,36 +43,36 @@ end"
             );
             Tokenizer tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 9, Value = "function" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 14, EndPos = 15, Value = "(" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 15, EndPos = 16, Value = ")" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, EndLine = 2, StartPos = 5, EndPos = 10, Value = "local" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, EndLine = 2, StartPos = 11, EndPos = 12, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, EndLine = 2, StartPos = 13, EndPos = 14, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, EndLine = 2, StartPos = 15, EndPos = 17, Value = "12" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 5, EndPos = 6, Value = "t" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 7, EndPos = 8, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 8, EndPos = 9, Value = "{" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 10, EndPos = 11, Value = "[" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 11, EndPos = 13, Value = "12" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 13, EndPos = 14, Value = "]" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 15, EndPos = 16, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 17, EndPos = 18, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 18, EndPos = 19, Value = "," }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 20, EndPos = 23, Value = "cat" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 23, EndPos = 24, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 24, EndPos = 33, Value = "12.345456" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, EndLine = 3, StartPos = 34, EndPos = 35, Value = "}" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, EndLine = 4, StartPos = 5, EndPos = 8, Value = "str" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, EndLine = 4, StartPos = 9, EndPos = 10, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, EndLine = 4, StartPos = 11, EndPos = 53, Value = "\"this is a test string with \"escapes\"\n" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, EndLine = 5, StartPos = 5, EndPos = 7, Value = "::" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, EndLine = 5, StartPos = 7, EndPos = 13, Value = "potato" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, EndLine = 5, StartPos = 13, EndPos = 15, Value = "::" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 6, EndLine = 6, StartPos = 1, EndPos = 4, Value = "end" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "function" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 5, Value = "local" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 11, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 13, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 15, Value = "12" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 5, Value = "t" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 7, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 8, Value = "{" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 10, Value = "[" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 11, Value = "12" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 13, Value = "]" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 15, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 17, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 18, Value = "," }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 20, Value = "cat" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 23, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 24, Value = "12.345456" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 34, Value = "}" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 5, Value = "str" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 9, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 11, Value = "\"this is a test string with \"escapes\"\n" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 5, Value = "::" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 7, Value = "potato" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 13, Value = "::" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 6, StartPos = 1, Value = "end" }, tokenizer.Read());
 
-            Assert.AreEqual(new Token() { StartLine = 0, EndLine = 0, StartPos = 0, EndPos = 0, Value = null }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
         }
 
         /// <summary>
@@ -85,34 +85,34 @@ end"
             var reader = StringInfo.GetTextElementEnumerator(@"function test()");
             Tokenizer tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 9, Value = "function" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "function" }, tokenizer.Read());
 
             // check for multiple calls to Peek
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Peek());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Peek());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
 
             // check that peek changes
             Token next = tokenizer.Read();
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, next);
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 14, EndPos = 15, Value = "(" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, next);
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Peek());
 
             Token next2 = tokenizer.Read();
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 14, EndPos = 15, Value = "(" }, next2);
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 15, EndPos = 16, Value = ")" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, next2);
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Peek());
 
             // check that PushBack works putting things back
             tokenizer.PushBack(next2);
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 14, EndPos = 15, Value = "(" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Peek());
             tokenizer.PushBack(next);
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Peek());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
 
             // check that PushBack works after several calls and in the correct order.
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 10, EndPos = 14, Value = "test" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 14, EndPos = 15, Value = "(" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 15, EndPos = 16, Value = ")" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10,  Value = "test" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Read());
 
-            Assert.AreEqual(new Token() { StartLine = 0, EndLine = 0, StartPos = 0, EndPos = 0, Value = null }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
         }
 
         /// <summary>
@@ -131,12 +131,12 @@ end"
             );
             Tokenizer tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 2, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 3, EndPos = 4, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 5, StartPos = 5, EndPos = 21, Value = "\"this is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 6, EndLine = 6, StartPos = 1, EndPos = 4, Value = "end" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 5, Value = "\"this is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 6, StartPos = 1, Value = "end" }, tokenizer.Read());
 
-            Assert.AreEqual(new Token() { StartLine = 0, EndLine = 0, StartPos = 0, EndPos = 0, Value = null }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
         }
 
         /// <summary>
@@ -153,8 +153,8 @@ end"
             );
             Tokenizer tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 2, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 3, EndPos = 4, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
 
             try
             {
@@ -170,8 +170,8 @@ end"
             reader = StringInfo.GetTextElementEnumerator(@"v = foo``");
             tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 2, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 3, EndPos = 4, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
 
             try
             {
@@ -187,8 +187,8 @@ end"
             reader = StringInfo.GetTextElementEnumerator(@"v = foo`23e");
             tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 1, EndPos = 2, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, EndLine = 1, StartPos = 3, EndPos = 4, Value = "=" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
+            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
 
             try
             {

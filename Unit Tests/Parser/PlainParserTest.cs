@@ -26,13 +26,11 @@ namespace UnitTests.Parser
     [TestFixture]
     public class PlainParserTest
     {
-        void ValidateDebug(Token debug, string prefix, string value, long startLine, long startPos, long endLine, long endPos)
+        void ValidateDebug(Token debug, string prefix, string value, long startLine, long startPos)
         {
             Assert.AreEqual(value, debug.Value, prefix + ".Debug.Value");
             Assert.AreEqual(startLine, debug.StartLine, prefix + ".Debug.StartLine");
             Assert.AreEqual(startPos, debug.StartPos, prefix + ".Debug.StartPos");
-            Assert.AreEqual(endLine, debug.EndLine, prefix + ".Debug.StartLine");
-            Assert.AreEqual(endPos, debug.EndPos, prefix + ".Debug.EndPos");
         }
 
         /// <summary>
@@ -61,13 +59,13 @@ end"
             Assert.IsInstanceOf<BlockItem>(actual);
             Assert.IsNotNull(block.Children);
             Assert.AreEqual(3, block.Children.Count, "Block.Children.Count");
-            ValidateDebug(block.Debug, "Block", "local a = 12 t = { [ 34 ] = function ( ) print ( i ) end } function Some ( a , ... ) a , b , c = ... for i = 12 , 23 do print ( i ) end end", 1, 1, 8, 4);
+            ValidateDebug(block.Debug, "Block", "local", 1, 1);
 
             // check the return statement of the main block
             {
                 ReturnItem ret = block.Return;
                 Assert.IsInstanceOf<ReturnItem>(block.Return);
-                ValidateDebug(ret.Debug, "Block.Return", null, 0, 0, 0, 0);
+                ValidateDebug(ret.Debug, "Block.Return", null, 0, 0);
                 Assert.IsNotNull(ret.Expressions);
                 Assert.AreEqual(0, ret.Expressions.Count);
             }
@@ -77,7 +75,7 @@ end"
                 AssignmentItem init = block.Children[0] as AssignmentItem;
                 Assert.IsNotNull(init, "Block.Children[0]");
                 Assert.AreEqual(true, init.Local);
-                ValidateDebug(init.Debug, "Block.Children[0]", "local a = 12", 1, 1, 1, 13);
+                ValidateDebug(init.Debug, "Block.Children[0]", "local", 1, 1);
 
                 // check the names
                 {
@@ -87,7 +85,7 @@ end"
                     NameItem name = init.Names[0] as NameItem;
                     Assert.IsNotNull(name, "Block.Children[0].Names[0]");
                     Assert.AreEqual("a", name.Name, "Block.Children[0].Names[0].Name");
-                    ValidateDebug(name.Debug, "Block.Children[0].Names[0]", "a", 1, 7, 1, 8);
+                    ValidateDebug(name.Debug, "Block.Children[0].Names[0]", "a", 1, 7);
                 }
 
                 // check the expressions
@@ -98,7 +96,7 @@ end"
                     LiteralItem literal = init.Expressions[0] as LiteralItem;
                     Assert.IsNotNull(literal, "Block.Children[0].Expressions[0]");
                     Assert.AreEqual(12.0, literal.Value, "Block.Children[0].Expressions[0].Value");
-                    ValidateDebug(literal.Debug, "Block.Children[0].Expressions[0]", "12", 1, 11, 1, 13);
+                    ValidateDebug(literal.Debug, "Block.Children[0].Expressions[0]", "12", 1, 11);
                 }
             }
 
@@ -107,7 +105,7 @@ end"
                 AssignmentItem init = block.Children[1] as AssignmentItem;
                 Assert.IsNotNull(init, "Block.Children[1]");
                 Assert.AreEqual(false, init.Local);
-                ValidateDebug(init.Debug, "Block.Children[1]", "t = { [ 34 ] = function ( ) print ( i ) end }", 2, 1, 2, 38);
+                ValidateDebug(init.Debug, "Block.Children[1]", "t", 2, 1);
 
                 // check the names
                 {
@@ -117,7 +115,7 @@ end"
                     NameItem name = init.Names[0] as NameItem;
                     Assert.IsNotNull(name, "Block.Children[1].Names[0]");
                     Assert.AreEqual("t", name.Name, "Block.Children[1].Names[0].Name");
-                    ValidateDebug(name.Debug, "Block.Children[1].Names[0]", "t", 2, 1, 2, 2);
+                    ValidateDebug(name.Debug, "Block.Children[1].Names[0]", "t", 2, 1);
                 }
 
                 // check the expressions
@@ -127,7 +125,7 @@ end"
 
                     TableItem table = init.Expressions[0] as TableItem;
                     Assert.IsNotNull(table, "Block.Children[1].Expressions[0]");
-                    ValidateDebug(table.Debug, "Block.Children[1].Expressions[0]", "{ [ 34 ] = function ( ) print ( i ) end }", 2, 5, 2, 38);
+                    ValidateDebug(table.Debug, "Block.Children[1].Expressions[0]", "{", 2, 5);
 
                     Assert.IsNotNull(table.Fields, "Block.Children[1].Expressions[0].Fields");
                     Assert.AreEqual(1, table.Fields.Count, "Block.Children[1].Expressions[0].Fields.Count");
@@ -137,7 +135,7 @@ end"
                         LiteralItem literal = field.Key as LiteralItem;
                         Assert.IsNotNull(literal, "Block.Children[1].Expressions[0].Fields[0].Item1");
                         Assert.AreEqual(34.0, literal.Value, "Block.Children[1].Expressions[0].Fields[0].Item1.Value");
-                        ValidateDebug(literal.Debug, "Block.Children[1].Expressions[0].Fields[0].Item1", "34", 2, 8, 2, 10);
+                        ValidateDebug(literal.Debug, "Block.Children[1].Expressions[0].Fields[0].Item1", "34", 2, 8);
                     }
                     {
                         FuncDefItem func = field.Value as FuncDefItem;
@@ -146,20 +144,20 @@ end"
                         Assert.IsNull(func.Prefix, "Block.Children[1].Expressions[0].Fields[0].Item2.Prefix");
                         Assert.AreEqual(false, func.Local, "Block.Children[1].Expressions[0].Fields[0].Item2.Local");
                         Assert.IsNull(func.FunctionInformation, "Block.Children[1].Expressions[0].Fields[0].Item2.FunctionInformation");
-                        ValidateDebug(func.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2", "function ( ) print ( i ) end", 2, 13, 2, 36);
+                        ValidateDebug(func.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2", "function", 2, 13);
 
                         // validate the block
                         {
                             BlockItem funcBlock = func.Block;
                             Assert.IsNotNull(funcBlock, "Block.Children[1].Expressions[0].Fields[0].Item2.Block");
-                            ValidateDebug(funcBlock.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block", "print ( i )", 2, 24, 2, 32);
+                            ValidateDebug(funcBlock.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block", "print", 2, 24);
 
 
                             // validate the return
                             {
                                 ReturnItem ret = funcBlock.Return;
                                 Assert.IsNotNull(ret, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return");
-                                ValidateDebug(ret.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return", null, 0, 0, 0, 0);
+                                ValidateDebug(ret.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return", null, 0, 0);
                                 Assert.IsNotNull(ret.Expressions, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions");
                                 Assert.AreEqual(0, ret.Expressions.Count, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions.Count");
                             }
@@ -175,14 +173,14 @@ end"
                                     Assert.IsNotNull(call, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0]");
                                     Assert.AreEqual(true, call.Statement, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Statement");
                                     Assert.IsNull(call.InstanceName, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].InstanceName");
-                                    ValidateDebug(call.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0]", "print ( i )", 2, 24, 2, 32);
+                                    ValidateDebug(call.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0]", "print", 2, 24);
 
                                     // validate the prefix
                                     {
                                         NameItem name = call.Prefix as NameItem;
                                         Assert.IsNotNull(call.Prefix, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix");
                                         Assert.AreEqual("print", name.Name, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix.Name");
-                                        ValidateDebug(name.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix.Name", "print", 2, 24, 2, 29);
+                                        ValidateDebug(name.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix.Name", "print", 2, 24);
                                     }
 
                                     // validate the arguments
@@ -193,7 +191,7 @@ end"
                                         NameItem name = call.Arguments[0].Expression as NameItem;
                                         Assert.IsNotNull(name, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0]");
                                         Assert.AreEqual("i", name.Name, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0].Name");
-                                        ValidateDebug(name.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0]", "i", 2, 30, 2, 31);
+                                        ValidateDebug(name.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0]", "i", 2, 30);
                                     }
                                 }
                             }
@@ -208,18 +206,18 @@ end"
                 Assert.IsNotNull(func, "Block.Children[2]");
                 Assert.AreEqual(false, func.Local, "Block.Children[2].Local");
                 Assert.IsNull(func.InstanceName, "Block.Children[2].InstanceName");
-                ValidateDebug(func.Debug, "Block.Children[2]", "function Some ( a , ... ) a , b , c = ... for i = 12 , 23 do print ( i ) end end", 3, 1, 8, 4);
+                ValidateDebug(func.Debug, "Block.Children[2]", "function", 3, 1);
 
                 // validate the block
                 {
                     BlockItem someBlock = func.Block;
-                    ValidateDebug(someBlock.Debug, "Block.Children[2].Block", "a , b , c = ... for i = 12 , 23 do print ( i ) end", 4, 5, 7, 8);
+                    ValidateDebug(someBlock.Debug, "Block.Children[2].Block", "a", 4, 5);
 
                     // validate the return
                     {
                         ReturnItem ret = someBlock.Return;
                         Assert.IsNotNull(ret, "Block.Children[2].Block.Return");
-                        ValidateDebug(ret.Debug, "Block.Children[2].Block.Return", null, 0, 0, 0, 0);
+                        ValidateDebug(ret.Debug, "Block.Children[2].Block.Return", null, 0, 0);
                         Assert.IsNotNull(ret.Expressions, "Block.Children[2].Block.Return.Expressions");
                         Assert.AreEqual(0, ret.Expressions.Count, "Block.Children[2].Block.Return.Expressions.Count");
                     }
@@ -234,7 +232,7 @@ end"
                             AssignmentItem varInit = someBlock.Children[0] as AssignmentItem;
                             Assert.IsNotNull(varInit, "Block.Children[2].Block.Children[0]");
                             Assert.AreEqual(false, varInit.Local, "Block.Children[2].Block.Children[0].Local");
-                            ValidateDebug(varInit.Debug, "Block.Children[2].Block.Children[0]", "a , b , c = ...", 4, 5, 4, 18);
+                            ValidateDebug(varInit.Debug, "Block.Children[2].Block.Children[0]", "a", 4, 5);
 
                             // validate the names
                             {
@@ -244,17 +242,17 @@ end"
                                 NameItem name = varInit.Names[0] as NameItem;
                                 Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[0]");
                                 Assert.AreEqual(name.Name, "a", "Block.Children[2].Block.Children[0].Names[0].Name");
-                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[0]", "a", 4, 5, 4, 6);
+                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[0]", "a", 4, 5);
 
                                 name = varInit.Names[1] as NameItem;
                                 Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[1]");
                                 Assert.AreEqual(name.Name, "b", "Block.Children[2].Block.Children[0].Names[1].Name");
-                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[1]", "b", 4, 8, 4, 9);
+                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[1]", "b", 4, 8);
 
                                 name = varInit.Names[2] as NameItem;
                                 Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[2]");
                                 Assert.AreEqual(name.Name, "c", "Block.Children[2].Block.Children[0].Names[2].Name");
-                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[2]", "c", 4, 11, 4, 12);
+                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[2]", "c", 4, 11);
                             }
                             // validate the expressions
                             {
@@ -264,20 +262,20 @@ end"
                                 NameItem name = varInit.Expressions[0] as NameItem;
                                 Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Expressions[0]");
                                 Assert.AreEqual(name.Name, "...", "Block.Children[2].Block.Children[0].Expressions[0].Name");
-                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Expressions[0]", "...", 4, 15, 4, 18);
+                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[0].Expressions[0]", "...", 4, 15);
                             }
                         }
                         // for i= 12, 23 do print ( i ) end
                         {
                             ForNumItem forLoop = someBlock.Children[1] as ForNumItem;
                             Assert.IsNotNull(forLoop, "Block.Children[2].Block.Children[1]");
-                            ValidateDebug(forLoop.Debug, "Block.Children[2].Block.Children[1]", "for i = 12 , 23 do print ( i ) end", 5, 5, 7, 8);
+                            ValidateDebug(forLoop.Debug, "Block.Children[2].Block.Children[1]", "for", 5, 5);
 
                             // validate the name
                             {
                                 NameItem name = forLoop.Name;
                                 Assert.IsNotNull(name, "Block.Children[2].Block.Children[1].Name");
-                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Name", "i", 5, 9, 5, 10);
+                                ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Name", "i", 5, 9);
                                 Assert.AreEqual(name.Name, "i", "Block.Children[2].Block.Children[1].Name.Name");
                             }
 
@@ -286,7 +284,7 @@ end"
                                 LiteralItem lit = forLoop.Start as LiteralItem;
                                 Assert.IsNotNull(lit, "Block.Children[2].Block.Children[1].Start");
                                 Assert.AreEqual(12.0, lit.Value, "Block.Children[2].Block.Children[1].Start.Value");
-                                ValidateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Start", "12", 5, 12, 5, 14);
+                                ValidateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Start", "12", 5, 12);
                             }
 
                             // validate the limit
@@ -294,7 +292,7 @@ end"
                                 LiteralItem lit = forLoop.Limit as LiteralItem;
                                 Assert.IsNotNull(lit, "Block.Children[2].Block.Children[1].Limit");
                                 Assert.AreEqual(23.0, lit.Value, "Block.Children[2].Block.Children[1].Limit.Value");
-                                ValidateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Limit", "23", 5, 16, 5, 18);
+                                ValidateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Limit", "23", 5, 16);
                             }
 
                             // validate the step
@@ -305,7 +303,7 @@ end"
                             // validate the block
                             {
                                 BlockItem forBlock = forLoop.Block;
-                                ValidateDebug(forBlock.Debug, "Block.Children[2].Block.Children[1].Block", "print ( i )", 6, 9, 6, 17);
+                                ValidateDebug(forBlock.Debug, "Block.Children[2].Block.Children[1].Block", "print", 6, 9);
                                 Assert.IsNull(forBlock.Return, "Block.Children[2].Block.Children[1].Block.Return");
 
                                 // validate the statement
@@ -319,14 +317,14 @@ end"
                                         Assert.IsNotNull(call, "Block.Children[2].Block.Children[1].Block.Children[0]");
                                         Assert.AreEqual(true, call.Statement, "Block.Children[2].Block.Children[1].Block.Children[0].Statement");
                                         Assert.IsNull(call.InstanceName, "Block.Children[2].Block.Children[1].Block.Children[0].InstanceName");
-                                        ValidateDebug(call.Debug, "Block.Children[2].Block.Children[1].Block.Children[0]", "print ( i )", 6, 9, 6, 17);
+                                        ValidateDebug(call.Debug, "Block.Children[2].Block.Children[1].Block.Children[0]", "print", 6, 9);
 
                                         // validate the prefix
                                         {
                                             NameItem name = call.Prefix as NameItem;
                                             Assert.IsNotNull(call.Prefix, "Block.Children[2].Block.Children[1].Block.Children[0].Prefix");
                                             Assert.AreEqual("print", name.Name, "Block.Children[2].Block.Children[1].Block.Children[0].Prefix.Name");
-                                            ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Block.Children[0].Prefix.Name", "print", 6, 9, 6, 14);
+                                            ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Block.Children[0].Prefix.Name", "print", 6, 9);
                                         }
 
                                         // validate the arguments
@@ -337,7 +335,7 @@ end"
                                             NameItem name = call.Arguments[0].Expression as NameItem;
                                             Assert.IsNotNull(name, "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0]");
                                             Assert.AreEqual("i", name.Name, "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0].Name");
-                                            ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0]", "i", 6, 15, 6, 16);
+                                            ValidateDebug(name.Debug, "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0]", "i", 6, 15);
                                         }
                                     }
                                 }
