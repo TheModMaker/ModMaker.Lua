@@ -74,7 +74,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         {
             return base.ArithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
         }
-        
+
         /// <summary>
         /// Performs a binary arithmetic operation and returns the result.
         /// </summary>

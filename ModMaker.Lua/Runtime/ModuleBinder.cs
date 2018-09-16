@@ -221,7 +221,7 @@ namespace ModMaker.Lua.Runtime
         }
         static bool ValidType(Type t)
         {
-            return typeof(ILuaValue).IsAssignableFrom(t) && 
+            return typeof(ILuaValue).IsAssignableFrom(t) &&
                 (t.GetConstructor(new Type[0]) != null || t.GetConstructor(new[] { typeof(ILuaEnvironment) }) != null);
         }
         static ILuaValue ProcessType(Type t, ILuaEnvironment E)

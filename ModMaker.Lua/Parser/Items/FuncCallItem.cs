@@ -56,7 +56,7 @@ namespace ModMaker.Lua.Parser.Items
         /// Creates a new instance of FuncCallItem with the given state.
         /// </summary>
         /// <param name="prefix">The prefix expression that defines the call.</param>
-        /// <exception cref="System.ArgumentException">If prefix is not an 
+        /// <exception cref="System.ArgumentException">If prefix is not an
         /// expression or prefix-expression.</exception>
         /// <exception cref="System.ArgumentNullException">If prefix is null.</exception>
         public FuncCallItem(IParseExp prefix)
@@ -69,7 +69,7 @@ namespace ModMaker.Lua.Parser.Items
         /// not an instance call.</param>
         /// <param name="overload">The zero-based index of the overload to call,
         /// or negative to use overload resolution.</param>
-        /// <exception cref="System.ArgumentException">If prefix is not an 
+        /// <exception cref="System.ArgumentException">If prefix is not an
         /// expression or prefix-expression.</exception>
         /// <exception cref="System.ArgumentNullException">If prefix is null.</exception>
         public FuncCallItem(IParseExp prefix, string instance, int overload)
@@ -123,7 +123,7 @@ namespace ModMaker.Lua.Parser.Items
         /// </summary>
         public bool IsLastArgSingle { get; set; }
         /// <summary>
-        /// Gets or sets the instance name of the call or null if not an 
+        /// Gets or sets the instance name of the call or null if not an
         /// instance call.
         /// </summary>
         public string InstanceName { get; set; }

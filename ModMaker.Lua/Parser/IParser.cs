@@ -34,7 +34,7 @@ namespace ModMaker.Lua.Parser
         /// <param name="hash">The hash of the Lua code, can be null.</param>
         /// <param name="name">The name of the chunk, used for exceptions.</param>
         /// <returns>The code as an IParseItem tree.</returns>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If the 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If the
         /// code is not in the correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If input
         /// is null.</exception>

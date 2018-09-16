@@ -24,12 +24,12 @@ namespace ModMaker.Lua
     /// placed on a type, then this will alter which members are visible or not.
     /// </summary>
     /// <remarks>
-    /// If there is ambiguity, then it favors a member not being visible. 
+    /// If there is ambiguity, then it favors a member not being visible.
     /// Attaching LuaIgnore to a member in an interface only has effect when the
     /// backing type has BehavesAs set to the interface type or if the value is
     /// a LuaUserData with the interface type. When determining method overloads,
     /// only members that are visible are considered.
-    /// 
+    ///
     /// If LuaIgnore is marked on a return value or a value passed by reference
     /// (i.e. 'ref' or 'out') then it is a special return.  A special wraper
     /// value is passed to Lua of type LuaUserData.  The type is converted back
@@ -40,8 +40,8 @@ namespace ModMaker.Lua
     /// returns, except they only apply to a single variable.  Lua cannot change
     /// a LuaUserData variable; however it is important to note that if your
     /// code accepts a variable that it may turn it into a normal variable.
-    /// 
-    /// If you want to ensure that your code does not violate rules for 
+    ///
+    /// If you want to ensure that your code does not violate rules for
     /// LuaUserData, you can accept a LuaUserData object and manage it directly,
     /// then the object is not converted to it's underlying value.  If you want
     /// static type safety, then you can accept the generic version so only a
@@ -53,11 +53,11 @@ namespace ModMaker.Lua
     /// but not LuaUserData&lt;int&gt;.  Also note that if the argument has a
     /// BehavesAs, then that type is the only type considered, even if the
     /// underlying type is compatible.
-    /// 
+    ///
     /// Most variables are converted to LuaUserData and all variables are
     /// compatible with LuaUserData types.  This is to ensure type-safety for
     /// return values when the return type does not match the backing type.
-    /// 
+    ///
     /// When determining if a member is visible to Lua, the following is done, in
     /// order.  If the object is a special return (see above) then that is searched.
     /// If AccessMembers is not null, then any member accessible to Lua must be
@@ -66,7 +66,7 @@ namespace ModMaker.Lua
     /// searched.  If that type does not define LuaIgnore attribute, then that
     /// type must define the member and that version is used.  If it does defined
     /// LuaIgnore, then this method is applied to that type.  If DefinedOnly is
-    /// true, than this type must explicitly define that member for it to be 
+    /// true, than this type must explicitly define that member for it to be
     /// visible (i.e. inherited members are not visible).
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Constructor | AttributeTargets.Interface |
@@ -107,7 +107,7 @@ namespace ModMaker.Lua
         /// return value behaves as-if it is defined as the given type.
         /// Visibility is determined by the type.
         /// </summary>
-        /// <param name="behavesAs">The type that the variable should behave 
+        /// <param name="behavesAs">The type that the variable should behave
         /// as, cannot be null.</param>
         /// <exception cref="System.ArgumentNullException">If behavesAs is null.</exception>
         public LuaIgnoreAttribute(Type behavesAs)
@@ -121,7 +121,7 @@ namespace ModMaker.Lua
             this.BehavesAs = behavesAs;
         }
         /// <summary>
-        /// Creates a new instance of LuaIgnoreAttribute where either all 
+        /// Creates a new instance of LuaIgnoreAttribute where either all
         /// members are visible or invisible.
         /// </summary>
         /// <param name="allInvisible">True if all members are not visible to

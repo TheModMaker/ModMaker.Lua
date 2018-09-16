@@ -58,7 +58,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <summary>
         /// Gets the status of the thread.
         /// </summary>
-        public LuaThreadStatus Status 
+        public LuaThreadStatus Status
         {
             get { return flag_; }
             protected set { flag_ = value; }

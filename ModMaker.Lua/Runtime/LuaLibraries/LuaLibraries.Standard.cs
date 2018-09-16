@@ -341,7 +341,7 @@ namespace ModMaker.Lua.Runtime
                     return LuaMultiValue.Empty;
                 }
             }
-            
+
             [MultipleReturn]
             static object[] _ipairs_itr(ILuaTable table, double index)
             {

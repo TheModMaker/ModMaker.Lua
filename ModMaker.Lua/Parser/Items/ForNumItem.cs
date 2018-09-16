@@ -17,7 +17,7 @@ using System;
 namespace ModMaker.Lua.Parser.Items
 {
     /// <summary>
-    /// Defines a parse item that represents a numerical for loop. 
+    /// Defines a parse item that represents a numerical for loop.
     /// e.g. for i = 2, 4 do ... end.
     /// </summary>
     public sealed class ForNumItem : IParseStatement

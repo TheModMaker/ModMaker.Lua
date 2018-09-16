@@ -83,7 +83,7 @@ namespace ModMaker.Lua.Parser.Items
         }
 
         /// <summary>
-        /// Adds a name to the item.  This defines the left-hand-side of the 
+        /// Adds a name to the item.  This defines the left-hand-side of the
         /// statement.
         /// </summary>
         /// <param name="name">The parse item that defines the name.</param>
@@ -96,7 +96,7 @@ namespace ModMaker.Lua.Parser.Items
             names.Add(name);
         }
         /// <summary>
-        /// Adds an expression to the item.  This defines the right-hand-side 
+        /// Adds an expression to the item.  This defines the right-hand-side
         /// of the statement.
         /// </summary>
         /// <param name="item">The item that defines the expression.</param>

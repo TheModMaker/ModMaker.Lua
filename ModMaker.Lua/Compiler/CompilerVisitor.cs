@@ -43,7 +43,7 @@ namespace ModMaker.Lua.Compiler
 
             public IndexerHelper(ILGenerator gen, LocalBuilder prefix)
             {
-                this.gen = gen; 
+                this.gen = gen;
                 this.prefix = prefix;
             }
 
@@ -509,7 +509,7 @@ namespace ModMaker.Lua.Compiler
                     gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
                 gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
             }
-            
+
             // var rargs = E.Runtime.CreateMultiValue(args);
             var rargs = compiler.CreateTemporary(typeof(ILuaMultiValue));
             gen.Emit(OpCodes.Ldarg_1);
@@ -867,7 +867,7 @@ namespace ModMaker.Lua.Compiler
             gen.Emit(OpCodes.Ldloc, loc);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
             compiler.RemoveTemporary(loc);
-            
+
             return target;
         }
         /// <summary>

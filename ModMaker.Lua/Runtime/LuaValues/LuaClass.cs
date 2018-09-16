@@ -87,9 +87,9 @@ namespace ModMaker.Lua.Runtime.LuaValues
     }
 
     /// <summary>
-    /// A class that was defined in Lua.  This is created in 
+    /// A class that was defined in Lua.  This is created in
     /// ILuaRuntime.DefineClass.  When this object is indexed in Lua,
-    /// it will change the class that is defined.  When this is 
+    /// it will change the class that is defined.  When this is
     /// invoked, it creates a new instance.
     /// </summary>
     public sealed class LuaClass : LuaValueBase
@@ -216,7 +216,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// Injects the code necessary to return the first value from a call to a method that
         /// is stored in a field of a type.  Creates one local variable.
         /// Injects:
-        /// 
+        ///
         /// <code>
         /// ILuaMultiValue ret = this.methodField.Invoke(this, false, -1, arguments);
         /// return E.Runtime.ConvertType(ret[0], returnType);
@@ -602,7 +602,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 // define a envField to hold a pointer to the method
                 FieldBuilder field = data.TB.DefineField("<>_field_" + (data.FID++), typeof(ILuaValue), FieldAttributes.Private);
 
-                // store the method in the input list and create code in the 
+                // store the method in the input list and create code in the
                 //   constructor to get the method from the argument and store
                 //   it in the envField.
                 data.MethodArgs.Add(method);

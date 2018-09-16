@@ -171,7 +171,7 @@ namespace ModMaker.Lua.Runtime
         /// implementations may support setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        public ILuaRuntime Runtime 
+        public ILuaRuntime Runtime
         {
             get { return _runtime; }
             set
@@ -186,9 +186,9 @@ namespace ModMaker.Lua.Runtime
         /// Gets the globals table for the environment.  This can never return
         /// a null value.
         /// </summary>
-        /// <remarks>If a derrived type attempts tos set to null, an 
+        /// <remarks>If a derrived type attempts tos set to null, an
         /// ArugmentNullException will be thrown.</remarks>
-        public ILuaTable GlobalsTable 
+        public ILuaTable GlobalsTable
         {
             get { return _globals; }
             protected set
@@ -205,7 +205,7 @@ namespace ModMaker.Lua.Runtime
         /// is never null.  Some implementations may support setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        public ICodeCompiler CodeCompiler 
+        public ICodeCompiler CodeCompiler
         {
             get { return _compiler; }
             set
@@ -222,7 +222,7 @@ namespace ModMaker.Lua.Runtime
         /// is never null.  Some implementations may support setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        public IParser Parser 
+        public IParser Parser
         {
             get { return _parser; }
             set
@@ -239,7 +239,7 @@ namespace ModMaker.Lua.Runtime
         /// implementations may allow setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
-        public IModuleBinder ModuleBinder 
+        public IModuleBinder ModuleBinder
         {
             get { return _modules; }
             set
@@ -256,7 +256,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="d">The delegate to register.</param>
         /// <param name="name">The name of the delegate.</param>
-        /// <exception cref="System.ArgumentException">If there is already an 
+        /// <exception cref="System.ArgumentException">If there is already an
         /// object registered with that name.</exception>
         /// <exception cref="System.ArgumentNullException">If d or name is null.</exception>
         public virtual void RegisterDelegate(Delegate d, string name)
@@ -290,7 +290,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="t">The type to register.</param>
         /// <param name="name">The name of the type.</param>
-        /// <exception cref="System.ArgumentException">If there is already an 
+        /// <exception cref="System.ArgumentException">If there is already an
         /// object registered with that name.</exception>
         /// <exception cref="System.ArgumentNullException">If t or name is null.</exception>
         public virtual void RegisterType(Type t, string name)
@@ -312,7 +312,7 @@ namespace ModMaker.Lua.Runtime
                     GlobalsTable.SetItemRaw(n, new LuaType(t));
             }
         }
-        
+
         /// <summary>
         /// Returns the enumeration of all dynamic member names.
         /// </summary>

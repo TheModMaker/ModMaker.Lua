@@ -40,7 +40,7 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Resolves all the labels and updates the information in the given 
+        /// Resolves all the labels and updates the information in the given
         /// IParseItem tree.
         /// </summary>
         /// <param name="target">The IParseItem tree to traverse.</param>

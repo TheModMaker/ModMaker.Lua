@@ -28,9 +28,9 @@ namespace ModMaker.Lua.Compiler
     sealed class GetInfoTree
     {
         /// <summary>
-        /// A node in the tree.  This represents a block of code. It contains 
-        /// local definitions and lables that need to be resolved.  When a 
-        /// local variable is defined, it gets a new child because labels 
+        /// A node in the tree.  This represents a block of code. It contains
+        /// local definitions and lables that need to be resolved.  When a
+        /// local variable is defined, it gets a new child because labels
         /// cannot be accessed across local definitions.
         /// </summary>
         sealed class TreeNode
@@ -83,7 +83,7 @@ namespace ModMaker.Lua.Compiler
             /// </summary>
             public bool IsFunction;
             /// <summary>
-            /// Contains the local definitions for this block.  These are not 
+            /// Contains the local definitions for this block.  These are not
             /// accessed by nested functions.
             /// </summary>
             public Dictionary<string, NameItem> TrueLocals;
@@ -106,7 +106,7 @@ namespace ModMaker.Lua.Compiler
                 }
             }
             /// <summary>
-            /// True if this nest captures variables from a parrent nested 
+            /// True if this nest captures variables from a parrent nested
             /// function.  This does not apply to parrent nodes but to nested
             /// functions.
             /// </summary>
@@ -124,7 +124,7 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Resolves any GotoItems with their correct LabelItem's. This should 
+        /// Resolves any GotoItems with their correct LabelItem's. This should
         /// be called after the whole tree has been generated.
         /// </summary>
         public void Resolve()
@@ -133,10 +133,10 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Starts a new local block and returns an object that ends the block 
+        /// Starts a new local block and returns an object that ends the block
         /// when Dispose is called.
         /// </summary>
-        /// <param name="passable">True if labels from parrent nodes are 
+        /// <param name="passable">True if labels from parrent nodes are
         /// visible in this node.</param>
         /// <returns>An object that will end the block when Dispose is called.</returns>
         public IDisposable Block(bool passable)
@@ -221,7 +221,7 @@ namespace ModMaker.Lua.Compiler
             }
         }
         /// <summary>
-        /// Defines a nested function and returns an object that restores the 
+        /// Defines a nested function and returns an object that restores the
         /// tree when Dispose is called.  After the end of the function,
         /// EndFunc should be called.
         /// </summary>
@@ -231,7 +231,7 @@ namespace ModMaker.Lua.Compiler
             return Helpers.Disposable(() => { cur = temp; });
         }
         /// <summary>
-        /// Ends a function definition and returns the FunctionInfo for the 
+        /// Ends a function definition and returns the FunctionInfo for the
         /// function.  This should be called after the call to Dispose on the
         /// object returned from DefineFunc.
         /// </summary>
@@ -251,7 +251,7 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Recursively gets the names of the captured locals defined in the 
+        /// Recursively gets the names of the captured locals defined in the
         /// given root node.
         /// </summary>
         /// <param name="root">The node to start the search.</param>
@@ -270,11 +270,11 @@ namespace ModMaker.Lua.Compiler
             }
         }
         /// <summary>
-        /// Recursively resolves any GotoItems to their correct LabelItem or 
+        /// Recursively resolves any GotoItems to their correct LabelItem or
         /// throws an exception.
         /// </summary>
         /// <param name="root">The current root node.</param>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If a label 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If a label
         /// cound not be resolved.</exception>
         static void Resolve(TreeNode root)
         {
@@ -288,7 +288,7 @@ namespace ModMaker.Lua.Compiler
             }
         }
         /// <summary>
-        /// Resolves a single GotoItem by traversing up the tree from the given 
+        /// Resolves a single GotoItem by traversing up the tree from the given
         /// root.  Throws an exception if the label cannot be found.
         /// </summary>
         /// <param name="root">The node to start the search.</param>

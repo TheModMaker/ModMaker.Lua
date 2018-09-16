@@ -38,7 +38,7 @@ namespace ExampleProject
             return 1;
         }
     }
-    
+
     class Program
     {
         delegate void Test(ref int i);
@@ -63,7 +63,7 @@ namespace ExampleProject
 
             // Load and execute a Lua file.
             lua.DoFile("Tests.lua");
-            
+
             // Keep the console window open.
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();

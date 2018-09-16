@@ -23,7 +23,7 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua
 {
     /// <summary>
-    /// The main manager of a Lua state. Manages lua chunks, the environments, 
+    /// The main manager of a Lua state. Manages lua chunks, the environments,
     /// and registering types and global methods.
     /// </summary>
     [LuaIgnore]
@@ -34,13 +34,13 @@ namespace ModMaker.Lua
         List<ILuaValue> _chunks;
 
         /// <summary>
-        /// Creates a new Lua object using the default environment, runtime, 
+        /// Creates a new Lua object using the default environment, runtime,
         /// and compiler.
         /// </summary>
         public Lua()
             : this((ILuaEnvironment)null) { }
         /// <summary>
-        /// Creates a new Lua object using the default environment, runtime, 
+        /// Creates a new Lua object using the default environment, runtime,
         /// and compiler using the given settings.
         /// </summary>
         /// <param name="settings">The settings to use, cannot be null.</param>
@@ -58,7 +58,7 @@ namespace ModMaker.Lua
             {
                 environment = new LuaEnvironmentNet(
                     new LuaSettings(
-                        Console.OpenStandardInput(), 
+                        Console.OpenStandardInput(),
                         Console.OpenStandardOutput()
                     )
                 );
@@ -82,9 +82,9 @@ namespace ModMaker.Lua
         /// Gets or sets the global environment.  Value cannot be changed while
         /// parsing.
         /// </summary>
-        /// <exception cref="System.ArgumentNullException">When trying to set 
+        /// <exception cref="System.ArgumentNullException">When trying to set
         /// the environment to null.</exception>
-        public ILuaEnvironment Environment 
+        public ILuaEnvironment Environment
         {
             get { return _E; }
             set
@@ -99,7 +99,7 @@ namespace ModMaker.Lua
         /// <summary>
         /// Gets the chunk at the specified index.
         /// </summary>
-        /// <param name="index">The zero-based index in the order they were 
+        /// <param name="index">The zero-based index in the order they were
         /// loaded.</param>
         /// <returns>The lua chunk at that index.</returns>
         public ILuaValue this[int index] { get { return _chunks[index]; } }
@@ -108,26 +108,26 @@ namespace ModMaker.Lua
         /// Registers a delegate for use with this Lua object.
         /// </summary>
         /// <param name="func">The delegate to register, cannot be null.</param>
-        /// <exception cref="System.ArgumentException">When there is another 
+        /// <exception cref="System.ArgumentException">When there is another
         /// method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
-        /// <exception cref="System.MulticastNotSupportedException">When func 
+        /// <exception cref="System.MulticastNotSupportedException">When func
         /// has more than one item in the InvokationList.</exception>
         public void Register(Delegate func)
         {
             this.Register(func, null);
         }
         /// <summary>
-        /// Registers a delegate with the given name for use with this Lua 
+        /// Registers a delegate with the given name for use with this Lua
         /// object.
         /// </summary>
         /// <param name="func">The delegate to register, cannot be null.</param>
         /// <param name="name">The name of the delegate.  If null, will use the
         /// function name.</param>
-        /// <exception cref="System.ArgumentException">When there is another 
+        /// <exception cref="System.ArgumentException">When there is another
         /// method or type with the same name registered.</exception>
         /// <exception cref="System.ArgumentNullException">When func is null.</exception>
-        /// <exception cref="System.MulticastNotSupportedException">When func 
+        /// <exception cref="System.MulticastNotSupportedException">When func
         /// has more than one item in the InvokationList.</exception>
         public void Register(Delegate func, string name)
         {
@@ -148,7 +148,7 @@ namespace ModMaker.Lua
         /// </summary>
         /// <param name="type">The type to register, cannot be null.</param>
         /// <exception cref="System.ArgumentNullException">When type is null.</exception>
-        /// <exception cref="System.ArgumentException">When there is another 
+        /// <exception cref="System.ArgumentException">When there is another
         /// method or type with the same name registered.</exception>
         public void Register(Type type)
         {
@@ -186,7 +186,7 @@ namespace ModMaker.Lua
         /// <param name="args">The arguments to the chunk.</param>
         /// <param name="index">The index of the loaded chunk.</param>
         /// <returns>The results of the chunk.</returns>
-        /// <exception cref="System.IndexOutOfRangeException">If the given 
+        /// <exception cref="System.IndexOutOfRangeException">If the given
         /// index is less than zero or greater than the number of loaded chunks.</exception>
         public object[] Execute(int index, params object[] args)
         {
@@ -209,7 +209,7 @@ namespace ModMaker.Lua
         /// <param name="args">The arguments to pass.</param>
         /// <returns>The values returned from the file.</returns>
         /// <exception cref="System.ArgumentNullException">If path is null or empty.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the given file.</exception>
         public object[] DoFile(string path, params object[] args)
         {
@@ -227,7 +227,7 @@ namespace ModMaker.Lua
         /// <param name="args">The arguments to pass.</param>
         /// <returns>The values returned from the file.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the given file.</exception>
         public object[] DoFile(Stream stream, params object[] args)
         {
@@ -245,7 +245,7 @@ namespace ModMaker.Lua
         /// <param name="args">The arguments to pass.</param>
         /// <returns>The values returned from the file.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the given file.</exception>
         public object[] DoText(string chunk, params object[] args)
         {
@@ -262,21 +262,21 @@ namespace ModMaker.Lua
         /// </summary>
         /// <param name="path">The path to the file to load.</param>
         /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length 
+        /// <exception cref="System.ArgumentException">path is a zero-length
         /// string, contains only white space, or contains one or more invalid
         /// characters as defined by System.IO.Path.InvalidPathChars</exception>
         /// <exception cref="System.ArgumentNullException">If path is null.</exception>
         /// <exception cref="System.UnauthorizedAccessException">If this code
         /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified 
+        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
         /// path is invalid, (for example, it is on an unmapped drive).</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the file cannot
         /// be found.</exception>
         /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For 
+        /// file name, or both exceed the system-defined maximum length. For
         /// example, on Windows-based platforms, paths must be less than 248
         /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public ILuaValue Load(string path)
         {
@@ -289,21 +289,21 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the file to load.</param>
         /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
         /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length 
+        /// <exception cref="System.ArgumentException">path is a zero-length
         /// string, contains only white space, or contains one or more invalid
         /// characters as defined by System.IO.Path.InvalidPathChars</exception>
         /// <exception cref="System.ArgumentNullException">If path is null.</exception>
         /// <exception cref="System.UnauthorizedAccessException">If this code
         /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified 
+        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
         /// path is invalid, (for example, it is on an unmapped drive).</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the file cannot
         /// be found.</exception>
         /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For 
+        /// file name, or both exceed the system-defined maximum length. For
         /// example, on Windows-based platforms, paths must be less than 248
         /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public ILuaValue Load(string path, bool @override)
         {
@@ -316,21 +316,21 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the file to load.</param>
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length 
+        /// <exception cref="System.ArgumentException">path is a zero-length
         /// string, contains only white space, or contains one or more invalid
         /// characters as defined by System.IO.Path.InvalidPathChars</exception>
         /// <exception cref="System.ArgumentNullException">If path is null.</exception>
         /// <exception cref="System.UnauthorizedAccessException">If this code
         /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified 
+        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
         /// path is invalid, (for example, it is on an unmapped drive).</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the file cannot
         /// be found.</exception>
         /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For 
+        /// file name, or both exceed the system-defined maximum length. For
         /// example, on Windows-based platforms, paths must be less than 248
         /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public ILuaValue Load(string path, string name)
         {
@@ -341,25 +341,25 @@ namespace ModMaker.Lua
         /// Loads a LuaChunk from a specified file.
         /// </summary>
         /// <param name="path">The path to the file to load.</param>
-        /// <param name="override">True to load the file even if it is in the 
+        /// <param name="override">True to load the file even if it is in the
         /// cache, otherwise false.</param>
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length 
+        /// <exception cref="System.ArgumentException">path is a zero-length
         /// string, contains only white space, or contains one or more invalid
         /// characters as defined by System.IO.Path.InvalidPathChars</exception>
         /// <exception cref="System.ArgumentNullException">If path is null.</exception>
         /// <exception cref="System.UnauthorizedAccessException">If this code
         /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified 
+        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
         /// path is invalid, (for example, it is on an unmapped drive).</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the file cannot
         /// be found.</exception>
         /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For 
+        /// file name, or both exceed the system-defined maximum length. For
         /// example, on Windows-based platforms, paths must be less than 248
         /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public ILuaValue Load(string path, string name, bool @override)
         {
@@ -370,26 +370,26 @@ namespace ModMaker.Lua
         /// Loads a LuaChunk from a specified file.
         /// </summary>
         /// <param name="path">The path to the file to load.</param>
-        /// <param name="override">True to load the file even if it is in the 
+        /// <param name="override">True to load the file even if it is in the
         /// cache, otherwise false.</param>
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length 
+        /// <exception cref="System.ArgumentException">path is a zero-length
         /// string, contains only white space, or contains one or more invalid
         /// characters as defined by System.IO.Path.InvalidPathChars</exception>
         /// <exception cref="System.ArgumentNullException">If path is null.</exception>
         /// <exception cref="System.UnauthorizedAccessException">If this code
         /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified 
+        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
         /// path is invalid, (for example, it is on an unmapped drive).</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the file cannot
         /// be found.</exception>
         /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For 
+        /// file name, or both exceed the system-defined maximum length. For
         /// example, on Windows-based platforms, paths must be less than 248
         /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public ILuaValue Load(string path, string name, bool @override, out int index)
         {
@@ -407,7 +407,7 @@ namespace ModMaker.Lua
         /// <param name="stream">The stream to load the script from.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue Load(Stream stream)
         {
@@ -421,7 +421,7 @@ namespace ModMaker.Lua
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue Load(Stream stream, string name)
         {
@@ -435,7 +435,7 @@ namespace ModMaker.Lua
         /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue Load(Stream stream, bool @override)
         {
@@ -447,11 +447,11 @@ namespace ModMaker.Lua
         /// </summary>
         /// <param name="stream">The stream to load the script from.</param>
         /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the 
+        /// <param name="override">True to load the file even if it is in the
         /// cache, otherwise false.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue Load(Stream stream, string name, bool @override)
         {
@@ -463,12 +463,12 @@ namespace ModMaker.Lua
         /// </summary>
         /// <param name="stream">The stream to load the script from.</param>
         /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the 
+        /// <param name="override">True to load the file even if it is in the
         /// cache, otherwise false.</param>
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue Load(Stream stream, string name, bool @override, out int index)
         {
@@ -500,7 +500,7 @@ namespace ModMaker.Lua
         /// <param name="chunk">The Lua script to load from.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue LoadText(string chunk)
         {
@@ -514,7 +514,7 @@ namespace ModMaker.Lua
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue LoadText(string chunk, string name)
         {
@@ -528,7 +528,7 @@ namespace ModMaker.Lua
         /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue LoadText(string chunk, bool @override)
         {
@@ -543,7 +543,7 @@ namespace ModMaker.Lua
         /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue LoadText(string chunk, string name, bool @override)
         {
@@ -559,7 +559,7 @@ namespace ModMaker.Lua
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is 
+        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
         public ILuaValue LoadText(string chunk, string name, bool @override, out int index)
         {
@@ -594,7 +594,7 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the Lua file.</param>
         /// <param name="name">The name of the variable to get.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -613,7 +613,7 @@ namespace ModMaker.Lua
         /// <param name="name">The name of the variable to get.</param>
         /// <param name="settings">The settings used to load the chunk.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -631,7 +631,7 @@ namespace ModMaker.Lua
         /// <param name="name">The name of the variable to get.</param>
         /// <param name="E">The environment used to load the chunk.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -649,7 +649,7 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the Lua file.</param>
         /// <param name="names">The names of the variables to get.</param>
         /// <returns>The value of the variables.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -668,7 +668,7 @@ namespace ModMaker.Lua
         /// <param name="names">The names of the variables to get.</param>
         /// <param name="settings">The settings used to load the chunk.</param>
         /// <returns>The value of the variables.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -686,7 +686,7 @@ namespace ModMaker.Lua
         /// <param name="names">The names of the variables to get.</param>
         /// <param name="E">The environment used to load the chunk.</param>
         /// <returns>The value of the variables.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -721,7 +721,7 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the Lua file.</param>
         /// <param name="name">The name of the variable to get.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -742,7 +742,7 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the Lua file.</param>
         /// <param name="name">The name of the variable to get.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -762,7 +762,7 @@ namespace ModMaker.Lua
         /// <param name="path">The path to the Lua file.</param>
         /// <param name="name">The name of the variable to get.</param>
         /// <returns>The value of the variable or null if not found.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -783,7 +783,7 @@ namespace ModMaker.Lua
         /// <param name="names">The names of the variable to get.</param>
         /// <returns>The values of the variables or null if not found.  The array is
         /// never null.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -805,7 +805,7 @@ namespace ModMaker.Lua
         /// <param name="names">The names of the variable to get.</param>
         /// <returns>The values of the variables or null if not found.  The array is
         /// never null.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
@@ -826,7 +826,7 @@ namespace ModMaker.Lua
         /// <param name="names">The names of the variable to get.</param>
         /// <returns>The values of the variables or null if not found.  The array is
         /// never null.</returns>
-        /// <exception cref="System.ArgumentException">If path is not in the 
+        /// <exception cref="System.ArgumentException">If path is not in the
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file

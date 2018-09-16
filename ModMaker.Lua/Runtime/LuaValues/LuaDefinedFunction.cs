@@ -44,7 +44,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// Contains the current environment.
         /// </summary>
         protected ILuaEnvironment _E;
-        
+
         /// <summary>
         /// Creates a new LuaDefinedMethod from the given method.
         /// </summary>
@@ -54,7 +54,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="target">The target object.</param>
         /// <exception cref="System.ArgumentNullException">If method, E, or target is null.</exception>
         /// <exception cref="System.ArgumentException">If method does not have
-        /// the correct method signature: 
+        /// the correct method signature:
         /// ILuaMultiValue Method(ILuaEnvironment, ILuaMultiValue)</exception>
         public LuaDefinedFunction(ILuaEnvironment E, string name, MethodInfo method, object target)
             : base(name)
@@ -72,7 +72,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="target">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
-        /// <param name="overload">The overload to chose or negative to do 
+        /// <param name="overload">The overload to chose or negative to do
         /// overload resoltion.</param>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>

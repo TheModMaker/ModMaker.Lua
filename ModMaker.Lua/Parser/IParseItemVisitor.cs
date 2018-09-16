@@ -17,8 +17,8 @@ using ModMaker.Lua.Parser.Items;
 namespace ModMaker.Lua.Parser
 {
     /// <summary>
-    /// A visitor object used to select a specific method based on the runtime 
-    /// type of the IParseItem.  This is used with the visitor pattern to 
+    /// A visitor object used to select a specific method based on the runtime
+    /// type of the IParseItem.  This is used with the visitor pattern to
     /// traverse the parse item tree.
     /// </summary>
     public interface IParseItemVisitor

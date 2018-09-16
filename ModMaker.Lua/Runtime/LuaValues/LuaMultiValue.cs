@@ -22,7 +22,7 @@ using System.Text;
 namespace ModMaker.Lua.Runtime.LuaValues
 {
     /// <summary>
-    /// Defines multiple LuaValues.  This is used to pass arguments and 
+    /// Defines multiple LuaValues.  This is used to pass arguments and
     /// get results from functions.
     /// </summary>
     public sealed class LuaMultiValue : LuaValueBase, ILuaMultiValue
@@ -59,7 +59,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 .ToArray();
 
             this.Count = this.values_.Length;
-            if (this.values_.Length == 0) 
+            if (this.values_.Length == 0)
                 this.values_ = _nil;
         }
         /// <summary>
@@ -90,7 +90,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </summary>
         /// <param name="index">The index to get.</param>
         /// <returns>The value at the given index, or LuaNil.</returns>
-        public ILuaValue this[int index] 
+        public ILuaValue this[int index]
         {
             get { return index < 0 || index >= values_.Length ? LuaNil.Nil : values_[index]; }
             set
@@ -144,7 +144,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         {
             return values_[0].CompareTo(other);
         }
-        
+
         /// <summary>
         /// Gets the value for this object.  For values that don't
         /// wrap something, it simply returns this.
@@ -169,7 +169,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
         /// </summary>
-        /// <returns>An System.Collections.IEnumerator object that can be used 
+        /// <returns>An System.Collections.IEnumerator object that can be used
         /// to iterate through the collection.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {

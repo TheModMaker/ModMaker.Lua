@@ -53,7 +53,7 @@ namespace UnitTests.Net
         }
 
         #region Additional test attributes
-        // 
+        //
         //You can use the following additional attributes as you write your tests:
         //
         //Use ClassInitialize to run code before running the first test in the class
@@ -83,7 +83,7 @@ namespace UnitTests.Net
         #endregion
 
         /// <summary>
-        /// Contains several user-defined types to test ConvertType and 
+        /// Contains several user-defined types to test ConvertType and
         /// GetCompatibleMethod when using user-defined types and casts.
         /// </summary>
         static class UserTypes
@@ -92,7 +92,7 @@ namespace UnitTests.Net
             //
             //
             //                     BaseInterface
-            //                    /    |     |   \ 
+            //                    /    |     |   \
             //                  /      |     |     \
             // DerivedInterface1       |     |     DerivedInterface2
             //   |                     |     |             |
@@ -763,7 +763,7 @@ namespace UnitTests.Net
             }
             catch (InvalidCastException) { }
 
-            // convert using user-defined 'implicit' cast where the explicit 
+            // convert using user-defined 'implicit' cast where the explicit
             //   operator is not visible
             actual = target.ConvertType(new UserTypes.IgnoreCastAlso2(), typeof(UserTypes.RootClass));
             Assert.IsNotNull(actual, "Underlying type is marked with LuaIgnore but this operator is visible");

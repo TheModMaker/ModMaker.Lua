@@ -43,7 +43,7 @@ namespace ModMaker.Lua.Runtime
         /// <exception cref="System.InvalidOperationException">If the object(s)
         /// cannot be enumerated over.</exception>
         IEnumerable<ILuaMultiValue> GenericLoop(ILuaEnvironment E, ILuaMultiValue args);
-        
+
         /// <summary>
         /// Creates a new ILuaValue object that wraps the given C# value.
         /// </summary>
@@ -84,7 +84,7 @@ namespace ModMaker.Lua.Runtime
         /// <returns>A new ILuaValue object.</returns>
         ILuaValue CreateImplementationFunction(string name, MethodInfo method, object target);
         /// <summary>
-        /// Called when the code encounters the 'class' keyword.  Defines a 
+        /// Called when the code encounters the 'class' keyword.  Defines a
         /// LuaClass object with the given name.
         /// </summary>
         /// <param name="impl">The types that the class will derive.</param>

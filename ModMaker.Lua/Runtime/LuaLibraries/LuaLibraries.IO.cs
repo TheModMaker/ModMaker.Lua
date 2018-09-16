@@ -655,7 +655,7 @@ namespace ModMaker.Lua.Runtime
                 return null;
             }
 
-            // global functions 
+            // global functions
             sealed class dofile : LuaFrameworkFunction
             {
                 public dofile(ILuaEnvironment E) : base(E, "io.dofile") { }

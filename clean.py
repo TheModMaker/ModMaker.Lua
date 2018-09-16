@@ -16,6 +16,7 @@
 """Cleans the files in the repository.
 
 - Removes any byte-order-marks.
+- Removes trailing whitespace from lines.
 - Ensures the files end in a newline.
 """
 
@@ -44,6 +45,8 @@ def _FixFile(path):
   # Removes any byte-order-mark in the file.
   if data[:3] == '\xef\xbb\xbf':
     data = data[3:]
+  # Remove trailing whitespace from lines.
+  data = '\n'.join(s.rstrip() for s in data.split('\n'))
   # Removes any trailing whitespace and ensures it ends with a newline.
   data = data.strip() + '\n'
   with open(path, 'w') as f:

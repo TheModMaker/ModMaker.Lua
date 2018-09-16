@@ -26,7 +26,7 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua.Compiler
 {
     /// <summary>
-    /// Helps build a chunk by managing nested types and scopes.  Also 
+    /// Helps build a chunk by managing nested types and scopes.  Also
     /// generates some code to load locals and the current environment.
     /// </summary>
     sealed class ChunkBuilder
@@ -36,9 +36,9 @@ namespace ModMaker.Lua.Compiler
         /// that also has nested methods will have a nested type.  If
         /// a function does not have any nested functions it does not have a
         /// nested type.  The function is defined in the parrent nest and any
-        /// local variables defined in this function that is captured is 
+        /// local variables defined in this function that is captured is
         /// defined as a field in the nested type.  Then any nested functions
-        /// are defined in the nested type.  This is how C# handles captures 
+        /// are defined in the nested type.  This is how C# handles captures
         /// with lambda expressions.
         /// </summary>
         sealed class NestInfo
@@ -62,8 +62,8 @@ namespace ModMaker.Lua.Compiler
             /// </summary>
             public Dictionary<Type, Stack<LocalBuilder>> FreeLocals { get; private set; }
             /// <summary>
-            /// Gets the ILGenerator for this nest.  This generator belongs to 
-            /// the type of the parrent nest but is only used for generating 
+            /// Gets the ILGenerator for this nest.  This generator belongs to
+            /// the type of the parrent nest but is only used for generating
             /// code for this nest.
             /// </summary>
             public ILGenerator Generator { get; private set; }
@@ -77,7 +77,7 @@ namespace ModMaker.Lua.Compiler
             /// </summary>
             public NestInfo Parrent { get; private set; }
             /// <summary>
-            /// Gets the field defined in this type that holds the parrent 
+            /// Gets the field defined in this type that holds the parrent
             /// instance.  This may not exist if the type does not capture
             /// any locals from the parrent type.
             /// </summary>
@@ -100,9 +100,9 @@ namespace ModMaker.Lua.Compiler
             /// <param name="parrent">The parrent nest.</param>
             /// <param name="gen">The generator used to generate code for this
             /// function.</param>
-            /// <param name="storeParrent">True to create a field that stores 
+            /// <param name="storeParrent">True to create a field that stores
             /// the parrent instance; otherwise false.</param>
-            /// <param name="captures">The local variables that have been 
+            /// <param name="captures">The local variables that have been
             /// captured by nested functions.</param>
             /// <param name="createType">True to create a nested type, otherwise
             /// false.</param>
@@ -175,7 +175,7 @@ namespace ModMaker.Lua.Compiler
             /// <param name="tb">The type builder to create for.</param>
             /// <param name="gen">The ILGenerator for the global function.</param>
             /// <param name="captures">The captures for the global function.</param>
-            /// <param name="createType">Whether to create a type for the global 
+            /// <param name="createType">Whether to create a type for the global
             /// function.</param>
             /// <returns>The new root nest node.</returns>
             public static NestInfo Create(TypeBuilder tb, ILGenerator gen, NameItem[] captures, bool createType)
@@ -203,7 +203,7 @@ namespace ModMaker.Lua.Compiler
                 return null;
             }
             /// <summary>
-            /// Defines a new Local variable and returns the field that 
+            /// Defines a new Local variable and returns the field that
             /// represents it.
             /// </summary>
             /// <param name="name">The Lua name of the variable.</param>
@@ -232,7 +232,7 @@ namespace ModMaker.Lua.Compiler
                 }
             }
             /// <summary>
-            /// Returns an object that starts a new local block when created 
+            /// Returns an object that starts a new local block when created
             /// and will end it when Dispose is called.  For use with 'using'
             /// keyword.
             /// </summary>
@@ -387,7 +387,7 @@ namespace ModMaker.Lua.Compiler
         }
         /// <summary>
         /// Starts a local-variable scope block and returns an object that will
-        /// end the scope when Dispose is called. This is to be used with the 
+        /// end the scope when Dispose is called. This is to be used with the
         /// 'using' keyword.
         /// </summary>
         /// <returns>An object that will end the local block when 'Dispose' is
@@ -518,7 +518,7 @@ namespace ModMaker.Lua.Compiler
         }
         /// <summary>
         /// Searches for a variable with the given name and returns an object
-        /// used to get/set it's value.  There are three kinds of variables: 
+        /// used to get/set it's value.  There are three kinds of variables:
         /// Local, Captured, and Global.
         /// </summary>
         /// <param name="name">The name of the variable.</param>
@@ -553,9 +553,9 @@ namespace ModMaker.Lua.Compiler
             return new GlobalVarDef(CurrentGenerator, name.Name);
         }
         /// <summary>
-        /// Defines a new local variable and returns an object used to get/set 
-        /// it's value.  There are two possible variable types: Local and 
-        /// Captured.  Which one is chosen depends on whether the variable is 
+        /// Defines a new local variable and returns an object used to get/set
+        /// it's value.  There are two possible variable types: Local and
+        /// Captured.  Which one is chosen depends on whether the variable is
         /// captured in the FunctionInfo used to create the current function.
         /// </summary>
         /// <param name="name">The name of the variable.</param>
@@ -616,13 +616,13 @@ namespace ModMaker.Lua.Compiler
         #region public interface VariableDefinition
 
         /// <summary>
-        /// A helper interface used to generate code for different variable 
+        /// A helper interface used to generate code for different variable
         /// definitions.  There are three scopes: Global, Local, and Captured.
         /// </summary>
         public interface VarDefinition
         {
             /// <summary>
-            /// Starts the setting of the variable.  For example, pushing 
+            /// Starts the setting of the variable.  For example, pushing
             /// 'this' onto the stack.
             /// </summary>
             void StartSet();
@@ -681,7 +681,7 @@ namespace ModMaker.Lua.Compiler
             }
         }
         /// <summary>
-        /// Defines a local variable definition, one that is only referenced 
+        /// Defines a local variable definition, one that is only referenced
         /// by the current function.
         /// </summary>
         sealed class LocalVarDef : VarDefinition
@@ -711,8 +711,8 @@ namespace ModMaker.Lua.Compiler
         }
         /// <summary>
         /// Defines a local variable that has been captured by nested functions
-        /// and is stored in a field in a nested type.  This version is used 
-        /// for when called from the defining function so only an instance to 
+        /// and is stored in a field in a nested type.  This version is used
+        /// for when called from the defining function so only an instance to
         /// the child type is needed to access the variable.
         /// </summary>
         sealed class CapturedVarDef : VarDefinition
@@ -748,7 +748,7 @@ namespace ModMaker.Lua.Compiler
         }
         /// <summary>
         /// Defines a local variable that has been captured by nested functions
-        /// and is stored in a parrent nest.  This version loads the variable 
+        /// and is stored in a parrent nest.  This version loads the variable
         /// from parrent nest types.
         /// </summary>
         sealed class CapturedParVarDef : VarDefinition

@@ -65,7 +65,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="target">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
-        /// <param name="overload">The overload to chose or negative to do 
+        /// <param name="overload">The overload to chose or negative to do
         /// overload resoltion.</param>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>
@@ -247,8 +247,8 @@ namespace ModMaker.Lua.Runtime.LuaValues
         }
         /// <summary>
         /// Gets information about the cast between the current type
-        /// and the given type.  This value is used in overload 
-        /// resolution. If this is not implemented; the default 
+        /// and the given type.  This value is used in overload
+        /// resolution. If this is not implemented; the default
         /// values will be used.
         /// </summary>
         /// <typeparam name="T">The type to cast to.</typeparam>
@@ -359,7 +359,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
             // If the other is not a visitor, throw.
             if (!(other is ILuaValueVisitor))
                 throw new InvalidOperationException(Errors.CannotArithmetic(LuaValueType.Function));
-            else 
+            else
                 return ((ILuaValueVisitor)other).Arithmetic(type, this);
         }
         /// <summary>
@@ -569,7 +569,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         ///     cases, a language-specific run-time exception is thrown.</returns>
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
-            var ret = InvokeInternal(LuaNil.Nil, false, -1, 
+            var ret = InvokeInternal(LuaNil.Nil, false, -1,
                                      LuaMultiValue.CreateMultiValueFromObj(args));
             result = ret.GetValue();
             return true;

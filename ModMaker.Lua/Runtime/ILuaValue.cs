@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Runtime
     /// Even though this implements IComparable, LuaValues may not be ordered.
     /// The compare method may throw an InvalidOperationException if a
     /// comparison is with an invalid object.
-    /// 
+    ///
     /// Similarly, the Enumerator method may throw if on an invalid type.
     /// </remarks>
     public interface ILuaValue : IEquatable<ILuaValue>, IComparable<ILuaValue>
@@ -61,8 +61,8 @@ namespace ModMaker.Lua.Runtime
         bool TypesCompatible<T>();
         /// <summary>
         /// Gets information about the cast between the current type
-        /// and the given type.  This value is used in overload 
-        /// resolution. If this is not implemented; the default 
+        /// and the given type.  This value is used in overload
+        /// resolution. If this is not implemented; the default
         /// values will be used.
         /// </summary>
         /// <typeparam name="T">The type to cast to.</typeparam>
@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Runtime
         /// <param name="overload">Specifies the overload to call; -1 to use overload-resolution.</param>
         /// <returns>The return values from the invokation.</returns>
         ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args);
-        
+
         /// <summary>
         /// Performs a binary arithmetic operation and returns the result.
         /// </summary>

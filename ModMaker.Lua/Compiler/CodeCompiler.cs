@@ -56,7 +56,7 @@ namespace ModMaker.Lua.Compiler
         /// <param name="name">The name/path to save to.</param>
         /// <exception cref="System.ArgumentException">If the name is not a
         /// valid file path.</exception>
-        /// <exception cref="System.ArgumentNullException">If name is null or 
+        /// <exception cref="System.ArgumentNullException">If name is null or
         /// empty.</exception>
         /// <exception cref="System.NotSupportedException">If the implementation
         /// does not support saving to disk.</exception>
@@ -74,15 +74,15 @@ namespace ModMaker.Lua.Compiler
             File.Move("DynamicAssembly.dll", name);
         }
         /// <summary>
-        /// Saves the compiled code to disk, optionally overriting the file if 
+        /// Saves the compiled code to disk, optionally overriting the file if
         /// it exists.
         /// </summary>
         /// <param name="name">The name/path to save to.</param>
-        /// <param name="doOverride">True to override the file if it exists, 
+        /// <param name="doOverride">True to override the file if it exists,
         /// otherwise false.</param>
         /// <exception cref="System.ArgumentException">If the name is not a
         /// valid file path.</exception>
-        /// <exception cref="System.ArgumentNullException">If name is null or 
+        /// <exception cref="System.ArgumentNullException">If name is null or
         /// empty.</exception>
         /// <exception cref="System.NotSupportedException">If the implementation
         /// does not support saving to disk.</exception>
@@ -104,10 +104,10 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Compiles an IParseItem tree indo an IModule object so that it can 
+        /// Compiles an IParseItem tree indo an IModule object so that it can
         /// be executed.
         /// </summary>
-        /// <param name="name">The name to given the module, can be null to 
+        /// <param name="name">The name to given the module, can be null to
         /// auto-generate.</param>
         /// <param name="E">The current environment.</param>
         /// <param name="item">The item to compile.</param>

@@ -46,12 +46,12 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </summary>
         public ILuaTable MetaTable { get; set; }
         /// <summary>
-        /// Gets or sets the value at the given index.  This uses 
+        /// Gets or sets the value at the given index.  This uses
         /// meta-methods if needed.
         /// </summary>
         /// <param name="index">The index to get/set.</param>
         /// <returns>The value at the given index.</returns>
-        public ILuaValue this[ILuaValue index] 
+        public ILuaValue this[ILuaValue index]
         {
             get { return Get(index); }
             set { Set(index, value); }
@@ -143,7 +143,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
 
             return new LuaNumber(i-1);
         }
-        
+
         /// <summary>
         /// Indexes the value and returns the value.
         /// </summary>
@@ -206,7 +206,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <summary>
         ///  Returns an enumerator that iterates through a collection.
         /// </summary>
-        /// <returns>An System.Collections.IEnumerator object that can be used 
+        /// <returns>An System.Collections.IEnumerator object that can be used
         /// to iterate through the collection.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {

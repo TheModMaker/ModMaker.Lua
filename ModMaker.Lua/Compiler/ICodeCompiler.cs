@@ -27,10 +27,10 @@ namespace ModMaker.Lua.Compiler
     public interface ICodeCompiler
     {
         /// <summary>
-        /// Compiles an IParseItem tree indo an IModule object so that it can 
+        /// Compiles an IParseItem tree indo an IModule object so that it can
         /// be executed.
         /// </summary>
-        /// <param name="name">The name to given the module, can be null to 
+        /// <param name="name">The name to given the module, can be null to
         /// auto-generate.</param>
         /// <param name="E">The current environment.</param>
         /// <param name="item">The item to compile.</param>

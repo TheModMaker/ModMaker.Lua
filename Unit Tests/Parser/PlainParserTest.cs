@@ -44,13 +44,13 @@ namespace UnitTests.Parser
         {
             PlainParser target = new PlainParser();
             TextElementEnumerator input1 = StringInfo.GetTextElementEnumerator(
-@"local a = 12 
-t = { [34]= function() print(i) end } 
-function Some(a, ...) 
-    a, b, c = ... 
-    for i= 12, 23 do 
-        print(i) 
-    end 
+@"local a = 12
+t = { [34]= function() print(i) end }
+function Some(a, ...)
+    a, b, c = ...
+    for i= 12, 23 do
+        print(i)
+    end
 end"
                 );
             IParseItem actual;
@@ -202,7 +202,7 @@ end"
                 }
             }
 
-            // function Some(a, ...) 
+            // function Some(a, ...)
             {
                 FuncDefItem func = block.Children[2] as FuncDefItem;
                 Assert.IsNotNull(func, "Block.Children[2]");

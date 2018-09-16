@@ -28,11 +28,11 @@ namespace ModMaker.Lua.Parser
         /// <summary>
         /// A set of reserved keywords.  Do not modify the set.
         /// </summary>
-        protected static readonly ICollection<string> _reserved = new List<string>() { "and", "break", "do", 
+        protected static readonly ICollection<string> _reserved = new List<string>() { "and", "break", "do",
             "else", "elseif", "end", "false", "for", "function", "goto", "if",  "in", "local", "nil", "not",
             "or", "repeat", "return", "then", "true", "until", "while", "class", "ref" };
         /// <summary>
-        /// A cache of parsed trees.  If accessing or modifying this, aquire a 
+        /// A cache of parsed trees.  If accessing or modifying this, aquire a
         /// lock on _lock.
         /// </summary>
         protected static Dictionary<string, IParseItem> _cache = new Dictionary<string, IParseItem>();
@@ -58,7 +58,7 @@ namespace ModMaker.Lua.Parser
         /// <summary>
         /// Creates a new parser object.
         /// </summary>
-        public PlainParser() 
+        public PlainParser()
         {
             this.Functions = new Dictionary<string, ReadStatement>();
             this.Functions.Add("::",        this.ReadLabel);
@@ -179,8 +179,8 @@ namespace ModMaker.Lua.Parser
                     name.Value == "until")
                 {
                     // don'type read as it will be handled by the parrent
-                    prev.Append(total); // don't add 'end' to the prev 
-                    ret.Debug = total;  //   or the current block, this 
+                    prev.Append(total); // don't add 'end' to the prev
+                    ret.Debug = total;  //   or the current block, this
                     return ret;         //   end belongs to the parrent.
                 }
                 else
@@ -573,7 +573,7 @@ namespace ModMaker.Lua.Parser
             var debug = input.Read(); // read 'goto'
             if (debug.Value != "goto")
                 throw new InvalidOperationException(string.Format(Resources.MustBeOn, "goto", "ReadGoto"));
-            
+
             // read the target
             var name = Read(input, ref debug);
             if (!IsName(name.Value))
@@ -610,7 +610,7 @@ namespace ModMaker.Lua.Parser
                 throw new SyntaxException(
                     string.Format(Resources.TokenInvalidExpecting, end.Value, "do", "end"),
                     input.Name, end);
-            
+
             prev.Append(debug);
             return ret;
         }
@@ -814,7 +814,7 @@ namespace ModMaker.Lua.Parser
             return f;
         }
         /// <summary>
-        /// Reads part of a numerical for loop from the input.  The input is 
+        /// Reads part of a numerical for loop from the input.  The input is
         /// currently on the equals sign '=' and the debug token currently
         /// contains the parts read for the 'for' loop.  'name' contains the
         /// name of the variable.
@@ -1363,14 +1363,14 @@ namespace ModMaker.Lua.Parser
                     last = Read(input, ref debug);
                     if (last.Value != "]")
                         throw new SyntaxException(
-                            string.Format(Resources.TokenInvalidExpecting, last.Value, "table", "]"), 
+                            string.Format(Resources.TokenInvalidExpecting, last.Value, "table", "]"),
                             input.Name, last);
 
                     // read '='
                     last = Read(input, ref debug);
                     if (last.Value != "=")
                         throw new SyntaxException(
-                            string.Format(Resources.TokenInvalidExpecting, last.Value, "table", "="), 
+                            string.Format(Resources.TokenInvalidExpecting, last.Value, "table", "="),
                             input.Name, last);
 
                     // read the expression
@@ -1413,7 +1413,7 @@ namespace ModMaker.Lua.Parser
             Token end = Read(input, ref debug); // read the "}"
             if (end.Value != "}")
                 throw new SyntaxException(
-                    string.Format(Resources.TokenInvalidExpecting, end.Value, "table", "}"), 
+                    string.Format(Resources.TokenInvalidExpecting, end.Value, "table", "}"),
                     input.Name, end);
 
             ret.Debug = debug;

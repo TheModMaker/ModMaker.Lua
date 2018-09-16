@@ -40,7 +40,7 @@ namespace ModMaker.Lua.Runtime
         /// Gets the number of values in this object.
         /// </summary>
         int Count { get; }
-        
+
         /// <summary>
         /// Returns a new object with the same values as this object except
         /// where any extra values are removed and any missing values are

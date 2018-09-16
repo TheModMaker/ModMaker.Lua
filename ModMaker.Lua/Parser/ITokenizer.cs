@@ -83,7 +83,7 @@ namespace ModMaker.Lua.Parser
         }
 
         /// <summary>
-        /// Determines whether the specified System.Object is  equal to the 
+        /// Determines whether the specified System.Object is  equal to the
         /// current System.Object.
         /// </summary>
         /// <param name="obj">The object to compare with the current object.</param>
@@ -103,7 +103,7 @@ namespace ModMaker.Lua.Parser
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
-        /// <returns>A 32-bit signed integer that is the hash code for this 
+        /// <returns>A 32-bit signed integer that is the hash code for this
         /// instance.</returns>
         public override int GetHashCode()
         {

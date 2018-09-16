@@ -42,7 +42,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// Gets the value type of the value.
         /// </summary>
         public abstract LuaValueType ValueType { get; }
-        
+
         /// <summary>
         /// Creates a new LuaValue object wrapping the given value.
         /// </summary>
@@ -168,8 +168,8 @@ namespace ModMaker.Lua.Runtime.LuaValues
         }
         /// <summary>
         /// Gets information about the cast between the current type
-        /// and the given type.  This value is used in overload 
-        /// resolution. If this is not implemented; the default 
+        /// and the given type.  This value is used in overload
+        /// resolution. If this is not implemented; the default
         /// values will be used.
         /// </summary>
         /// <typeparam name="T">The type to cast to.</typeparam>
@@ -294,7 +294,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </remarks>
         public abstract ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other);
         /// <summary>
-        /// Defines basic arithmetic for derived classes.  This returns a 
+        /// Defines basic arithmetic for derived classes.  This returns a
         /// non-null value when default, or null if it is a visitor.  This
         /// throws if not a visitor.
         /// </summary>
@@ -358,7 +358,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                     return null;
             }
         }
-        
+
         /// <summary>
         /// Attempts to invoke a meta-method and returns the result.
         /// </summary>
@@ -463,7 +463,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         {
             return this;
         }
-        
+
         /// <summary>
         /// Performs a binary arithmetic operation and returns the result.
         /// </summary>
@@ -653,7 +653,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <returns>true if the current object is equal to the other parameter; otherwise, false.</returns>
         public override bool Equals(ILuaValue other)
         {
-            return other != null && other.GetType() == this.GetType() && 
+            return other != null && other.GetType() == this.GetType() &&
                 object.Equals(this.Value, ((LuaValueBase<T>)other).Value);
         }
         /// <summary>

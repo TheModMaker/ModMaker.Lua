@@ -33,7 +33,7 @@ namespace ModMaker.Lua
         static Helpers()
         {
             MethodInfo preserveStackTrace = typeof(Exception).GetMethod("InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic);
-            preserveStackTrace_ = (Action<Exception>)Delegate.CreateDelegate(typeof(Action<Exception>), preserveStackTrace);            
+            preserveStackTrace_ = (Action<Exception>)Delegate.CreateDelegate(typeof(Action<Exception>), preserveStackTrace);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace ModMaker.Lua
                 act();
             }
         }
-        
+
         /// <summary>
         /// Defines information about a method overload.
         /// </summary>
@@ -69,83 +69,83 @@ namespace ModMaker.Lua
         /// can be passed.  This value is stored in the respective index of
         /// ConversionAmounts.  The indicies refer to the formal parameters
         /// and do not include optional parameters or params arrays.
-        /// 
+        ///
         /// There is a similar array called ConversionTypes that contains the
         /// types of conversions that happen for each formal parameter.
-        /// 
+        ///
         /// For the following comments, I will use 'parameter' to refer to the
         /// formal parameter (i.e. the type in the method definition) and
         /// 'argument' to refer to the object that is passed to the method. I
         /// will also use the following type hierarchy:
         /// <![CDATA[I <- A <- B <- C]]>
         /// Where I is an interface and A, B, and C are classes.
-        /// 
-        /// If the argument is of type C and the parameter is of type B, then 
+        ///
+        /// If the argument is of type C and the parameter is of type B, then
         /// the amount is 1.  If the parameter is of type A, then the amount is
-        /// 2.  All other casts have an amount of 0 and a different type in 
+        /// 2.  All other casts have an amount of 0 and a different type in
         /// ConversionTypes.
-        /// 
+        ///
         /// When determining which overload to chose, each overload gets it's
         /// own OverloadInfo and then they are all compared with each other
         /// using Compare until one remains.  If the only remaing
         /// OverloadInfo are always equal (Compare returns 0), then
         /// an AmbiguousMatchException is thrown.
-        /// 
+        ///
         /// This assumes that when comparing, both overloads are valid with the
         /// given arguments and they both had originaly the same arguments.
-        /// 
+        ///
         /// An overload that has fewer arguments added/removed through optional
-        /// parameters or params arrays (stored in ParamsOrOptional) is 
+        /// parameters or params arrays (stored in ParamsOrOptional) is
         /// considered better than one with more.
-        /// 
+        ///
         /// Foo(int, int=12, int=12)
         /// Foo(int, int)
-        /// 
+        ///
         /// When called, Foo(12, 23) will chose the second one because it has
         /// fewer arguments added due to optional parameters.
-        /// 
+        ///
         /// Foo(int, int, int)
         /// Foo(params int[])
-        /// 
+        ///
         /// When called Foo(42, 42, 42) will chose the first one because it has
         /// more explicit parameters.
-        /// 
+        ///
         /// When choosing between optional parameters and a params array, this
         /// will choose the optional parameters one.
-        /// 
+        ///
         /// Otherwise the ConversionAmount is iterated over.  If for both
         /// overloads the arguments are implicitly cast to the parameter type,
         /// then the difference of the two methods is added to a counter value.
         /// If this counter is positive, then the first overload is better
-        /// because the arguemnt types more closely resemble the parameter 
+        /// because the arguemnt types more closely resemble the parameter
         /// types.  If the number is zero, then they are the same.
-        /// 
+        ///
         /// User-defined explicit casts operate the same way, except that there
-        /// is a seperate counter of the number of times it ocurs in each 
+        /// is a seperate counter of the number of times it ocurs in each
         /// overload and if the two overloads are the same, the one with fewer
         /// explicit casts is chosen.
-        /// 
-        /// If one overload has an interface in it's definition, then it's 
+        ///
+        /// If one overload has an interface in it's definition, then it's
         /// behavior is different. If both define interfaces at different
         /// position than the other, then the result is ambiguous and returns
         /// 0.  If only one defines an interface, then the other method must
         /// be chosen by the first counter, otherwise the result is ambiguous.
         /// The first counter is not affected by this parameter.
-        /// 
+        ///
         /// Consider the call to Foo(C, C), the following definitins are:
-        /// 
+        ///
         /// Foo(I, A) and Foo(A, A), the second one is chosen because A is more
         /// specific than I.
-        /// 
+        ///
         /// Foo(I, A) and Foo(A, B), the second one is chosen because B is more
         /// specific than A.
-        /// 
-        /// Foo(I, B) and Foo(A, A), ambiguous because the method with the 
+        ///
+        /// Foo(I, B) and Foo(A, A), ambiguous because the method with the
         /// interface is more specific.
-        /// 
-        /// Foo(I, B) and Foo(A, I), ambiguous because they both define 
+        ///
+        /// Foo(I, B) and Foo(A, I), ambiguous because they both define
         /// interfaces.
-        /// 
+        ///
         /// Foo(I, A) and Foo(I, I), the first one is chosen because A is more
         /// specific than I.  Note that becuase they both define the interface
         /// then that parameter is ignored.
@@ -158,7 +158,7 @@ namespace ModMaker.Lua
             /// <param name="method">The method that this is representing.</param>
             /// M<param name="target">The 'this' argument of the method.</param>
             /// <param name="args">The arguments being passed to the method.</param>
-            OverloadInfo(T method, object target, ILuaMultiValue args, int[] amounts, 
+            OverloadInfo(T method, object target, ILuaMultiValue args, int[] amounts,
                 LuaCastType[] types, int paramsOrOptional, int luaValueCount, bool isParams)
             {
                 this.Method = method;
@@ -318,7 +318,7 @@ namespace ModMaker.Lua
                         if (!nullable && destType.IsValueType)
                             return null;
                         // If the argument is ILuaValue, make sure it is compatible with LuaNil.
-                        if (typeof(ILuaValue).IsAssignableFrom(destType) && 
+                        if (typeof(ILuaValue).IsAssignableFrom(destType) &&
                                 !destType.IsAssignableFrom(typeof(LuaNil)))
                             return null;
 
@@ -343,7 +343,7 @@ namespace ModMaker.Lua
                     }
                 }
 
-                return new OverloadInfo<T>(method, target, args, conversionAmounts, 
+                return new OverloadInfo<T>(method, target, args, conversionAmounts,
                     conversionTypes, paramsOrOptional, luaValueCount, isParams);
             }
 
@@ -352,7 +352,7 @@ namespace ModMaker.Lua
             /// the same arguments are given to both overloads.  This is the
             /// same semantics as IComparable.  The return alue is given by
             /// the following table:
-            /// 
+            ///
             /// 0     | They are equivilent.
             /// &gt;0 | This object is the better overload.
             /// &lt;0 | The other one is the better overload.
@@ -456,7 +456,7 @@ namespace ModMaker.Lua
                     result = Math.Max(dif, 0);
                     return true;
                 }
-                else if (dif != 0)  
+                else if (dif != 0)
                 {
                     result = dif;
                     return true;
@@ -519,7 +519,7 @@ namespace ModMaker.Lua
             {
                 try
                 {
-                    // These are out args, so the initial value can be null 
+                    // These are out args, so the initial value can be null
                     // since the real value is undefined.
                     object[] args = new object[2];
                     getCastInfo.Invoke(target, args);
@@ -545,7 +545,7 @@ namespace ModMaker.Lua
                 }
             }
         }
-        
+
         /// <summary>
         /// Creates an IDisposable object that calls the given funcrion when
         /// Dispose is called.
@@ -615,7 +615,7 @@ namespace ModMaker.Lua
             MethodInfo as_ = typeof(Helpers)
                 .GetMethod(nameof(Helpers.As), new[] { typeof(ILuaMultiValue), typeof(int) });
             MethodInfo asGeneric = as_.MakeGenericMethod(type);
-            Func<ILuaMultiValue, int, object> convert = 
+            Func<ILuaMultiValue, int, object> convert =
                 (Func<ILuaMultiValue, int, object>)Delegate.CreateDelegate(
                     typeof(Func<ILuaMultiValue, int, object>), asGeneric);
             return convert(args, start);
@@ -683,10 +683,10 @@ namespace ModMaker.Lua
             LuaIgnoreAttribute attr = sourceType.GetCustomAttributes(typeof(LuaIgnoreAttribute), true)
                 .Select(o => (LuaIgnoreAttribute)o).FirstOrDefault();
             var possible = sourceType.GetMethods()
-                .Where(m => 
+                .Where(m =>
                     (m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0) &&
                     (attr == null || attr.IsMemberVisible(sourceType, m.Name)) &&
-                    (m.Name == "op_Explicit" || m.Name == "op_Implicit") && 
+                    (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
                     (m.ReturnType == destType) &&
                     (m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType)))
                 .ToArray();
@@ -696,10 +696,10 @@ namespace ModMaker.Lua
                 .Select(o => (LuaIgnoreAttribute)o).FirstOrDefault();
             possible = possible
                 .Union(destType.GetMethods()
-                    .Where(m => 
+                    .Where(m =>
                         (m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0) &&
                         (attr == null || attr.IsMemberVisible(destType, m.Name)) &&
-                        (m.Name == "op_Explicit" || m.Name == "op_Implicit") && 
+                        (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
                         (m.ReturnType == destType) &&
                         (m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType))))
                 .ToArray();
@@ -719,10 +719,10 @@ namespace ModMaker.Lua
             return LuaCastType.NoCast;
         }
         /// <summary>
-        /// Searches the given methods for an overload that will work with the 
+        /// Searches the given methods for an overload that will work with the
         /// given arguments.
         /// </summary>
-        /// <typeparam name="T">The type of the method base (e.g. MethodInfo 
+        /// <typeparam name="T">The type of the method base (e.g. MethodInfo
         /// or ConstructorInfo).</typeparam>
         /// <param name="methods">The possible method choices.</param>
         /// <param name="args">The arguments to check.</param>
@@ -831,7 +831,7 @@ namespace ModMaker.Lua
 
             return ret;
         }
-        
+
         /// <summary>
         /// Invokes the given method while throwing the inner exception.  This ensures that the
         /// TargetInvocationException is not thrown an instead the inner exception is thrown.
@@ -869,7 +869,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.InvalidOperationException">If the target type
         /// does not define an accessible index or member -or- if index is
         /// not of a valid type or value -or- if attempt to set a method.</exception>
-        public static ILuaValue GetSetMember(Type targetType, object target, ILuaValue index, 
+        public static ILuaValue GetSetMember(Type targetType, object target, ILuaValue index,
                                              ILuaValue value = null)
         {
             // TODO: Consider how to get settings here.
@@ -944,7 +944,7 @@ namespace ModMaker.Lua
                 throw new InvalidOperationException("Indices of a User-Defined type must be a string, number, or table.");
         }
 
-        static ILuaValue GetSetValue(MemberInfo[] members, int over, object target, 
+        static ILuaValue GetSetValue(MemberInfo[] members, int over, object target,
                                      ILuaValue value = null)
         {
             // Perform the action on the given member.  Although this only checks the first
@@ -1045,7 +1045,7 @@ namespace ModMaker.Lua
         /// <exception cref="System.InvalidOperationException">If the target type
         /// does not define an accessible index or member -or- if index is
         /// not of a valid type or value -or- if attemt to set a method.</exception>
-        static ILuaValue GetSetIndex(Type targetType, object target, ILuaMultiValue indicies, 
+        static ILuaValue GetSetIndex(Type targetType, object target, ILuaMultiValue indicies,
                                      ILuaValue value = null)
         {
             // Arrays do not actually define an 'Item' method so we need to access the indexer
@@ -1098,7 +1098,7 @@ namespace ModMaker.Lua
                 targetType.GetMethods()
                     .Where(m => m.Name == (value == null ? "get_" + name : "set_" + name))
                     .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
-                    .Select(m => Tuple.Create(m, (object)target)), 
+                    .Select(m => Tuple.Create(m, (object)target)),
                 indicies, out method, out methodTarget);
 
             if (method == null)

@@ -10,8 +10,8 @@
 
 namespace ModMaker.Lua {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace ModMaker.Lua {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal Resources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace ModMaker.Lua {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace ModMaker.Lua {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to An object with the name &apos;{0}&apos; is already registered..
         /// </summary>
@@ -68,7 +68,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("AlreadyRegistered", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given binary operation is not valid..
         /// </summary>
@@ -77,7 +77,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BadBinOp", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot cast an object of type {0} to the type {1}..
         /// </summary>
@@ -86,7 +86,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BadCast", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Index of a &apos;{0}&apos; must be a {1}..
         /// </summary>
@@ -95,7 +95,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BadIndexType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Incorrect number format..
         /// </summary>
@@ -104,7 +104,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BadNumberFormat", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A type marked with LuaIgnoreAttribute with a given BehavesAs must inherit from that type..
         /// </summary>
@@ -113,7 +113,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BehavesAsMustDeriveType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A variable marked with LuaIgnoreAttribute with a given BehavesAs must inherit from that type..
         /// </summary>
@@ -122,7 +122,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("BehavesAsMustDeriveVar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Attempt to perform arithmetic on a &apos;{0}&apos; value..
         /// </summary>
@@ -131,7 +131,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotArithmetic", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Attempt to call a &apos;{0}&apos; type..
         /// </summary>
@@ -140,7 +140,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotCall", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to {0} cannot contain a null value..
         /// </summary>
@@ -149,7 +149,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotContainNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Attemt to enumerate a &apos;{0}&apos; type..
         /// </summary>
@@ -158,7 +158,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotEnumerate", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot hide member &apos;{0}&apos; defined in base class &apos;{1}&apos;..
         /// </summary>
@@ -167,7 +167,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotHideMember", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Attempt to index a &apos;{0}&apos; type..
         /// </summary>
@@ -176,7 +176,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotIndex", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot override property &apos;{0}&apos; because it is not virtual..
         /// </summary>
@@ -185,7 +185,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotOverrideProperty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot specify the overload of a {0}..
         /// </summary>
@@ -194,7 +194,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CannotUseOverload", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The index must be positive and less than the number of chunks loaded..
         /// </summary>
@@ -203,7 +203,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ChunkOutOfRange", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot write to a constant property..
         /// </summary>
@@ -212,7 +212,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ConstantProperty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The constructor can only be a function..
         /// </summary>
@@ -221,7 +221,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CtorMustBeFunc", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The current class does not derrive from type &apos;{0}&apos;..
         /// </summary>
@@ -230,7 +230,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("CurrentDoesNotDerive", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Must define at least one name..
         /// </summary>
@@ -239,7 +239,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("DefineAtLeastOneName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is already defined as a Method..
         /// </summary>
@@ -248,7 +248,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("DefinedAsMethod", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The given type must derive from delegate..
         /// </summary>
@@ -257,7 +257,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("DeriveFromDelegate", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The class &apos;{0}&apos; does not implement an interface with the name &apos;{1}&apos;..
         /// </summary>
@@ -266,7 +266,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("DoesNotImplement", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Error while resolving labels, make sure not to change UserData during compilation..
         /// </summary>
@@ -275,7 +275,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ErrorResolveLabel", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to There is already an overload specified with the index &apos;{0}&apos;..
         /// </summary>
@@ -284,7 +284,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ExistingOverload", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Must have a function call after specifying an overload..
         /// </summary>
@@ -293,7 +293,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("FunctionCallAfterOverload", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Functions cannot have names when used as expressions..
         /// </summary>
@@ -302,7 +302,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("FunctionCantHaveName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot index an expression..
         /// </summary>
@@ -311,7 +311,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("IndexAfterExpression", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot use an indexer after an instance call..
         /// </summary>
@@ -320,7 +320,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("IndexerAfterInstance", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot use indexers(.) in local definition..
         /// </summary>
@@ -329,7 +329,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("IndexerLocalMethod", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot define instance methods for local methods..
         /// </summary>
@@ -338,7 +338,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InstanceLocalMethod", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Instance function call missing arguments..
         /// </summary>
@@ -347,7 +347,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InstanceMissingArgs", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid {0} definition..
         /// </summary>
@@ -356,7 +356,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InvalidDefinition", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid escape sequence &apos;\{0}&apos;..
         /// </summary>
@@ -365,7 +365,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InvalidEscape", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A literal must be of type bool, double, string, or be null..
         /// </summary>
@@ -374,7 +374,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InvalidLiteralType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot use unary minus on a string, bool, or nil..
         /// </summary>
@@ -383,7 +383,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("InvalidUnary", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A label with the name &apos;{0}&apos; is already defined in this block..
         /// </summary>
@@ -392,7 +392,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("LabelAlreadyDefined", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unable to locate label &apos;{0}&apos; for goto item..
         /// </summary>
@@ -401,7 +401,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("LabelNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The Start, Limit, and Step of a for loop must result in numbers..
         /// </summary>
@@ -410,7 +410,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("LoopMustBeNumbers", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; defines more than one member named &apos;{1}&apos;..
         /// </summary>
@@ -419,7 +419,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ManyMembersFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The member &apos;{0}&apos; has already a been assigned a default value..
         /// </summary>
@@ -428,7 +428,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MemberHasDefault", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The member &apos;{0}&apos; has already a been assigned a type..
         /// </summary>
@@ -437,7 +437,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MemberHasType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Missing end of {0}..
         /// </summary>
@@ -446,7 +446,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MissingEnd", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot register a multicast delegate, must register each individually..
         /// </summary>
@@ -455,7 +455,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MulticastNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The member &apos;{0}&apos; is defined as a method and must be set to a Lua function..
         /// </summary>
@@ -464,7 +464,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MustBeFunction", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Must be on a &apos;{0}&apos; when calling {1}..
         /// </summary>
@@ -473,7 +473,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MustBeOn", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to LuaValue types must inherit ILuaValueVisitor..
         /// </summary>
@@ -482,7 +482,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("MustHaveVisitor", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Must give a name or expression for a variable definition..
         /// </summary>
@@ -491,7 +491,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("NameOrExpForVar", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type &apos;{0}&apos; does not contain a definition of member &apos;{1}&apos;..
         /// </summary>
@@ -500,7 +500,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("NoMemberFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Can only specify one instance call..
         /// </summary>
@@ -509,7 +509,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OneInstanceCall", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only numbers are allowed after the grave(`) when specifying an overload..
         /// </summary>
@@ -518,7 +518,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OnlyNumbersInOverload", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only variables can be passed by-reference..
         /// </summary>
@@ -527,7 +527,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OnlyVarByReference", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Overload function call missing arguments..
         /// </summary>
@@ -536,7 +536,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OverloadMissingArgs", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Can only specify one grave(`) in an overload..
         /// </summary>
@@ -545,7 +545,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OverloadOneGrave", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified overload is greater than the number defined..
         /// </summary>
@@ -554,7 +554,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("OverloadOutOfRange", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The values in a property table must be functions..
         /// </summary>
@@ -563,7 +563,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("PropTableFuncs", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A property table can only contain a &apos;get&apos; and/or a &apos;set&apos; items..
         /// </summary>
@@ -572,7 +572,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("PropTableGetSet", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot modify the settings after it is registered to an Environment..
         /// </summary>
@@ -581,7 +581,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ReadonlySettings", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The &apos;ref&apos; keyword can only have one argument..
         /// </summary>
@@ -590,7 +590,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("RefOneArgument", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The return statement must be the last statement in a block..
         /// </summary>
@@ -599,7 +599,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("ReturnAtEnd", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token &apos;{0}&apos;, expecting end of file..
         /// </summary>
@@ -608,7 +608,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenEOF", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; in {1} definition..
         /// </summary>
@@ -617,7 +617,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; in {1} definition, expecting &apos;{2}&apos;..
         /// </summary>
@@ -626,7 +626,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenInvalidExpecting", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; in {1} definition, expecting &apos;{2}&apos; or &apos;{3}&apos;..
         /// </summary>
@@ -635,7 +635,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenInvalidExpecting2", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token in &apos;{0}&apos; definition, &apos;{1}&apos; is not a name..
         /// </summary>
@@ -644,7 +644,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenNotAName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid name, &apos;{0}&apos; is reserved..
         /// </summary>
@@ -653,7 +653,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenReserved", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Invalid token &apos;{0}&apos;, expecting start of statement..
         /// </summary>
@@ -662,7 +662,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("TokenStatement", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Unexpected end of file in {0}..
         /// </summary>
@@ -671,7 +671,7 @@ namespace ModMaker.Lua {
                 return ResourceManager.GetString("UnexpectedEOF", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to 002400000480000094000000060200000024000052534131000400000100010007D1FA57C4AED9F0A32E84AA0FAEFD0DE9E8FD6AEC8F87FB03766C834C99921EB23BE79AD9D5DCC1DD9AD236132102900B723CF980957FC4E177108FC607774F29E8320E92EA05ECE4E821C0A5EFE8F1645C4C0C93C1AB99285D622CAA652C1DFAD63D745D6F2DE5F17E5EAF0FC4963D261C8A12436518206DC093344D5AD293
         ///00000000000000000400000000000000

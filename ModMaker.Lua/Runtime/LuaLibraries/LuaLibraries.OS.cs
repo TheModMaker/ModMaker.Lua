@@ -143,7 +143,7 @@ namespace ModMaker.Lua.Runtime
                                     // See strftime
                                     DateTimeFormatInfo dfi = DateTimeFormatInfo.CurrentInfo;
                                     ret.AppendFormat(
-                                        "{0:02}", 
+                                        "{0:02}",
                                         dfi.Calendar.GetWeekOfYear(
                                             time, CalendarWeekRule.FirstFullWeek, DayOfWeek.Sunday));
                                     break;

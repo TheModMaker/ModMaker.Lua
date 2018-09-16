@@ -27,7 +27,7 @@ namespace ModMaker.Lua.Runtime
 {
     /// <summary>
     /// Defines the default Lua runtime.  This class is incharge of resolving
-    /// operators and converting types.  This can be inherited to modify it's 
+    /// operators and converting types.  This can be inherited to modify it's
     /// behaviour.
     /// </summary>
     public class LuaRuntimeNet : ILuaRuntime
@@ -38,7 +38,7 @@ namespace ModMaker.Lua.Runtime
         /// <summary>
         /// Creates a new instance of the default LuaRuntime.
         /// </summary>
-        protected LuaRuntimeNet(ILuaEnvironment E) 
+        protected LuaRuntimeNet(ILuaEnvironment E)
         {
             this.E = E;
             threadPool_ = new ThreadPool(E);
@@ -48,13 +48,13 @@ namespace ModMaker.Lua.Runtime
         /// Contains the LuaRuntimeImpl type for generating LuaRuntime objects.
         /// </summary>
         private static Type runtimeType = null;
-        
+
         /// <summary>
         /// Creates a new instance of LuaRuntime.
         /// </summary>
         /// <returns>A new LuaRuntime object.</returns>
         /// <remarks>
-        /// This is needed because the Invoke method needs to have 
+        /// This is needed because the Invoke method needs to have
         /// OpCodes.Tailcall in order to have proper tail calls support.
         /// Because C# does not add these, the Invoke method must be generated
         /// at runtime.
@@ -175,11 +175,11 @@ namespace ModMaker.Lua.Runtime
         /// Gets the Lua thread object for the current thread.  This will be null for the main
         /// thread.
         /// </summary>
-        public ILuaThread CurrentThread 
+        public ILuaThread CurrentThread
         {
             get { return threadPool_.Search(Thread.CurrentThread.ManagedThreadId); }
         }
-        
+
         /// <summary>
         /// Starts a generic for loop and returns an enumerator object used to
         /// get the values.
@@ -289,7 +289,7 @@ namespace ModMaker.Lua.Runtime
             return new LuaValues.LuaDefinedFunction(E, name, method, target);
         }
         /// <summary>
-        /// Called when the code encounters the 'class' keyword.  Defines a 
+        /// Called when the code encounters the 'class' keyword.  Defines a
         /// LuaClass object with the given name.
         /// </summary>
         /// <param name="impl">The types that the class will derive.</param>

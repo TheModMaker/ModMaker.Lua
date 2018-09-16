@@ -23,7 +23,7 @@ namespace ModMaker.Lua
     static class Errors
     {
         // TODO: Add more errors and use this more.
-        
+
         /// <summary>
         /// Creates a string when calling on an invalid value.
         /// </summary>

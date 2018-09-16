@@ -20,14 +20,14 @@ namespace ModMaker.Lua.Runtime
 {
     /// <summary>
     /// Defines the environment that Lua operates in.  It is suggested that the
-    /// type that implements this interface should derrive from DynamicObject 
+    /// type that implements this interface should derrive from DynamicObject
     /// to allow for dynamic member access.
     /// </summary>
     /// <remarks>
     /// The type that implements this interface should either be marked
     /// with LuaIgnore or some of it's members should be marked with that so
-    /// members like CodeCompiler cannot be directly accessed in Lua code.  
-    /// Unless a registered delegate returns the value, Lua code cannot get 
+    /// members like CodeCompiler cannot be directly accessed in Lua code.
+    /// Unless a registered delegate returns the value, Lua code cannot get
     /// access to the current environment directly.
     /// </remarks>
     [LuaIgnore]
@@ -58,7 +58,7 @@ namespace ModMaker.Lua.Runtime
         ICodeCompiler CodeCompiler { get; set; }
         /// <summary>
         /// Gets or sets the parser for the environment.  This framework assumes
-        /// that the value returned is never null.  Some implementations may 
+        /// that the value returned is never null.  Some implementations may
         /// support setting to null.
         /// </summary>
         /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
@@ -76,7 +76,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="method">The delegate to register.</param>
         /// <param name="name">The name of the delegate.</param>
-        /// <exception cref="System.ArgumentException">If there is already an 
+        /// <exception cref="System.ArgumentException">If there is already an
         /// object registered with that name.</exception>
         /// <exception cref="System.ArgumentNullException">If d or name is null.</exception>
         void RegisterDelegate(Delegate method, string name);
@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Runtime
         /// </summary>
         /// <param name="type">The type to register.</param>
         /// <param name="name">The name of the type.</param>
-        /// <exception cref="System.ArgumentException">If there is already an 
+        /// <exception cref="System.ArgumentException">If there is already an
         /// object registered with that name.</exception>
         /// <exception cref="System.ArgumentNullException">If t or name is null.</exception>
         void RegisterType(Type type, string name);

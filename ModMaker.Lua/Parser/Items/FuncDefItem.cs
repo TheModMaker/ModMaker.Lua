@@ -28,7 +28,7 @@ namespace ModMaker.Lua.Parser.Items
         /// <summary>
         /// Creates a new FuncDefItem with the given name.
         /// </summary>
-        /// <param name="name">The name of the method, must be a NameItem or 
+        /// <param name="name">The name of the method, must be a NameItem or
         /// IndexerItem.</param>
         public FuncDefItem(IParseVariable name)
             : this(name, false) { }
@@ -51,7 +51,7 @@ namespace ModMaker.Lua.Parser.Items
         public ReadOnlyCollection<NameItem> Arguments
         { get { return new ReadOnlyCollection<NameItem>(args); } }
         /// <summary>
-        /// Gets or sets the prefix expression for this function definition, 
+        /// Gets or sets the prefix expression for this function definition,
         /// must be a NameItem or an IndexerItem.
         /// </summary>
         public IParseVariable Prefix { get; set; }
@@ -60,7 +60,7 @@ namespace ModMaker.Lua.Parser.Items
         /// </summary>
         public bool Local { get; set; }
         /// <summary>
-        /// Gets or sets the name if the instance method or null if this isn't 
+        /// Gets or sets the name if the instance method or null if this isn't
         /// an instance method.
         /// </summary>
         public string InstanceName { get; set; }

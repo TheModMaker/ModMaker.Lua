@@ -151,7 +151,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// <summary>
             /// Returns an enumerator that iterates through the collection.
             /// </summary>
-            /// <returns>A System.Collections.Generic.IEnumerator&lt;T&gt; that can 
+            /// <returns>A System.Collections.Generic.IEnumerator&lt;T&gt; that can
             /// be used to iterate through the collection.</returns>
             public IEnumerator<T> GetEnumerator()
             {
@@ -169,7 +169,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
 
         OverloadList<Tuple<MethodInfo, object>> methods;
         // TODO: Add a constructor that accepts Delegate[].
-        
+
         /// <summary>
         /// Creates a new LuaOverloadMethod with the given choices.
         /// </summary>
@@ -193,7 +193,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                     return null;
             });
         }
-        
+
         /// <summary>
         /// Adds an overload to the current method object.  This is used by the
         /// environment to register multiple delegates.  The default behaviour
@@ -225,7 +225,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="self">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
-        /// <param name="overload">The overload to chose or negative to do 
+        /// <param name="overload">The overload to chose or negative to do
         /// overload resoltion.</param>
         /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>

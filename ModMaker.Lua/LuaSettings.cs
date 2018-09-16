@@ -82,12 +82,12 @@ namespace ModMaker.Lua
         /// </summary>
         Registered,
         /// <summary>
-        /// Lua can derrive from types that are registered and defined in the 
+        /// Lua can derrive from types that are registered and defined in the
         /// .NET framework.
         /// </summary>
         System,
         /// <summary>
-        /// Lua can derrive from any type that is defined in 
+        /// Lua can derrive from any type that is defined in
         /// CurrentDomain.GetAssemblies().
         /// </summary>
         All,
@@ -190,11 +190,11 @@ namespace ModMaker.Lua
         }
 
         /// <summary>
-        /// Gets or sets the name of the Lua object, for use with debugging, 
+        /// Gets or sets the name of the Lua object, for use with debugging,
         /// can be null.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public string Name 
+        public string Name
         {
             get { return _name; }
             set
@@ -204,13 +204,13 @@ namespace ModMaker.Lua
             }
         }
         /// <summary>
-        /// Gets or sets the libraries that the Lua code has access too. The 
-        /// library must have Permission to access these and will throw 
+        /// Gets or sets the libraries that the Lua code has access too. The
+        /// library must have Permission to access these and will throw
         /// PermissionExceptions if it does not, when the code is run.  If null,
         /// use the defaults, which is all of them.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public LuaLibraries Libraries 
+        public LuaLibraries Libraries
         {
             get { return _libs; }
             set
@@ -223,7 +223,7 @@ namespace ModMaker.Lua
         /// Gets or sets which types Lua defined classes can derrive from.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public LuaClassAccess ClassAccess 
+        public LuaClassAccess ClassAccess
         {
             get { return _access; }
             set
@@ -238,7 +238,7 @@ namespace ModMaker.Lua
         /// encoding.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public Encoding Encoding 
+        public Encoding Encoding
         {
             get { return _enc; }
             set
@@ -252,7 +252,7 @@ namespace ModMaker.Lua
         /// Default: false.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public bool AllowNonSeekStreams 
+        public bool AllowNonSeekStreams
         {
             get { return _nonSeek; }
             set
@@ -266,7 +266,7 @@ namespace ModMaker.Lua
         /// Default: false.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public bool AllowReflection 
+        public bool AllowReflection
         {
             get { return _reflect; }
             set
@@ -282,7 +282,7 @@ namespace ModMaker.Lua
         /// Default: false.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public bool EnsureReturnType 
+        public bool EnsureReturnType
         {
             get { return _ensureReturn; }
             set
@@ -291,16 +291,16 @@ namespace ModMaker.Lua
                 _ensureReturn = value;
             }
         }
-        
+
         /// <summary>
         /// Raised when the Lua code calls os.close.  The sender
         /// is the Environment that the code is in. If e.Close
         /// is true after raising, it will call Environment.Exit.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public event EventHandler<ExitEventArgs> Quit 
+        public event EventHandler<ExitEventArgs> Quit
         {
-            add 
+            add
             {
                 CheckReadonly();
                 _onquit += value;
@@ -308,7 +308,7 @@ namespace ModMaker.Lua
             remove
             {
                 CheckReadonly();
-                _onquit -= value;            
+                _onquit -= value;
             }
         }
 
@@ -316,7 +316,7 @@ namespace ModMaker.Lua
         /// Gets or sets the stream to get stdin from.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public Stream Stdin 
+        public Stream Stdin
         {
             get { return _in; }
             set
@@ -329,7 +329,7 @@ namespace ModMaker.Lua
         /// Gets or sets the stream to send stdout to.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
-        public Stream Stdout 
+        public Stream Stdout
         {
             get { return _out; }
             set

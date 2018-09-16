@@ -95,7 +95,7 @@ namespace ModMaker.Lua.Runtime
         /// called or passed to the Lua coroutine library.
         /// </summary>
         bool IsLua { get; }
-        
+
         /// <summary>
         /// Suspends the calling thread to allow the thread for this object to continue.
         /// </summary>

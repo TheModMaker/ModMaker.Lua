@@ -20,7 +20,7 @@ using System.Linq;
 namespace ModMaker.Lua.Parser.Items
 {
     /// <summary>
-    /// Defines a parse item that represents a for generic statement.  
+    /// Defines a parse item that represents a for generic statement.
     /// e.g. for k, v in dict do ... end.
     /// </summary>
     public sealed class ForGenItem : IParseStatement

@@ -17,7 +17,7 @@ using NUnit.Framework;
 namespace UnitTests
 {
     /// <summary>
-    /// This is a test class for the ModMaker.Lua.Helpers class.  
+    /// This is a test class for the ModMaker.Lua.Helpers class.
     /// This contains all the tests methods for the class.
     /// </summary>
     [TestFixture]
@@ -45,10 +45,10 @@ namespace UnitTests
         public void Disposable_Valid()
         {
             var dummy = false;
-            var temp = Helpers.Disposable(() => 
+            var temp = Helpers.Disposable(() =>
             {
                 Assert.IsFalse(dummy, "Disposable called method twice.");
-                dummy = true; 
+                dummy = true;
             });
             Assert.IsNotNull(temp, "Disposable returned null.");
 
@@ -57,7 +57,7 @@ namespace UnitTests
 
             temp.Dispose();
         }
-        
+
         /// <summary>
         /// Tests the ToDouble method with a null value.
         /// </summary>

@@ -21,7 +21,7 @@ namespace ModMaker.Lua.Parser
 {
     /// <summary>
     /// Defines a tokenizer that accepts a TextElementEnumerator and produces a
-    /// stream of token for use in parsing.  It automatically ignores 
+    /// stream of token for use in parsing.  It automatically ignores
     /// whitespace and comments.  This type can be extended to alter it's behaviour.
     /// </summary>
     public class Tokenizer : ITokenizer
@@ -253,10 +253,10 @@ namespace ModMaker.Lua.Parser
         }
         /// <summary>
         /// Helper function that reads a comment from the input, it assumes that
-        /// the first two chars '--' have been already been read and the input 
+        /// the first two chars '--' have been already been read and the input
         /// is on the next char.
         /// </summary>
-        /// <returns>The token that holds the comments, this is unlikely to be 
+        /// <returns>The token that holds the comments, this is unlikely to be
         /// used except for debugging.</returns>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// an error in the syntax of the input.</exception>
@@ -338,7 +338,7 @@ namespace ModMaker.Lua.Parser
         /// Helper function that reads a string from the input, it assumes that
         /// it is on the first character in the string.
         /// </summary>
-        /// <param name="depth">The depth of the long-string or -1 for ' or 
+        /// <param name="depth">The depth of the long-string or -1 for ' or
         /// -2 for ".</param>
         /// <param name="line">The starting line of the string.</param>
         /// <param name="pos">The starting position of the string.</param>
@@ -484,12 +484,12 @@ namespace ModMaker.Lua.Parser
             return ret;
         }
         /// <summary>
-        /// Helper function that reads a number from the input.  The resulting 
-        /// token should start with '&amp;' if the number is in hex format, 
+        /// Helper function that reads a number from the input.  The resulting
+        /// token should start with '&amp;' if the number is in hex format,
         /// otherwise the number should be in a parseable double format.
         /// </summary>
         /// <param name="last">The first character of the number.</param>
-        /// <returns>The token that was read.  It should start with '&amp;' if 
+        /// <returns>The token that was read.  It should start with '&amp;' if
         /// the number is hex.</returns>
         protected virtual Token ReadNumber(string last)
         {
@@ -532,7 +532,7 @@ namespace ModMaker.Lua.Parser
         }
 
         /// <summary>
-        /// Reads a text-element from the input and moves forward. This also 
+        /// Reads a text-element from the input and moves forward. This also
         /// converts '\r\n' to '\n' and changes the Position and Line.
         /// </summary>
         /// <returns>The text-element that was read or null if at the end.</returns>
@@ -565,7 +565,7 @@ namespace ModMaker.Lua.Parser
             return ret;
         }
         /// <summary>
-        /// Looks at the current text-element in the input without moving 
+        /// Looks at the current text-element in the input without moving
         /// forward.  Returns null if it is at the end of the stream.
         /// </summary>
         /// <returns>The current text-element or null if at the end.</returns>
