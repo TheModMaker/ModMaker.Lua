@@ -32,4 +32,4 @@ using System.Security;
 [assembly: AssemblyVersion("0.9.3.3")]
 [assembly: AssemblyFileVersion("0.9.3.3")]
 
-[assembly: InternalsVisibleTo("TestProject")]
+[assembly: InternalsVisibleTo("Unit Tests")]

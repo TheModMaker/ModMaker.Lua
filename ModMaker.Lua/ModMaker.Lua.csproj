@@ -57,6 +57,7 @@
     <Compile Include="LuaSettings.cs" />
     <Compile Include="MultipleReturnAttribute.cs" />
     <Compile Include="NetHelpers.cs" />
+    <Compile Include="Parser\BufferedStringReader.cs" />
     <Compile Include="Parser\IParseItem.cs" />
     <Compile Include="Parser\IParseItemVisitor.cs" />
     <Compile Include="Parser\IParser.cs" />

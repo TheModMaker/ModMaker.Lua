@@ -56,6 +56,7 @@
   <ItemGroup>
     <Compile Include="Conformance.cs" />
     <Compile Include="HelpersTest.cs" />
+    <Compile Include="Parser\BufferedStringReaderTest.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Parser\PlainParserTest.cs" />
     <Compile Include="Runtime\LuaLibraries\Bit32.cs" />
