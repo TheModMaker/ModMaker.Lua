@@ -16,6 +16,8 @@ using ModMaker.Lua.Parser.Items;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text;
 
 namespace ModMaker.Lua.Parser
 {
@@ -134,8 +136,9 @@ namespace ModMaker.Lua.Parser
             if (dump == null)
                 throw new ArgumentNullException(nameof(dump));
 
-            TextElementEnumerator reader = StringInfo.GetTextElementEnumerator(dump);
-            Tokenizer input = new Tokenizer(reader, name);
+            var encoding = Encoding.UTF8;
+            var stream = new MemoryStream(encoding.GetBytes(dump));
+            Tokenizer input = new Tokenizer(stream, encoding, name);
 
             return parser.Parse(input, name, null);
         }
@@ -872,25 +875,25 @@ namespace ModMaker.Lua.Parser
             if (last.Value != null)
             {
                 NumberFormatInfo ni = CultureInfo.CurrentCulture.NumberFormat;
-                if (last.Value != "..." && (char.IsNumber(last.Value, 0) || last.Value.StartsWith(ni.NumberDecimalSeparator, StringComparison.CurrentCulture)))
+                if (last.Value.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
                 {
-                    input.Read(); // read the number.
+                    input.Read();
                     try
                     {
-                        o = new LiteralItem(double.Parse(last.Value, CultureInfo.CurrentCulture)) { Debug = last };
+                        o = new LiteralItem(Convert.ToDouble(long.Parse(last.Value.Substring(2),
+                            NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture))) { Debug = last };
                     }
                     catch (FormatException e)
                     {
                         throw new SyntaxException(Resources.BadNumberFormat, input.Name, last, e);
                     }
                 }
-                else if (last.Value.StartsWith("&", StringComparison.Ordinal))
+                else if (last.Value != "..." && (char.IsNumber(last.Value, 0) || last.Value.StartsWith(ni.NumberDecimalSeparator, StringComparison.CurrentCulture)))
                 {
-                    input.Read();
+                    input.Read(); // read the number.
                     try
                     {
-                        o = new LiteralItem(Convert.ToDouble(long.Parse(last.Value.Substring(1),
-                            NumberStyles.AllowHexSpecifier, CultureInfo.CurrentCulture))) { Debug = last };
+                        o = new LiteralItem(double.Parse(last.Value, CultureInfo.CurrentCulture)) { Debug = last };
                     }
                     catch (FormatException e)
                     {
@@ -1122,7 +1125,7 @@ namespace ModMaker.Lua.Parser
             while (ex.Count > 0)
             {
                 var loc = ex.Pop();
-                Token tok = new Token(debug.Value, loc.StartPos, loc.StartLine);
+                Token tok = new Token(TokenType.None, debug.Value, loc.StartPos, loc.StartLine);
                 switch (loc.Version)
                 {
                     case 1: // neg

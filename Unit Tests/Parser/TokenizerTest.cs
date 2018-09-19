@@ -16,6 +16,8 @@ using ModMaker.Lua.Parser;
 using System;
 using System.Globalization;
 using NUnit.Framework;
+using System.Text;
+using System.IO;
 
 namespace UnitTests.Parser
 {
@@ -26,6 +28,13 @@ namespace UnitTests.Parser
     [TestFixture]
     public class TokenizerTest
     {
+        public static Tokenizer CreateTokenizer(string str)
+        {
+            var encoding = Encoding.UTF8;
+            var stream = new MemoryStream(encoding.GetBytes(str));
+            return new Tokenizer(stream, encoding, "Test");
+        }
+
         /// <summary>
         /// A general test with valid input for a
         /// sequence of Tokenizer.Read().
@@ -33,86 +42,50 @@ namespace UnitTests.Parser
         [Test]
         public void GeneralReadTest()
         {
-            var reader = StringInfo.GetTextElementEnumerator(
+            var tokenizer = CreateTokenizer(
 @"function test()
     local v = 12 -- this is a comment
     t ={ [12] = v, cat=12.345456 }
     str = ""this is a test string with \""escapes\""\n""
     ::potato::
-end"
-            );
-            Tokenizer tokenizer = new Tokenizer(reader, "Test");
+end");
+            Action<TokenType, int, int, string> check =
+                (type, line, pos, str) =>
+            {
+                Token read = tokenizer.Read();
+                Assert.AreEqual(new Token(type, str, pos, line), read);
+            };
+            check(TokenType.Function, 1, 1, "function");
+            check(TokenType.Identifier, 1, 10, "test");
+            check(TokenType.BeginParen, 1, 14, "(");
+            check(TokenType.EndParen, 1, 15, ")");
+            check(TokenType.Local, 2, 5, "local");
+            check(TokenType.Identifier, 2, 11, "v");
+            check(TokenType.Assign, 2, 13, "=");
+            check(TokenType.NumberLiteral, 2, 15, "12");
+            check(TokenType.Identifier, 3, 5, "t");
+            check(TokenType.Assign, 3, 7, "=");
+            check(TokenType.BeginTable, 3, 8, "{");
+            check(TokenType.BeginBracket, 3, 10, "[");
+            check(TokenType.NumberLiteral, 3, 11, "12");
+            check(TokenType.EndBracket, 3, 13, "]");
+            check(TokenType.Assign, 3, 15, "=");
+            check(TokenType.Identifier, 3, 17, "v");
+            check(TokenType.Comma, 3, 18, ",");
+            check(TokenType.Identifier, 3, 20, "cat");
+            check(TokenType.Assign, 3, 23, "=");
+            check(TokenType.NumberLiteral, 3, 24, "12.345456");
+            check(TokenType.EndTable, 3, 34, "}");
+            check(TokenType.Identifier, 4, 5, "str");
+            check(TokenType.Assign, 4, 9, "=");
+            check(TokenType.StringLiteral, 4, 11,
+                  "\"this is a test string with \"escapes\"\n");
+            check(TokenType.Label, 5, 5, "::");
+            check(TokenType.Identifier, 5, 7, "potato");
+            check(TokenType.Label, 5, 13, "::");
+            check(TokenType.End, 6, 1, "end");
 
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "function" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 5, Value = "local" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 11, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 13, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 2, StartPos = 15, Value = "12" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 5, Value = "t" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 7, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 8, Value = "{" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 10, Value = "[" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 11, Value = "12" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 13, Value = "]" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 15, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 17, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 18, Value = "," }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 20, Value = "cat" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 23, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 24, Value = "12.345456" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 3, StartPos = 34, Value = "}" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 5, Value = "str" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 9, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 4, StartPos = 11, Value = "\"this is a test string with \"escapes\"\n" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 5, Value = "::" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 7, Value = "potato" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 5, StartPos = 13, Value = "::" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 6, StartPos = 1, Value = "end" }, tokenizer.Read());
-
-            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
-        }
-
-        /// <summary>
-        /// A test of Read, Peek, and PushBack for
-        /// Tokenizer.
-        ///</summary>
-        [Test]
-        public void ReadPeekPushBackTest()
-        {
-            var reader = StringInfo.GetTextElementEnumerator(@"function test()");
-            Tokenizer tokenizer = new Tokenizer(reader, "Test");
-
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "function" }, tokenizer.Read());
-
-            // check for multiple calls to Peek
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
-
-            // check that peek changes
-            Token next = tokenizer.Read();
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, next);
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Peek());
-
-            Token next2 = tokenizer.Read();
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, next2);
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Peek());
-
-            // check that PushBack works putting things back
-            tokenizer.PushBack(next2);
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Peek());
-            tokenizer.PushBack(next);
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10, Value = "test" }, tokenizer.Peek());
-
-            // check that PushBack works after several calls and in the correct order.
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 10,  Value = "test" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 14, Value = "(" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 15, Value = ")" }, tokenizer.Read());
-
-            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
+            check(TokenType.None, 0, 0, null);
         }
 
         /// <summary>
@@ -121,7 +94,7 @@ end"
         [Test]
         public void LongStringTest()
         {
-            var reader = StringInfo.GetTextElementEnumerator(
+            var tokenizer = CreateTokenizer(
 @"v = [==[
 this is a test of a
 long string ]]
@@ -129,14 +102,19 @@ this is still a string
 not an escape \n]==]
 end"
             );
-            Tokenizer tokenizer = new Tokenizer(reader, "Test");
 
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 5, Value = "\"this is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 6, StartPos = 1, Value = "end" }, tokenizer.Read());
-
-            Assert.AreEqual(new Token() { StartLine = 0, StartPos = 0, Value = null }, tokenizer.Read());
+            Action<TokenType, int, int, string> check =
+                (type, line, pos, str) =>
+                {
+                    Token read = tokenizer.Read();
+                    Assert.AreEqual(new Token(type, str, pos, line), read);
+                };
+            check(TokenType.Identifier, 1, 1, "v");
+            check(TokenType.Assign, 1, 3, "=");
+            check(TokenType.StringLiteral, 1, 5,
+                  "\"\nthis is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n");
+            check(TokenType.End, 6, 1, "end");
+            check(TokenType.None, 0, 0, null);
         }
 
         /// <summary>
@@ -145,60 +123,15 @@ end"
         [Test]
         public void StringErrorTest()
         {
-            // newline in string literal.
-            var reader = StringInfo.GetTextElementEnumerator(
-@"v = 'error string
+            Assert.Throws<SyntaxException>(
+                () => CreateTokenizer("'foo\nbar'").Read());
+            Assert.Throws<SyntaxException>(
+                () => CreateTokenizer("\"foo\nbar\"").Read());
 
-end"
-            );
-            Tokenizer tokenizer = new Tokenizer(reader, "Test");
-
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
-
-            try
-            {
-                tokenizer.Read();
-                Assert.Fail("Supposed to cause error.");
-            }
-            catch (Exception e)
-            {
-                Assert.IsInstanceOf<SyntaxException>(e);
-            }
-
-            // only one grave (`) per literal.
-            reader = StringInfo.GetTextElementEnumerator(@"v = foo``");
-            tokenizer = new Tokenizer(reader, "Test");
-
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
-
-            try
-            {
-                tokenizer.Read();
-                Assert.Fail("Supposed to cause error.");
-            }
-            catch (Exception e)
-            {
-                Assert.IsInstanceOf<SyntaxException>(e);
-            }
-
-            // only number after a grave(`).
-            reader = StringInfo.GetTextElementEnumerator(@"v = foo`23e");
-            tokenizer = new Tokenizer(reader, "Test");
-
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 1, Value = "v" }, tokenizer.Read());
-            Assert.AreEqual(new Token() { StartLine = 1, StartPos = 3, Value = "=" }, tokenizer.Read());
-
-            try
-            {
-                tokenizer.Read();
-                Assert.Fail("Supposed to cause error.");
-            }
-            catch (Exception e)
-            {
-                Assert.IsInstanceOf<SyntaxException>(e);
-            }
+            Assert.Throws<SyntaxException>(
+                () => CreateTokenizer("foo`").Read());
+            Assert.Throws<SyntaxException>(
+                () => CreateTokenizer("foo`e").Read());
         }
     }
 }

@@ -15,10 +15,249 @@
 namespace ModMaker.Lua.Parser
 {
     /// <summary>
+    /// Defines possible types of tokens.
+    /// </summary>
+    public enum TokenType
+    {
+        None,
+
+        /// <summary>
+        /// 'foo'
+        /// </summary>
+        Identifier,
+        /// <summary>
+        /// '"123"'
+        /// </summary>
+        StringLiteral,
+        /// <summary>
+        /// '123'
+        /// </summary>
+        NumberLiteral,
+
+        /// <summary>
+        /// 'and'
+        /// </summary>
+        And,
+        /// <summary>
+        /// 'or'
+        /// </summary>
+        Or,
+        /// <summary>
+        /// 'not'
+        /// </summary>
+        Not,
+        /// <summary>
+        /// 'nil'
+        /// </summary>
+        Nil,
+        /// <summary>
+        /// 'false'
+        /// </summary>
+        False,
+        /// <summary>
+        /// 'true'
+        /// </summary>
+        True,
+
+        /// <summary>
+        /// 'if'
+        /// </summary>
+        If,
+        /// <summary>
+        /// 'then'
+        /// </summary>
+        Then,
+        /// <summary>
+        /// 'elseif'
+        /// </summary>
+        ElseIf,
+        /// <summary>
+        /// 'else'
+        /// </summary>
+        Else,
+        /// <summary>
+        /// 'for'
+        /// </summary>
+        For,
+        /// <summary>
+        /// 'do'
+        /// </summary>
+        Do,
+        /// <summary>
+        /// 'while'
+        /// </summary>
+        While,
+        /// <summary>
+        /// 'repeat'
+        /// </summary>
+        Repeat,
+        /// <summary>
+        /// 'until'
+        /// </summary>
+        Until,
+        /// <summary>
+        /// 'break'
+        /// </summary>
+        Break,
+        /// <summary>
+        /// 'goto'
+        /// </summary>
+        Goto,
+        /// <summary>
+        /// 'local'
+        /// </summary>
+        Local,
+        /// <summary>
+        /// 'function'
+        /// </summary>
+        Function,
+        /// <summary>
+        /// 'end'
+        /// </summary>
+        End,
+        /// <summary>
+        /// 'in'
+        /// </summary>
+        In,
+        /// <summary>
+        /// 'return'
+        /// </summary>
+        Return,
+
+        /// <summary>
+        /// 'class'
+        /// </summary>
+        Class,
+        /// <summary>
+        /// 'ref'
+        /// </summary>
+        Ref,
+        /// <summary>
+        /// '@'
+        /// </summary>
+        RefSymbol,
+
+        /// <summary>
+        /// '('
+        /// </summary>
+        BeginParen,
+        /// <summary>
+        /// ')'
+        /// </summary>
+        EndParen,
+        /// <summary>
+        /// '['
+        /// </summary>
+        BeginBracket,
+        /// <summary>
+        /// ']'
+        /// </summary>
+        EndBracket,
+        /// <summary>
+        /// '{'
+        /// </summary>
+        BeginTable,
+        /// <summary>
+        /// '}'
+        /// </summary>
+        EndTable,
+        /// <summary>
+        /// ','
+        /// </summary>
+        Comma,
+        /// <summary>
+        /// ';'
+        /// </summary>
+        Semicolon,
+        /// <summary>
+        /// ':'
+        /// </summary>
+        Colon,
+        /// <summary>
+        /// '::'
+        /// </summary>
+        Label,
+        /// <summary>
+        /// '.'
+        /// </summary>
+        Indexer,
+        /// <summary>
+        /// '..'
+        /// </summary>
+        Concat,
+        /// <summary>
+        /// '...'
+        /// </summary>
+        Elipsis,
+
+        /// <summary>
+        /// '+'
+        /// </summary>
+        Add,
+        /// <summary>
+        /// '-'
+        /// </summary>
+        Subtract,
+        /// <summary>
+        /// '*'
+        /// </summary>
+        Multiply,
+        /// <summary>
+        /// '/'
+        /// </summary>
+        Divide,
+        /// <summary>
+        /// '^'
+        /// </summary>
+        Power,
+        /// <summary>
+        /// '%'
+        /// </summary>
+        Modulo,
+        /// <summary>
+        /// '#'
+        /// </summary>
+        Length,
+
+        /// <summary>
+        /// '='
+        /// </summary>
+        Assign,
+        /// <summary>
+        /// '=='
+        /// </summary>
+        Equals,
+        /// <summary>
+        /// '~='
+        /// </summary>
+        NotEquals,
+        /// <summary>
+        /// '&gt;'
+        /// </summary>
+        Greater,
+        /// <summary>
+        /// '&gt;='
+        /// </summary>
+        GreaterEquals,
+        /// <summary>
+        /// '&lt;'
+        /// </summary>
+        Less,
+        /// <summary>
+        /// '&lt;='
+        /// </summary>
+        LessEquals,
+    }
+
+    /// <summary>
     /// Defines a single token read from the input stream.
     /// </summary>
     public struct Token
     {
+        /// <summary>
+        /// The type the token is.
+        /// </summary>
+        public TokenType Type;
         /// <summary>
         /// The string value of the token.
         /// </summary>
@@ -38,8 +277,10 @@ namespace ModMaker.Lua.Parser
         /// <param name="value">The string value of the token.</param>
         /// <param name="startPos">The starting position of the token.</param>
         /// <param name="startLine">The starting line of the token.</param>
-        public Token(string value, long startPos, long startLine)
+        public Token(TokenType type, string value, long startPos,
+                     long startLine)
         {
+            this.Type = type;
             this.Value = value;
             this.StartPos = startPos;
             this.StartLine = startLine;
@@ -53,9 +294,10 @@ namespace ModMaker.Lua.Parser
         /// <returns>True if the two token are equal, otherwise false.</returns>
         public static bool operator ==(Token lhs, Token rhs)
         {
-            return lhs.Value == rhs.Value && lhs.StartPos == rhs.StartPos &&
-                lhs.StartLine == rhs.StartLine;
+            return lhs.Type == rhs.Type && lhs.Value == rhs.Value &&
+                lhs.StartPos == rhs.StartPos && lhs.StartLine == rhs.StartLine;
         }
+
         /// <summary>
         /// Checks whether two tokens are not equal.
         /// </summary>
@@ -64,9 +306,10 @@ namespace ModMaker.Lua.Parser
         /// <returns>True if the two token are not equal, otherwise false.</returns>
         public static bool operator !=(Token lhs, Token rhs)
         {
-            return lhs.Value != rhs.Value || lhs.StartPos != rhs.StartPos ||
-                lhs.StartLine != rhs.StartLine;
+            return lhs.Type != rhs.Type || lhs.Value != rhs.Value ||
+                lhs.StartPos != rhs.StartPos || lhs.StartLine != rhs.StartLine;
         }
+
 
         /// <summary>
         /// Determines whether the specified System.Object is  equal to the
@@ -77,14 +320,10 @@ namespace ModMaker.Lua.Parser
         /// System.Object; otherwise, false.</returns>
         public override bool Equals(object obj)
         {
-            if (obj is Token)
-            {
-                Token rhs = (Token)obj;
-                return Value == rhs.Value && StartPos == rhs.StartPos &&
-                    StartLine == rhs.StartLine;
-            }
-            return false;
+            Token? lhs = obj as Token?;
+            return lhs.HasValue && lhs.Value == this;
         }
+
         /// <summary>
         /// Returns the hash code for this instance.
         /// </summary>
@@ -93,7 +332,8 @@ namespace ModMaker.Lua.Parser
         public override int GetHashCode()
         {
             return Value.GetHashCode() ^
-                (StartPos.GetHashCode() << 6 | StartPos.GetHashCode() >> 26) ^
+                (Type.GetHashCode() << 6 | Type.GetHashCode() >> 26) ^
+                (StartPos.GetHashCode() << 12 | StartPos.GetHashCode() >> 20) ^
                 (StartLine.GetHashCode() << 18 | StartLine.GetHashCode() >> 14);
         }
     }
@@ -118,6 +358,12 @@ namespace ModMaker.Lua.Parser
         long Line { get; }
 
         /// <summary>
+        /// Throws a syntax error at the current position.
+        /// </summary>
+        /// <param name="message">The message of the error.</param>
+        void SyntaxError(string message, Token? token = null);
+
+        /// <summary>
         /// Reads a single token from the input stream and progresses the input.
         /// </summary>
         /// <returns>The token that was read.</returns>
@@ -128,10 +374,21 @@ namespace ModMaker.Lua.Parser
         /// <returns>The token that was read.</returns>
         Token Peek();
         /// <summary>
-        /// Pushes a token back onto the tokenizer.  This will allow to reverse
-        /// a read.
+        /// Expects the given type to be next.  If not, this throws an
+        /// exception.  Otherwise this returns the read token.
         /// </summary>
-        /// <param name="token">The token to push-back.</param>
-        void PushBack(Token token);
+        /// <param name="type">The type to expect.</param>
+        /// <returns>The token that was read.</returns>
+        Token Expect(TokenType type);
+        /// <summary>
+        /// Returns whether the next token is of the given type.
+        /// </summary>
+        bool PeekType(TokenType type);
+        /// <summary>
+        /// Reads the next token if it is the given type.
+        /// </summary>
+        /// <param name="type">The type of token.</param>
+        /// <returns>Whether a token was read.</returns>
+        bool ReadIfType(TokenType type);
     }
 }

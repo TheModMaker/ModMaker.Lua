@@ -41,7 +41,7 @@ namespace UnitTests.Parser
         public void GenralParse()
         {
             PlainParser target = new PlainParser();
-            TextElementEnumerator input1 = StringInfo.GetTextElementEnumerator(
+            string input1 =
 @"local a = 12
 t = { [34]= function() print(i) end }
 function Some(a, ...)
@@ -49,10 +49,9 @@ function Some(a, ...)
     for i= 12, 23 do
         print(i)
     end
-end"
-                );
+end";
             IParseItem actual;
-            actual = target.Parse(new Tokenizer(input1, null), null, null);
+            actual = target.Parse(TokenizerTest.CreateTokenizer(input1), null, null);
 
             // check the main block
             BlockItem block = actual as BlockItem;
