@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using ModMaker.Lua;
 using NUnit.Framework;
 
 namespace UnitTests
@@ -23,6 +24,32 @@ namespace UnitTests
     [TestFixture]
     public class HelpersTest
     {
+        [Test]
+        public void ParseNumber()
+        {
+            // TODO: Consider fixing the rounding errors.
+            const double delta = 1e-6;
+            Assert.AreEqual(123, Helpers.ParseNumber("123"), delta);
+            Assert.AreEqual(123.456, Helpers.ParseNumber("123.456"), delta);
+            Assert.AreEqual(0.456, Helpers.ParseNumber("0.456"), delta);
+            Assert.AreEqual(.456, Helpers.ParseNumber(".456"), delta);
+            Assert.AreEqual(0, Helpers.ParseNumber("0e5"), delta);
+            Assert.AreEqual(0, Helpers.ParseNumber("0e-5"), delta);
+            Assert.AreEqual(12e5, Helpers.ParseNumber("12e5"), delta);
+            Assert.AreEqual(12e5, Helpers.ParseNumber("12E+5"), delta);
+            Assert.AreEqual(122e-5, Helpers.ParseNumber("122E-5"), delta);
+            Assert.AreEqual(1.12e1, Helpers.ParseNumber("1.12e1"), delta);
+            Assert.AreEqual(.12e8, Helpers.ParseNumber(".12e8"), delta);
+
+            Assert.AreEqual(0x123, Helpers.ParseNumber("0x123"));
+            Assert.AreEqual(18.31103515625, Helpers.ParseNumber("0x12.4fa"), delta);
+            Assert.AreEqual(0.656494140625, Helpers.ParseNumber("0x.a81"), delta);
+            Assert.AreEqual(325.3125, Helpers.ParseNumber("0x14.55p4"), delta);
+            Assert.AreEqual(4.625, Helpers.ParseNumber("0x.4ap4"), delta);
+            Assert.AreEqual(4.546875, Helpers.ParseNumber("0x123p-6"), delta);
+        }
+
+
         // TODO: Fix tests.
 
         /// <summary>

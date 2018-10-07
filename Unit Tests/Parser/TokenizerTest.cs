@@ -79,7 +79,7 @@ end");
             check(TokenType.Identifier, 4, 5, "str");
             check(TokenType.Assign, 4, 9, "=");
             check(TokenType.StringLiteral, 4, 11,
-                  "\"this is a test string with \"escapes\"\n");
+                  "this is a test string with \"escapes\"\n");
             check(TokenType.Label, 5, 5, "::");
             check(TokenType.Identifier, 5, 7, "potato");
             check(TokenType.Label, 5, 13, "::");

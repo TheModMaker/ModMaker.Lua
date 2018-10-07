@@ -93,9 +93,9 @@ assertEquals(6,     string.find('ABCABCABC', 'CA', 4),          'find: with star
 assertEquals(0,     select('#', string.find('ABCABCABC', 'x')), 'find: not found')
 assertEquals(0,     select('#', string.find('aXabcd', 'X', 3)), 'find: not found, with start')
 
-local start, end, c1, c2 = string.find('xABcccDx', 'A(B)(.+)D')
+local start, e, c1, c2 = string.find('xABcccDx', 'A(B)(.+)D')
 assertEquals(2,     start,                                      'find: returns start')
-assertEquals(7,     end,                                        'find: returns end')
+assertEquals(7,     e,                                          'find: returns end')
 assertEquals('B',   c1,                                         'find: returns capture(1)')
 assertEquals('ccc', c2,                                         'find: returns capture(2)')
 

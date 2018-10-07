@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace ModMaker.Lua
 {
@@ -555,6 +556,51 @@ namespace ModMaker.Lua
         public static IDisposable Disposable(Action act)
         {
             return new DisposableHelper(act);
+        }
+
+        /// <summary>
+        /// Parses the number in the given string.
+        /// </summary>
+        /// <param name="value">The string to parse.</param>
+        /// <returns>The double value that was parsed.</returns>
+        public static double ParseNumber(string value)
+        {
+            value = value.ToLower();
+            string pattern;
+            NumberStyles style;
+            int base_;
+            int exponent;
+            if (value.StartsWith("0x"))
+            {
+                pattern = @"^0x([0-9a-f]*)(?:\.([0-9a-f]*))?(?:p([-+])?(\d+))?$";
+                style = NumberStyles.AllowHexSpecifier;
+                base_ = 16;
+                exponent = 2;
+            }
+            else
+            {
+                pattern = @"^(\d*)(?:\.(\d*))?(?:e([-+])?(\d+))?$";
+                style = NumberStyles.Integer;
+                base_ = 10;
+                exponent = 10;
+            }
+
+            var match = Regex.Match(value, pattern);
+            if (match == null || !match.Success)
+                throw new ArgumentException("Invalid number format");
+            double ret = match.Groups[1].Value == "" ? 0 : long.Parse(match.Groups[1].Value, style);
+            if (match.Groups[2].Value != "")
+            {
+                double temp = long.Parse(match.Groups[2].Value, style);
+                ret += temp * Math.Pow(base_, -match.Groups[2].Value.Length);
+            }
+            if (match.Groups[4].Value != "")
+            {
+                double temp = long.Parse(match.Groups[4].Value);
+                int mult = match.Groups[3].Value == "-" ? -1 : 1;
+                ret *= Math.Pow(exponent, mult * temp);
+            }
+            return ret;
         }
 
         /// <summary>

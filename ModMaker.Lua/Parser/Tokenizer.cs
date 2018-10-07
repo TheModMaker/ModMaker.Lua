@@ -379,9 +379,7 @@ namespace ModMaker.Lua.Parser
                             Name, ret);
                 }
             });
-            // TODO: Remove once token type is set.  This ensures the
-            // calling code knows it's a string.
-            ret.Value = "\"" + ret.Value.Substring(0, ret.Value.Length - 1);
+            ret.Value = ret.Value.Substring(0, ret.Value.Length - 1);
             return ret;
         }
 
