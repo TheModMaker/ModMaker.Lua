@@ -27,16 +27,6 @@ namespace ModMaker.Lua.Parser
     public class PlainParser : IParser
     {
         /// <summary>
-        /// A cache of parsed trees.  If accessing or modifying this, aquire a
-        /// lock on _lock.
-        /// </summary>
-        protected static Dictionary<string, IParseItem> _cache = new Dictionary<string, IParseItem>();
-        /// <summary>
-        /// A lock object used to modify the cache.
-        /// </summary>
-        protected static readonly object _lock = new object();
-
-        /// <summary>
         /// Contains the read functions that are indexed by the first token text.
         /// </summary>
         protected Dictionary<TokenType, ReadStatement> Functions;
@@ -69,11 +59,6 @@ namespace ModMaker.Lua.Parser
         }
 
         /// <summary>
-        /// Gets or sets whether or not to use a cache of parsed values.
-        /// </summary>
-        public bool UseCache { get; set; }
-
-        /// <summary>
         /// Parses the given Lua code into a IParseItem tree.
         /// </summary>
         /// <param name="input">The Lua code to parse.</param>
@@ -86,27 +71,10 @@ namespace ModMaker.Lua.Parser
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
 
-            // check if the chunk is already loaded
-            if (UseCache)
-            {
-                lock (_lock)
-                {
-                    if (_cache != null && hash != null && _cache.ContainsKey(hash))
-                        return _cache[hash];
-                }
-            }
-
             // parse the chunk
             IParseItem read = ReadBlock(input);
             if (!input.PeekType(TokenType.None))
                 input.SyntaxError("Expecting EOF");
-
-            // store the loaded chunk in the cache
-            lock (_lock)
-            {
-                if (_cache != null && hash != null)
-                    _cache[hash] = read;
-            }
 
             return read;
         }

@@ -281,34 +281,7 @@ namespace ModMaker.Lua
         public ILuaValue Load(string path)
         {
             int i;
-            return Load(path, null, false, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a specified file.
-        /// </summary>
-        /// <param name="path">The path to the file to load.</param>
-        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length
-        /// string, contains only white space, or contains one or more invalid
-        /// characters as defined by System.IO.Path.InvalidPathChars</exception>
-        /// <exception cref="System.ArgumentNullException">If path is null.</exception>
-        /// <exception cref="System.UnauthorizedAccessException">If this code
-        /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
-        /// path is invalid, (for example, it is on an unmapped drive).</exception>
-        /// <exception cref="System.IO.FileNotFoundException">If the file cannot
-        /// be found.</exception>
-        /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For
-        /// example, on Windows-based platforms, paths must be less than 248
-        /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
-        /// syntax errors in the file.</exception>
-        public ILuaValue Load(string path, bool @override)
-        {
-            int i;
-            return Load(path, null, @override, out i);
+            return Load(path, null, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a specified file.
@@ -335,43 +308,12 @@ namespace ModMaker.Lua
         public ILuaValue Load(string path, string name)
         {
             int i;
-            return Load(path, name, false, out i);
+            return Load(path, name, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a specified file.
         /// </summary>
         /// <param name="path">The path to the file to load.</param>
-        /// <param name="override">True to load the file even if it is in the
-        /// cache, otherwise false.</param>
-        /// <param name="name">The name to give the chunk.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentException">path is a zero-length
-        /// string, contains only white space, or contains one or more invalid
-        /// characters as defined by System.IO.Path.InvalidPathChars</exception>
-        /// <exception cref="System.ArgumentNullException">If path is null.</exception>
-        /// <exception cref="System.UnauthorizedAccessException">If this code
-        /// does not have sufficient rights to read from the file.</exception>
-        /// <exception cref="System.IO.DirectoryNotFoundException">The specified
-        /// path is invalid, (for example, it is on an unmapped drive).</exception>
-        /// <exception cref="System.IO.FileNotFoundException">If the file cannot
-        /// be found.</exception>
-        /// <exception cref="System.IO.PathTooLongException">The specified path,
-        /// file name, or both exceed the system-defined maximum length. For
-        /// example, on Windows-based platforms, paths must be less than 248
-        /// characters, and file names must be less than 260 characters.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
-        /// syntax errors in the file.</exception>
-        public ILuaValue Load(string path, string name, bool @override)
-        {
-            int i;
-            return Load(path, name, @override, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a specified file.
-        /// </summary>
-        /// <param name="path">The path to the file to load.</param>
-        /// <param name="override">True to load the file even if it is in the
-        /// cache, otherwise false.</param>
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <param name="name">The name to give the chunk.</param>
         /// <returns>The loaded chunk.</returns>
@@ -391,14 +333,14 @@ namespace ModMaker.Lua
         /// characters, and file names must be less than 260 characters.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
-        public ILuaValue Load(string path, string name, bool @override, out int index)
+        public ILuaValue Load(string path, string name, out int index)
         {
             if (path == null)
                 throw new ArgumentNullException(nameof(path));
 
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read))
             {
-                return this.Load(fs, name, @override, out index);
+                return this.Load(fs, name, out index);
             }
         }
         /// <summary>
@@ -412,7 +354,7 @@ namespace ModMaker.Lua
         public ILuaValue Load(Stream stream)
         {
             int i;
-            return this.Load(stream, null, false, out i);
+            return this.Load(stream, null, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a specified stream.
@@ -426,51 +368,19 @@ namespace ModMaker.Lua
         public ILuaValue Load(Stream stream, string name)
         {
             int i;
-            return this.Load(stream, name, false, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a specified stream.
-        /// </summary>
-        /// <param name="stream">The stream to load the script from.</param>
-        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
-        /// syntax errors in the file.</exception>
-        public ILuaValue Load(Stream stream, bool @override)
-        {
-            int i;
-            return this.Load(stream, null, @override, out i);
+            return this.Load(stream, name, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a specified stream.
         /// </summary>
         /// <param name="stream">The stream to load the script from.</param>
         /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the
-        /// cache, otherwise false.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
-        /// syntax errors in the file.</exception>
-        public ILuaValue Load(Stream stream, string name, bool @override)
-        {
-            int i;
-            return Load(stream, name, @override, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a specified stream.
-        /// </summary>
-        /// <param name="stream">The stream to load the script from.</param>
-        /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the
-        /// cache, otherwise false.</param>
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If stream is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
-        public ILuaValue Load(Stream stream, string name, bool @override, out int index)
+        public ILuaValue Load(Stream stream, string name, out int index)
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
@@ -479,13 +389,10 @@ namespace ModMaker.Lua
             {
                 lock (this)
                 {
-                    var temp = Environment.Parser.UseCache;
-                    Environment.Parser.UseCache = !@override;
                     var ret = Environment.CodeCompiler.Compile(
                         Environment,
                         PlainParser.Parse(Environment.Parser, c.ReadToEnd(), name),
                         name);
-                    Environment.Parser.UseCache = temp;
 
                     if (!_chunks.Contains(ret))
                         _chunks.Add(ret);
@@ -505,7 +412,7 @@ namespace ModMaker.Lua
         public ILuaValue LoadText(string chunk)
         {
             int i;
-            return this.LoadText(chunk, null, false, out i);
+            return this.LoadText(chunk, null, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a pre-loaded string.
@@ -519,62 +426,29 @@ namespace ModMaker.Lua
         public ILuaValue LoadText(string chunk, string name)
         {
             int i;
-            return this.LoadText(chunk, name, false, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a pre-loaded string.
-        /// </summary>
-        /// <param name="chunk">The Lua script to load from.</param>
-        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
-        /// syntax errors in the file.</exception>
-        public ILuaValue LoadText(string chunk, bool @override)
-        {
-            int i;
-            return this.LoadText(chunk, null, @override, out i);
+            return this.LoadText(chunk, name, out i);
         }
         /// <summary>
         /// Loads a LuaChunk from a pre-loaded string.
         /// </summary>
         /// <param name="chunk">The Lua script to load from.</param>
         /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
-        /// <returns>The loaded chunk.</returns>
-        /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
-        /// syntax errors in the file.</exception>
-        public ILuaValue LoadText(string chunk, string name, bool @override)
-        {
-            int i;
-            return this.LoadText(chunk, name, @override, out i);
-        }
-        /// <summary>
-        /// Loads a LuaChunk from a pre-loaded string.
-        /// </summary>
-        /// <param name="chunk">The Lua script to load from.</param>
-        /// <param name="name">The name to give the chunk.</param>
-        /// <param name="override">True to load the file even if it is in the cache, otherwise false.</param>
         /// <param name="index">Stores the index of the loaded module.</param>
         /// <returns>The loaded chunk.</returns>
         /// <exception cref="System.ArgumentNullException">If chunk is null.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there is
         /// syntax errors in the file.</exception>
-        public ILuaValue LoadText(string chunk, string name, bool @override, out int index)
+        public ILuaValue LoadText(string chunk, string name, out int index)
         {
             if (chunk == null)
                 throw new ArgumentNullException(nameof(chunk));
 
             lock (this)
             {
-                var temp = Environment.Parser.UseCache;
-                Environment.Parser.UseCache = !@override;
                 var ret = Environment.CodeCompiler.Compile(
                     Environment,
                     PlainParser.Parse(Environment.Parser, chunk, name),
                     name);
-                Environment.Parser.UseCache = temp;
 
                 if (!_chunks.Contains(ret))
                     _chunks.Add(ret);

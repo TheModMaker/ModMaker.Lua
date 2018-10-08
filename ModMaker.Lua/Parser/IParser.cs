@@ -17,16 +17,10 @@ namespace ModMaker.Lua.Parser
     /// <summary>
     /// This object is in charge of parsing input into an object tree.  This
     /// will take a Tokeinzer object input and will parse it into an IParseItem
-    /// tree. This also optionally maintains a cache of parsed code to reduce
-    /// time in parsing.
+    /// tree.
     /// </summary>
     public interface IParser
     {
-        /// <summary>
-        /// Gets or sets whether or not to use a cache of parsed values.
-        /// </summary>
-        bool UseCache { get; set; }
-
         /// <summary>
         /// Parses the given Lua code into a IParseItem tree.
         /// </summary>
