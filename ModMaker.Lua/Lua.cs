@@ -385,20 +385,17 @@ namespace ModMaker.Lua
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
-            using (TextReader c = new StreamReader(stream))
+            lock (this)
             {
-                lock (this)
-                {
-                    var ret = Environment.CodeCompiler.Compile(
-                        Environment,
-                        PlainParser.Parse(Environment.Parser, c.ReadToEnd(), name),
-                        name);
+                var ret = Environment.CodeCompiler.Compile(
+                    Environment,
+                    Environment.Parser.Parse(stream, null, name),
+                    name);
 
-                    if (!_chunks.Contains(ret))
-                        _chunks.Add(ret);
-                    index = _chunks.IndexOf(ret);
-                    return ret;
-                }
+                if (!_chunks.Contains(ret))
+                    _chunks.Add(ret);
+                index = _chunks.IndexOf(ret);
+                return ret;
             }
         }
         /// <summary>

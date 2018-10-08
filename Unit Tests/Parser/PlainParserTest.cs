@@ -17,6 +17,8 @@ using ModMaker.Lua.Parser.Items;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
 namespace UnitTests.Parser
 {
@@ -46,7 +48,9 @@ namespace UnitTests.Parser
         IParseItem ParseBlock(string input)
         {
             PlainParser target = new PlainParser();
-            return target.Parse(TokenizerTest.CreateTokenizer(input), null, null);
+            var encoding = Encoding.UTF8;
+            var stream = new MemoryStream(encoding.GetBytes(input));
+            return target.Parse(stream, encoding, null);
         }
 
         /// <summary>

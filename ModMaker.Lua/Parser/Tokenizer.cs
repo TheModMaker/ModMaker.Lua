@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Parser
     /// stream of token for use in parsing.  It automatically ignores
     /// whitespace and comments.  This type can be extended to alter it's behaviour.
     /// </summary>
-    public class Tokenizer : ITokenizer
+    public class Tokenizer
     {
         IDictionary<string, TokenType> tokens_ =
             new Dictionary<string, TokenType> {

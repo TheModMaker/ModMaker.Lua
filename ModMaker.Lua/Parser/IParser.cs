@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System.IO;
+using System.Text;
+
 namespace ModMaker.Lua.Parser
 {
     /// <summary>
@@ -25,13 +28,13 @@ namespace ModMaker.Lua.Parser
         /// Parses the given Lua code into a IParseItem tree.
         /// </summary>
         /// <param name="input">The Lua code to parse.</param>
-        /// <param name="hash">The hash of the Lua code, can be null.</param>
+        /// <param name="encoding">The encoding that the stream uses.</param>
         /// <param name="name">The name of the chunk, used for exceptions.</param>
         /// <returns>The code as an IParseItem tree.</returns>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If the
         /// code is not in the correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If input
         /// is null.</exception>
-        IParseItem Parse(ITokenizer input, string name, string hash);
+        IParseItem Parse(Stream input, Encoding encoding, string name);
     }
 }
