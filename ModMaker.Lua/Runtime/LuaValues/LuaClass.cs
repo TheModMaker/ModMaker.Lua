@@ -529,9 +529,9 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 this.FID = 0;
 
                 // Create the type builder.
-                var ab = AppDomain.CurrentDomain.DefineDynamicAssembly(
+                var ab = AssemblyBuilder.DefineDynamicAssembly(
                     new AssemblyName("DynamicAssembly2"),
-                    AssemblyBuilderAccess.RunAndSave);
+                    AssemblyBuilderAccess.Run);
                 this.AB = ab;
                 ModuleBuilder mb = ab.DefineDynamicModule("DynamicAssembly2.dll");
                 this.TB = mb.DefineType(name, TypeAttributes.Class | TypeAttributes.BeforeFieldInit | TypeAttributes.Public, baseType, _interfaces);

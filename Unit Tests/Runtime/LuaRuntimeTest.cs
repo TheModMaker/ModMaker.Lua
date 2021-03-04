@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using ModMaker.Lua.Runtime;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Reflection;
 using System.Collections;

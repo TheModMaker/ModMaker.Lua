@@ -16,9 +16,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
+
+[assembly: InternalsVisibleTo("Unit Tests")]
 
 namespace ModMaker.Lua
 {

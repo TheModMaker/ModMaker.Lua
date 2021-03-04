@@ -1,149 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{389CF7EC-CE64-4D6B-BDD7-6168E697D7BB}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ModMaker.Lua</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>ModMaker.Lua</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
-    <FileAlignment>512</FileAlignment>
+    <RootNamespace>ModMaker.Lua</RootNamespace>
+    <Version>0.9.3.3</Version>
+    <Company />
+    <Authors>Jacob Trimble</Authors>
+    <Copyright>Copyright 2012 Jacob Trimble</Copyright>
+    <RepositoryUrl>https://github.com/TheModMaker/ModMaker.Lua</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <LangVersion>6</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-    <EmbeddedResource Include="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    <Compile Update="Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssertException.cs" />
-    <Compile Include="Compiler\ChunkBuilder.cs" />
-    <Compile Include="Compiler\CodeCompiler.cs" />
-    <Compile Include="Compiler\CompilerVisitor.cs" />
-    <Compile Include="Compiler\GetInfoTree.cs" />
-    <Compile Include="Compiler\GetInfoVisitor.cs" />
-    <Compile Include="Compiler\ICodeCompiler.cs" />
-    <Compile Include="Errors.cs" />
-    <Compile Include="Extensions\Lua.cs" />
-    <Compile Include="Helpers.cs" />
-    <Compile Include="IgnoreExtraArgumentsAttribute.cs" />
-    <Compile Include="Lua.cs" />
-    <Compile Include="LuaIgnoreAttribute.cs" />
-    <Compile Include="LuaSettings.cs" />
-    <Compile Include="MultipleReturnAttribute.cs" />
-    <Compile Include="NetHelpers.cs" />
-    <Compile Include="Parser\BufferedStringReader.cs" />
-    <Compile Include="Parser\IParseItem.cs" />
-    <Compile Include="Parser\IParseItemVisitor.cs" />
-    <Compile Include="Parser\IParser.cs" />
-    <Compile Include="Parser\Items\BinOpItem.cs" />
-    <Compile Include="Parser\Items\BlockItem.cs" />
-    <Compile Include="Parser\Items\ClassDefItem.cs" />
-    <Compile Include="Parser\Items\ForGenItem.cs" />
-    <Compile Include="Parser\Items\ForNumItem.cs" />
-    <Compile Include="Parser\Items\FuncCallItem.cs" />
-    <Compile Include="Parser\Items\FuncDefItem.cs" />
-    <Compile Include="Parser\Items\GotoItem.cs" />
-    <Compile Include="Parser\Items\IfItem.cs" />
-    <Compile Include="Parser\Items\IndexerItem.cs" />
-    <Compile Include="Parser\Items\LabelItem.cs" />
-    <Compile Include="Parser\Items\LiteralItem.cs" />
-    <Compile Include="Parser\Items\NameItem.cs" />
-    <Compile Include="Parser\Items\RepeatItem.cs" />
-    <Compile Include="Parser\Items\ReturnItem.cs" />
-    <Compile Include="Parser\Items\TableItem.cs" />
-    <Compile Include="Parser\Items\UnOpItem.cs" />
-    <Compile Include="Parser\Items\VarInitItem.cs" />
-    <Compile Include="Parser\Items\WhileItem.cs" />
-    <Compile Include="Parser\PlainParser.cs" />
-    <Compile Include="Parser\SyntaxException.cs" />
-    <Compile Include="Parser\Token.cs" />
-    <Compile Include="Parser\Tokenizer.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources.Designer.cs">
-      <DependentUpon>Resources.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Runtime\ILuaEnvironment.cs" />
-    <Compile Include="Runtime\ILuaEnvironmentNet.cs" />
-    <Compile Include="Runtime\ILuaMultiValue.cs" />
-    <Compile Include="Runtime\ILuaRuntime.cs" />
-    <Compile Include="Runtime\ILuaTable.cs" />
-    <Compile Include="Runtime\ILuaThread.cs" />
-    <Compile Include="Runtime\ILuaValue.cs" />
-    <Compile Include="Runtime\ILuaValueVisitor.cs" />
-    <Compile Include="Runtime\LuaEnvironmentNet.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Bit32.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Coroutines.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.IO.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Math.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Module.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.OS.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Standard.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.String.cs" />
-    <Compile Include="Runtime\LuaLibraries\LuaLibraries.Table.cs" />
-    <Compile Include="Runtime\LuaRuntimeNet.cs" />
-    <Compile Include="Runtime\LuaThread.cs" />
-    <Compile Include="Runtime\LuaValues\LuaBoolean.cs" />
-    <Compile Include="Runtime\LuaValues\LuaClass.cs" />
-    <Compile Include="Runtime\LuaValues\LuaDefinedFunction.cs" />
-    <Compile Include="Runtime\LuaValues\LuaFrameworkFunction.cs" />
-    <Compile Include="Runtime\LuaValues\LuaFunction.cs" />
-    <Compile Include="Runtime\LuaValues\LuaGlobalFunction.cs" />
-    <Compile Include="Runtime\LuaValues\LuaMultiValue.cs" />
-    <Compile Include="Runtime\LuaValues\LuaNil.cs" />
-    <Compile Include="Runtime\LuaValues\LuaNumber.cs" />
-    <Compile Include="Runtime\LuaValues\LuaOverloadFunction.cs" />
-    <Compile Include="Runtime\LuaValues\LuaString.cs" />
-    <Compile Include="Runtime\LuaValues\LuaTable.cs" />
-    <Compile Include="Runtime\LuaValues\LuaThread.cs" />
-    <Compile Include="Runtime\LuaValues\LuaUserData.cs" />
-    <Compile Include="Runtime\LuaValues\LuaValueBase.cs" />
-    <Compile Include="Runtime\LuaValueType.cs" />
-    <Compile Include="Runtime\ModuleBinder.cs" />
-    <Compile Include="Runtime\OverloadAttribute.cs" />
-    <Compile Include="Runtime\ThreadPool.cs" />
-    <Compile Include="Runtime\WorkerThread.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Whitelist.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

@@ -45,62 +45,9 @@ namespace ModMaker.Lua.Compiler
         public CodeCompiler()
         {
             // create a new dynamic assembly to store the Lua code
-            _ab = AppDomain.CurrentDomain.DefineDynamicAssembly(
-                new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.RunAndSave);
+            _ab = AssemblyBuilder.DefineDynamicAssembly(
+                new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
             _mb = _ab.DefineDynamicModule("DynamicAssembly.dll");
-        }
-
-        /// <summary>
-        /// Saves the compiled code to disk.
-        /// </summary>
-        /// <param name="name">The name/path to save to.</param>
-        /// <exception cref="System.ArgumentException">If the name is not a
-        /// valid file path.</exception>
-        /// <exception cref="System.ArgumentNullException">If name is null or
-        /// empty.</exception>
-        /// <exception cref="System.NotSupportedException">If the implementation
-        /// does not support saving to disk.</exception>
-        /// <exception cref="System.UnauthorizedAccessException">If the code does
-        /// not have sufficient permissions to save to disk.</exception>
-        [SecuritySafeCritical]
-        public void Save(string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException(nameof(name));
-
-            if (!name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                name += ".dll";
-            _ab.Save("DynamicAssembly.dll");
-            File.Move("DynamicAssembly.dll", name);
-        }
-        /// <summary>
-        /// Saves the compiled code to disk, optionally overriting the file if
-        /// it exists.
-        /// </summary>
-        /// <param name="name">The name/path to save to.</param>
-        /// <param name="doOverride">True to override the file if it exists,
-        /// otherwise false.</param>
-        /// <exception cref="System.ArgumentException">If the name is not a
-        /// valid file path.</exception>
-        /// <exception cref="System.ArgumentNullException">If name is null or
-        /// empty.</exception>
-        /// <exception cref="System.NotSupportedException">If the implementation
-        /// does not support saving to disk.</exception>
-        /// <exception cref="System.UnauthorizedAccessException">If the code does
-        /// not have sufficient permissions to save to disk.</exception>
-        [SecuritySafeCritical]
-        public void Save(string name, bool doOverride)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentNullException(nameof(name));
-
-            if (File.Exists(name) && doOverride)
-                File.Delete(name);
-            if (!name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                name += ".dll";
-
-            _ab.Save("DynamicAssembly.dll");
-            File.Move("DynamicAssembly.dll", name);
         }
 
         /// <summary>

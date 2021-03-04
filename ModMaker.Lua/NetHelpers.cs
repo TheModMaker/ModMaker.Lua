@@ -114,7 +114,7 @@ namespace ModMaker.Lua
         {
             if (_mb == null)
             {
-                var ab = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
+                var ab = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
                 _mb = ab.DefineDynamicModule("DynamicAssembly.dll");
             }
             return _mb;
