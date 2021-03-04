@@ -37,7 +37,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected delegate IParseStatement ReadStatement(Tokenizer input);
+        protected delegate IParseStatement ReadStatement(Lexer input);
 
         /// <summary>
         /// Creates a new parser object.
@@ -65,17 +65,17 @@ namespace ModMaker.Lua.Parser
         /// <param name="encoding">The encoding that the stream uses.</param>
         /// <param name="name">The name of the chunk, used for exceptions.</param>
         /// <returns>The code as an IParseItem tree.</returns>
-        /// <remarks>Simply calls Parse(Tokenizer, string, bool) with force:false.</remarks>
+        /// <remarks>Simply calls Parse(Lexer, string, bool) with force:false.</remarks>
         public IParseItem Parse(Stream input, Encoding encoding, string name)
         {
-            Tokenizer tok = new Tokenizer(input, encoding, name);
+            Lexer tok = new Lexer(input, encoding, name);
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
 
             // parse the chunk
             IParseItem read = ReadBlock(tok);
             if (!tok.PeekType(TokenType.None))
-                tok.SyntaxError("Expecting EOF");
+                throw tok.SyntaxError("Expecting EOF");
 
             return read;
         }
@@ -111,7 +111,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The item that was read.</returns>
-        protected virtual BlockItem ReadBlock(Tokenizer input)
+        protected virtual BlockItem ReadBlock(Lexer input)
         {
             BlockItem ret = new BlockItem() { Debug = input.Peek() };
 
@@ -175,7 +175,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadLocal(Tokenizer input)
+        protected virtual IParseStatement ReadLocal(Lexer input)
         {
             var debug = input.Expect(TokenType.Local);
             if (input.PeekType(TokenType.Function))
@@ -196,7 +196,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadClass(Tokenizer input)
+        protected virtual IParseStatement ReadClass(Lexer input)
         {
             var debug = input.Expect(TokenType.Class);
             string className = null;
@@ -243,7 +243,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual ReturnItem ReadReturn(Tokenizer input)
+        protected virtual ReturnItem ReadReturn(Lexer input)
         {
             var debug = input.Expect(TokenType.Return);
             ReturnItem ret = new ReturnItem() { Debug = debug };
@@ -270,7 +270,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadFunction(Tokenizer input)
+        protected virtual IParseStatement ReadFunction(Lexer input)
         {
             return ReadFunctionHelper(input, true, false);
         }
@@ -279,7 +279,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadFor(Tokenizer input)
+        protected virtual IParseStatement ReadFor(Lexer input)
         {
             var debug = input.Expect(TokenType.For);
             var name = input.Expect(TokenType.Identifier);
@@ -337,7 +337,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadIf(Tokenizer input)
+        protected virtual IParseStatement ReadIf(Lexer input)
         {
             var debug = input.Expect(TokenType.If);
             IfItem ret = new IfItem() { Debug = debug };
@@ -367,7 +367,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadRepeat(Tokenizer input)
+        protected virtual IParseStatement ReadRepeat(Lexer input)
         {
             var debug = input.Expect(TokenType.Repeat);
             RepeatItem repeat = new RepeatItem() { Debug = debug };
@@ -382,7 +382,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadLabel(Tokenizer input)
+        protected virtual IParseStatement ReadLabel(Lexer input)
         {
             var debug = input.Expect(TokenType.Label);
             Token label = input.Expect(TokenType.Identifier);
@@ -394,7 +394,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadBreak(Tokenizer input)
+        protected virtual IParseStatement ReadBreak(Lexer input)
         {
             var ret = input.Expect(TokenType.Break);
             return new GotoItem("<break>") { Debug = ret };
@@ -404,7 +404,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadGoto(Tokenizer input)
+        protected virtual IParseStatement ReadGoto(Lexer input)
         {
             var debug = input.Expect(TokenType.Goto);
             var name = input.Expect(TokenType.Identifier);
@@ -415,7 +415,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadDo(Tokenizer input)
+        protected virtual IParseStatement ReadDo(Lexer input)
         {
             var debug = input.Expect(TokenType.Do);
             var ret = ReadBlock(input);
@@ -427,7 +427,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The object that was read.</returns>
-        protected virtual IParseStatement ReadWhile(Tokenizer input)
+        protected virtual IParseStatement ReadWhile(Lexer input)
         {
             var debug = input.Expect(TokenType.While);
             WhileItem ret = new WhileItem() { Debug = debug };
@@ -453,7 +453,7 @@ namespace ModMaker.Lua.Parser
         /// <param name="local">True if this is a local definition, otherwise false.</param>
         /// <param name="variable">The first variable that was read.</param>
         /// <returns>The statement that was read.</returns>
-        protected virtual AssignmentItem ReadAssignment(Tokenizer input, Token debug, bool local, IParseVariable variable)
+        protected virtual AssignmentItem ReadAssignment(Lexer input, Token debug, bool local, IParseVariable variable)
         {
             AssignmentItem assign = new AssignmentItem(local) { Debug = debug };
             assign.AddName(variable);
@@ -491,7 +491,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">The input to read from.</param>
         /// <returns>The parsed expression.</returns>
-        protected virtual IParseExp ReadPrefixExp(Tokenizer input, out bool isParentheses)
+        protected virtual IParseExp ReadPrefixExp(Lexer input, out bool isParentheses)
         {
             Token debug = input.Peek();
             bool ignored;
@@ -536,7 +536,7 @@ namespace ModMaker.Lua.Parser
                         if (idx >= 0)
                         {
                             if (!int.TryParse(instName.Substring(idx + 1), out overload))
-                                input.SyntaxError(Resources.OnlyNumbersInOverload);
+                                throw input.SyntaxError(Resources.OnlyNumbersInOverload);
                             instName = instName.Substring(0, idx - 1);
                         }
                     }
@@ -547,7 +547,7 @@ namespace ModMaker.Lua.Parser
                         if (idx >= 0)
                         {
                             if (!int.TryParse(name.Name.Substring(idx + 1), out overload))
-                                input.SyntaxError(Resources.OnlyNumbersInOverload);
+                                throw input.SyntaxError(Resources.OnlyNumbersInOverload);
                             name.Name = name.Name.Substring(0, idx - 1);
                         }
                     }
@@ -602,7 +602,7 @@ namespace ModMaker.Lua.Parser
         /// The precedence of the previous expression or -1 if a root.
         /// </param>
         /// <returns>The expression that was read.</returns>
-        protected virtual IParseExp ReadExp(Tokenizer input, out bool isParentheses, int precedence = -1)
+        protected virtual IParseExp ReadExp(Lexer input, out bool isParentheses, int precedence = -1)
         {
             Token debug = input.Peek();
             bool ignored;
@@ -687,7 +687,7 @@ namespace ModMaker.Lua.Parser
         /// <param name="canName">True if the function can have a name, otherwise false.</param>
         /// <param name="local">True if this function is a local definition, otherwise false.</param>
         /// <returns>The function definition that was read.</returns>
-        protected virtual FuncDefItem ReadFunctionHelper(Tokenizer input, bool canName, bool local)
+        protected virtual FuncDefItem ReadFunctionHelper(Lexer input, bool canName, bool local)
         {
             Token debug = input.Expect(TokenType.Function);
 
@@ -737,7 +737,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <returns>The table that was read.</returns>
-        protected virtual TableItem ReadTable(Tokenizer input)
+        protected virtual TableItem ReadTable(Lexer input)
         {
             bool ignored;
             Token debug = input.Expect(TokenType.BeginTable);

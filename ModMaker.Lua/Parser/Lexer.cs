@@ -22,13 +22,13 @@ using System.Text.RegularExpressions;
 namespace ModMaker.Lua.Parser
 {
     /// <summary>
-    /// Defines a tokenizer that accepts a TextElementEnumerator and produces a
+    /// Defines a lexer that accepts a TextElementEnumerator and produces a
     /// stream of token for use in parsing.  It automatically ignores
     /// whitespace and comments.  This type can be extended to alter it's behaviour.
     /// </summary>
-    public class Tokenizer
+    public class Lexer
     {
-        IDictionary<string, TokenType> tokens_ =
+        readonly IDictionary<string, TokenType> tokens_ =
             new Dictionary<string, TokenType> {
                 { "(",  TokenType.BeginParen },
                 { ")", TokenType.EndParen },
@@ -88,7 +88,7 @@ namespace ModMaker.Lua.Parser
         /// <summary>
         /// Contains the previous peeks to support push-back.
         /// </summary>
-        Stack<Token> peek_;
+        readonly Stack<Token> peek_;
         /// <summary>
         /// Contains the input to the tokenizer.
         /// </summary>
@@ -97,15 +97,7 @@ namespace ModMaker.Lua.Parser
         /// <summary>
         /// Gets the name of the current file, used for throwing exceptions.
         /// </summary>
-        public string Name { get; protected set; }
-        /// <summary>
-        /// Gets the current (one-based) position in the current line.
-        /// </summary>
-        public long Position { get { return input_.Column; } }
-        /// <summary>
-        /// Gets the current (one-based) line number.
-        /// </summary>
-        public long Line { get { return input_.Line; } }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Creates a new Tokenizer object that will read from the given input.
@@ -113,7 +105,7 @@ namespace ModMaker.Lua.Parser
         /// <param name="input">Where to read input from.</param>
         /// <param name="name">The name of the input, used for debugging.</param>
         /// <exception cref="System.ArgumentNullException">If input is null.</exception>
-        public Tokenizer(Stream input, Encoding encoding, string name)
+        public Lexer(Stream input, Encoding encoding, string name)
         {
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
@@ -156,16 +148,11 @@ namespace ModMaker.Lua.Parser
             Token read = Peek();
             if (read.Type == TokenType.None)
             {
-                string msg = string.Format(
-                    "Unexpected EOF waiting for '{0}'", type);
-                SyntaxError(msg);
+                throw SyntaxError($"Unexpected EOF waiting for '{type}'");
             }
             if (read.Type != type)
             {
-                string msg = string.Format(
-                    "Found '{0}', expecting '{1}'.",
-                    read.Value, type);
-                SyntaxError(msg, read);
+                throw SyntaxError($"Found '{read.Value}', expecting '{type}'.", read);
             }
             return Read();
         }
@@ -192,15 +179,17 @@ namespace ModMaker.Lua.Parser
 
 
         /// <summary>
-        /// Throws a syntax error at the current position.
+        /// Returns a syntax error object at the current position.
         /// </summary>
         /// <param name="message">The message of the error.</param>
-        public void SyntaxError(string message, Token? token = null)
+        /// <param name="token">An optional token object to replace the current token.</param>
+        /// <returns>A new SyntaxException object.</returns>
+        public SyntaxException SyntaxError(string message, Token? token = null)
         {
-            throw new SyntaxException(
+            return new SyntaxException(
                 message, Name,
                 token ?? new Token(
-                    TokenType.None, input_.Peek(1), Position, Line));
+                    TokenType.None, input_.Peek(1), input_.Column, input_.Line));
         }
 
 
@@ -233,14 +222,13 @@ namespace ModMaker.Lua.Parser
                 if (input_.Peek(depth + 2).EndsWith("["))
                 {
                     Token retStr = new Token(
-                        TokenType.StringLiteral, "", Position, Line);
+                        TokenType.StringLiteral, "", input_.Column, input_.Line);
                     string end = "]" + new string('=', depth) + "]";
                     input_.Read(depth + 2);
                     retStr.Value = input_.ReadUntil(end);
                     if (!retStr.Value.EndsWith(end))
                     {
-                        SyntaxError(string.Format(
-                            Resources.UnexpectedEOF, "long string"));
+                        throw SyntaxError(string.Format(Resources.UnexpectedEOF, "long string"));
                     }
                     // TODO: Remove once token type is set.  This ensures the
                     // calling code knows it's a string.
@@ -251,26 +239,22 @@ namespace ModMaker.Lua.Parser
             }
 
             string first = input_.Peek(1);
-            if (first == "_" || (first != "" && char.IsLetter(first, 0)))
+            if (first == "")
+                return new Token();
+            else if (first == "_" || char.IsLetter(first, 0))
                 return ReadIdentifier();
-
-            if (tokens_.ContainsKey(input_.Peek(3)))
+            else if (tokens_.ContainsKey(input_.Peek(3)))
                 return ReadToken(3);
             else if (tokens_.ContainsKey(input_.Peek(2)))
                 return ReadToken(2);
-
-            string temp = input_.Peek(1);
-            if (temp == "")
-                return new Token();
-            else if (tokens_.ContainsKey(temp))
+            else if (tokens_.ContainsKey(first))
                 return ReadToken(1);
-            else if (IsDigit(temp) || temp == ".")
+            else if (IsDigit(first) || first == ".")
                 return ReadNumber();
-            else if (temp == "\"" || temp == "'")
+            else if (first == "\"" || first == "'")
                 return ReadString();
 
-            SyntaxError("Invalid token");
-            return new Token();
+            throw SyntaxError("Invalid token");
         }
 
         /// <summary>
@@ -289,7 +273,7 @@ namespace ModMaker.Lua.Parser
             if (input_.Peek(2) != "--")
                 return;
 
-            Token debug = new Token(TokenType.None, "", Position, Line);
+            Token debug = new Token(TokenType.None, "", input_.Column, input_.Line);
             debug.Value += input_.Read(2);
             string endStr = null;
             if (input_.Peek(1) == "[")
@@ -327,7 +311,7 @@ namespace ModMaker.Lua.Parser
                 throw new ArgumentException("Not currently at a string.");
 
             Token ret = new Token(
-                TokenType.StringLiteral, "", Position, Line);
+                TokenType.StringLiteral, "", input_.Column, input_.Line);
             input_.Read(1);
             ret.Value = input_.ReadUntil(end);
             while (ret.Value.EndsWith("\\" + end))
@@ -336,9 +320,9 @@ namespace ModMaker.Lua.Parser
             }
 
             if (ret.Value.Contains("\n"))
-                SyntaxError("Cannot have newline in string.");
+                throw SyntaxError("Cannot have newline in string.");
             if (!ret.Value.EndsWith(end))
-                SyntaxError("Unexpected EOF in strng.");
+                throw SyntaxError("Unexpected EOF in strng.");
 
             ret.Value = Regex.Replace(ret.Value, @"\\(x(\d\d)|(\d\d?\d?)|(z\s+)|.)", (match) =>
             {
@@ -390,7 +374,7 @@ namespace ModMaker.Lua.Parser
         protected virtual Token ReadNumber()
         {
             Token ret = new Token(
-                TokenType.NumberLiteral, "", Position, Line);
+                TokenType.NumberLiteral, "", input_.Column, input_.Line);
 
             string expLetter = "eE";
             Predicate<string> isDigit = IsDigit;
@@ -423,7 +407,7 @@ namespace ModMaker.Lua.Parser
         {
             Predicate<string> isWord =
                 (ch) => ch == "_" || char.IsLetterOrDigit(ch, 0);
-            Token ret = new Token(TokenType.None, "", Position, Line);
+            Token ret = new Token(TokenType.None, "", input_.Column, input_.Line);
             ret.Value = input_.ReadWhile(isWord);
             if (!tokens_.TryGetValue(ret.Value, out ret.Type))
                 ret.Type = TokenType.Identifier;
@@ -431,11 +415,11 @@ namespace ModMaker.Lua.Parser
             if (input_.Peek(1) == "`")
             {
                 if (ret.Type != TokenType.Identifier)
-                    SyntaxError("Cannot use overload with reserved keyword.");
+                    throw SyntaxError("Cannot use overload with reserved keyword.");
                 ret.Value += input_.Read(1);
                 string temp = input_.ReadWhile(IsDigit);
                 if (temp == "")
-                    SyntaxError("Must have at least one number in overload.");
+                    throw SyntaxError("Must have at least one number in overload.");
                 ret.Value += temp;
             }
             return ret;
@@ -450,7 +434,7 @@ namespace ModMaker.Lua.Parser
             // To avoid confusion and implementation-defined behavior for the
             // order of evaluation of arguments, this does the read last so the
             // position is at the start.
-            var ret = new Token(TokenType.Identifier, "", Position, Line);
+            var ret = new Token(TokenType.Identifier, "", input_.Column, input_.Line);
             ret.Value = input_.Read(length);
             ret.Type = tokens_[ret.Value];
             return ret;

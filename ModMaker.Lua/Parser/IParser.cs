@@ -19,7 +19,7 @@ namespace ModMaker.Lua.Parser
 {
     /// <summary>
     /// This object is in charge of parsing input into an object tree.  This
-    /// will take a Tokeinzer object input and will parse it into an IParseItem
+    /// will take a Stream object input and will parse it into an IParseItem
     /// tree.
     /// </summary>
     public interface IParser
