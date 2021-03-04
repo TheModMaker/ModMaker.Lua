@@ -24,7 +24,7 @@ namespace ModMaker.Lua.Parser
     /// <summary>
     /// Defines a lexer that accepts a TextElementEnumerator and produces a
     /// stream of token for use in parsing.  It automatically ignores
-    /// whitespace and comments.  This type can be extended to alter it's behaviour.
+    /// whitespace and comments.  This type can be extended to alter it's behavior.
     /// </summary>
     public class Lexer
     {
@@ -90,7 +90,7 @@ namespace ModMaker.Lua.Parser
         /// </summary>
         readonly Stack<Token> peek_;
         /// <summary>
-        /// Contains the input to the tokenizer.
+        /// Contains the input to the lexer.
         /// </summary>
         readonly BufferedStringReader input_;
 
@@ -100,7 +100,7 @@ namespace ModMaker.Lua.Parser
         public string Name { get; private set; }
 
         /// <summary>
-        /// Creates a new Tokenizer object that will read from the given input.
+        /// Creates a new Lexer object that will read from the given input.
         /// </summary>
         /// <param name="input">Where to read input from.</param>
         /// <param name="name">The name of the input, used for debugging.</param>
@@ -322,7 +322,7 @@ namespace ModMaker.Lua.Parser
             if (ret.Value.Contains("\n"))
                 throw SyntaxError("Cannot have newline in string.");
             if (!ret.Value.EndsWith(end))
-                throw SyntaxError("Unexpected EOF in strng.");
+                throw SyntaxError("Unexpected EOF in string.");
 
             ret.Value = Regex.Replace(ret.Value, @"\\(x(\d\d)|(\d\d?\d?)|(z\s+)|.)", (match) =>
             {

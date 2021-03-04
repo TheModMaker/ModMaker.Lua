@@ -179,7 +179,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// type distance is not implemented.</exception>
         /// <remarks>
         /// The distance must be a non-negative number.  The same value
-        /// means an equivilent cast.  A larger number means that it is
+        /// means an equivalent cast.  A larger number means that it is
         /// further away.  When determining overload resolution, a
         /// smaller value is attempted.  They are only used for
         /// comparison; their value is never used directly.
@@ -270,7 +270,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="memberCall">Whether the call was using member call notation (:).</param>
         /// <param name="args">The arguments for the call.</param>
         /// <param name="overload">Specifies the overload to call; -1 to use overload-resolution.</param>
-        /// <returns>The return values from the invokation.</returns>
+        /// <returns>The return values from the invocation.</returns>
         public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args)
         {
             throw new InvalidOperationException(Errors.CannotCall(this.ValueType));

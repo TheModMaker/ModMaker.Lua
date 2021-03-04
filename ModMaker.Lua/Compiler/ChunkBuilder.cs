@@ -35,7 +35,7 @@ namespace ModMaker.Lua.Compiler
         /// Defines a nested type for a nested function.  Each nested function
         /// that also has nested methods will have a nested type.  If
         /// a function does not have any nested functions it does not have a
-        /// nested type.  The function is defined in the parrent nest and any
+        /// nested type.  The function is defined in the parent nest and any
         /// local variables defined in this function that is captured is
         /// defined as a field in the nested type.  Then any nested functions
         /// are defined in the nested type.  This is how C# handles captures
@@ -63,7 +63,7 @@ namespace ModMaker.Lua.Compiler
             public Dictionary<Type, Stack<LocalBuilder>> FreeLocals { get; private set; }
             /// <summary>
             /// Gets the ILGenerator for this nest.  This generator belongs to
-            /// the type of the parrent nest but is only used for generating
+            /// the type of the parent nest but is only used for generating
             /// code for this nest.
             /// </summary>
             public ILGenerator Generator { get; private set; }
@@ -73,45 +73,45 @@ namespace ModMaker.Lua.Compiler
             /// </summary>
             public TypeBuilder TypeDef { get; private set; }
             /// <summary>
-            /// Gets the parrent nest object, is null for the root nest object.
+            /// Gets the parent nest object, is null for the root nest object.
             /// </summary>
-            public NestInfo Parrent { get; private set; }
+            public NestInfo Parent { get; private set; }
             /// <summary>
-            /// Gets the field defined in this type that holds the parrent
+            /// Gets the field defined in this type that holds the parent
             /// instance.  This may not exist if the type does not capture
-            /// any locals from the parrent type.
+            /// any locals from the parent type.
             /// </summary>
-            public FieldBuilder ParrentInst { get; private set; }
+            public FieldBuilder ParentInst { get; private set; }
             /// <summary>
             /// Gets the local variable that holds an instance to this type.
             /// </summary>
             public LocalBuilder ThisInst { get; private set; }
             /// <summary>
             /// Gets the local variable definitions for this nest.  These are
-            /// the variables defined in the defining method.  The indicies in
+            /// the variables defined in the defining method.  The indices in
             /// the list are the scopes of the variables and the dictionary
             /// maps the name to the field in the type.
             /// </summary>
             public Stack<Dictionary<string, VarDefinition>> Locals { get; private set; }
 
             /// <summary>
-            /// Creates a new nest with the given parrent.
+            /// Creates a new nest with the given parent.
             /// </summary>
-            /// <param name="parrent">The parrent nest.</param>
+            /// <param name="parent">The parent nest.</param>
             /// <param name="gen">The generator used to generate code for this
             /// function.</param>
-            /// <param name="storeParrent">True to create a field that stores
-            /// the parrent instance; otherwise false.</param>
+            /// <param name="storeParent">True to create a field that stores
+            /// the parent instance; otherwise false.</param>
             /// <param name="captures">The local variables that have been
             /// captured by nested functions.</param>
             /// <param name="createType">True to create a nested type, otherwise
             /// false.</param>
-            public NestInfo(NestInfo parrent, ILGenerator gen, NameItem[] captures, bool createType, bool storeParrent)
+            public NestInfo(NestInfo parent, ILGenerator gen, NameItem[] captures, bool createType, bool storeParent)
             {
                 this.FreeLocals = new Dictionary<Type, Stack<LocalBuilder>>();
                 this.members = new HashSet<string>();
                 this.captures = new HashSet<NameItem>(captures);
-                this.Parrent = parrent;
+                this.Parent = parent;
                 this.Generator = gen;
                 this.Locals = new Stack<Dictionary<string, VarDefinition>>();
                 this.Locals.Push(new Dictionary<string, VarDefinition>());
@@ -119,7 +119,7 @@ namespace ModMaker.Lua.Compiler
                 if (createType)
                 {
                     // create the type and constructor.
-                    this.TypeDef = parrent.TypeDef.DefineNestedType("<>c__DisplayClass" + (ID++),
+                    this.TypeDef = parent.TypeDef.DefineNestedType("<>c__DisplayClass" + (ID++),
                         TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit);
                     var ctor = this.TypeDef.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[0]);
                     var cgen = ctor.GetILGenerator();
@@ -129,10 +129,10 @@ namespace ModMaker.Lua.Compiler
                     cgen.Emit(OpCodes.Call, typeof(object).GetConstructor(new Type[0]));
                     cgen.Emit(OpCodes.Ret);
 
-                    if (storeParrent)
-                        this.ParrentInst = this.TypeDef.DefineField("CS$<>__locals", parrent.TypeDef, FieldAttributes.Public);
+                    if (storeParent)
+                        this.ParentInst = this.TypeDef.DefineField("CS$<>__locals", parent.TypeDef, FieldAttributes.Public);
                     else
-                        this.ParrentInst = null;
+                        this.ParentInst = null;
 
                     // create the local definition
                     // ThisInst = new TypeDef();
@@ -140,19 +140,19 @@ namespace ModMaker.Lua.Compiler
                     gen.Emit(OpCodes.Newobj, ctor);
                     gen.Emit(OpCodes.Stloc, this.ThisInst);
 
-                    if (storeParrent)
+                    if (storeParent)
                     {
-                        // ThisInst.ParrentInst = this;
+                        // ThisInst.ParentInst = this;
                         gen.Emit(OpCodes.Ldloc, this.ThisInst);
                         gen.Emit(OpCodes.Ldarg_0);
-                        gen.Emit(OpCodes.Stfld, this.ParrentInst);
+                        gen.Emit(OpCodes.Stfld, this.ParentInst);
                     }
                 }
                 else
                 {
                     this.TypeDef = null;
                     this.ThisInst = null;
-                    this.ParrentInst = null;
+                    this.ParentInst = null;
                 }
             }
             NestInfo(TypeBuilder tb)
@@ -162,8 +162,8 @@ namespace ModMaker.Lua.Compiler
                 this.members = new HashSet<string>();
                 this.Locals = new Stack<Dictionary<string, VarDefinition>>();
                 this.Locals.Push(new Dictionary<string, VarDefinition>());
-                this.Parrent = null;
-                this.ParrentInst = null;
+                this.Parent = null;
+                this.ParentInst = null;
                 this.Generator = null;
                 this.TypeDef = tb;
                 this.ThisInst = null;
@@ -382,7 +382,7 @@ namespace ModMaker.Lua.Compiler
 
             if (curNest.TypeDef != null)
                 curNest.TypeDef.CreateType();
-            Type t = curNest.Parrent.TypeDef.CreateType();
+            Type t = curNest.Parent.TypeDef.CreateType();
             return LuaGlobalFunction.Create(E, t);
         }
         /// <summary>
@@ -417,7 +417,7 @@ namespace ModMaker.Lua.Compiler
                 new Type[] { typeof(ILuaEnvironment), typeof(ILuaMultiValue), typeof(ILuaValue), typeof(bool) });
             var gen = mb.GetILGenerator();
             curNest = new NestInfo(curNest, gen, function.FunctionInformation.CapturedLocals,
-                function.FunctionInformation.HasNested, function.FunctionInformation.CapturesParrent);
+                function.FunctionInformation.HasNested, function.FunctionInformation.CapturesParent);
 
             // if this is an instance method, create a BaseAccessor object to help types.
             if (function.InstanceName != null)
@@ -498,7 +498,7 @@ namespace ModMaker.Lua.Compiler
             if (curNest.TypeDef != null)
                 curNest.TypeDef.CreateType();
 
-            curNest = curNest.Parrent;
+            curNest = curNest.Parent;
             // push a pointer to the new method onto the stack of the previous nest method
             //   the above line restores the nest to the previous state and this code will
             //   push the new method.
@@ -530,9 +530,9 @@ namespace ModMaker.Lua.Compiler
             if (varDef != null)
                 return varDef;
 
-            // search for parrent captures
+            // search for parent captures
             var fields = new List<FieldBuilder>();
-            var cur = curNest.Parrent;
+            var cur = curNest.Parent;
             while (cur != null)
             {
                 varDef = cur.FindLocal(name);
@@ -545,8 +545,8 @@ namespace ModMaker.Lua.Compiler
                     return new CapturedParVarDef(CurrentGenerator, fields.ToArray());
                 }
 
-                fields.Add(cur.ParrentInst);
-                cur = cur.Parrent;
+                fields.Add(cur.ParentInst);
+                cur = cur.Parent;
             }
 
             // still not found, it is a global variable
@@ -748,8 +748,8 @@ namespace ModMaker.Lua.Compiler
         }
         /// <summary>
         /// Defines a local variable that has been captured by nested functions
-        /// and is stored in a parrent nest.  This version loads the variable
-        /// from parrent nest types.
+        /// and is stored in a parent nest.  This version loads the variable
+        /// from parent nest types.
         /// </summary>
         sealed class CapturedParVarDef : VarDefinition
         {

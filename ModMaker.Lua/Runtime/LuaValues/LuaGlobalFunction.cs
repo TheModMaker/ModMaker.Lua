@@ -60,14 +60,14 @@ namespace ModMaker.Lua.Runtime.LuaValues
         }
 
         /// <summary>
-        /// Performs that actual invokation of the method.
+        /// Performs that actual invocation of the method.
         /// </summary>
         /// <param name="target">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do
-        /// overload resoltion.</param>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
+        /// overload resolution.</param>
+        /// <param name="byRef">An array of the indices that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>
         /// <exception cref="System.ArgumentException">If the object cannot be
         /// invoked with the given arguments.</exception>

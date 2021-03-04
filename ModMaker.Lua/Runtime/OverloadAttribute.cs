@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Runtime
     /// <summary>
     /// Attach to a method to specify the index of the overload.  The overload
     /// must be positive and cannot conflict with another index.  Any method
-    /// that does not have an index will fill in the blank indicies.
+    /// that does not have an index will fill in the blank indices.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     public sealed class OverloadAttribute : Attribute

@@ -21,7 +21,7 @@ namespace ModMaker.Lua.Extensions
 {
     /// <summary>
     /// An extension class that defines Action&lt;...&gt; and Func&lt;...&gt; extensions
-    /// to Lua so you don'type have to cast to Delegate to pass.
+    /// to Lua so you don't have to cast to Delegate to pass.
     /// </summary>
     public static class LuaExt
     {

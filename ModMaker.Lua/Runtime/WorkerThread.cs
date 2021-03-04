@@ -28,7 +28,7 @@ namespace ModMaker.Lua.Runtime
     sealed class WorkerThread : IDisposable
     {
         /// <summary>
-        /// The max wait time in miliseconds to wait for a new task.
+        /// The max wait time in milliseconds to wait for a new task.
         /// </summary>
         const int MAX_WAIT_TIME = 1000;
 

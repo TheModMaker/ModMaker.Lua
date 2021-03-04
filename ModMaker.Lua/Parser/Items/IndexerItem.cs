@@ -80,7 +80,7 @@ namespace ModMaker.Lua.Parser.Items
         public Token Debug { get; set; }
         /// <summary>
         /// Gets or sets the user data for this object.  This
-        /// is not modified inbetween calls to Accept but may
+        /// is not modified between calls to Accept but may
         /// be altered by other visitor objects.
         /// </summary>
         public object UserData { get; set; }

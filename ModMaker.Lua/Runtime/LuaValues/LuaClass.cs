@@ -139,7 +139,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// </summary>
         public Type BaseType { get; private set; }
         /// <summary>
-        /// Gets the interfaces that the class impliments.
+        /// Gets the interfaces that the class implements.
         /// </summary>
         public ReadOnlyCollection<Type> Interfaces { get; private set; }
 
@@ -200,7 +200,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// not been called before.
         /// </summary>
         /// <param name="args">Any arguments to pass to the constructor.</param>
-        /// <typeparam name="T">The base-type or interface to cast the object to.  The class must impliment it.</typeparam>
+        /// <typeparam name="T">The base-type or interface to cast the object to.  The class must implement it.</typeparam>
         /// <returns>An instance of the type.</returns>
         public T CreateInstance<T>(params ILuaValue[] args)
         {
@@ -368,7 +368,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                 if (overload != -1 && overload >= members.Length)
                     throw new InvalidOperationException(Resources.OverloadOutOfRange);
 
-                // set the backing parrent object.
+                // set the backing parent object.
                 name = type.FullName + "." + name;
                 if (members[0].MemberType == MemberTypes.Method)
                 {
@@ -424,7 +424,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
             if (_created != null || name == null)
                 return;
 
-            // If this is the contructor, assign it.
+            // If this is the constructor, assign it.
             if (name == "__ctor")
             {
                 if (value.ValueType == LuaValueType.Function)
@@ -588,7 +588,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// <summary>
             /// Assigns the given value to the item.
             /// </summary>
-            /// <param name="value">The value to asign to.</param>
+            /// <param name="value">The value to assign to.</param>
             public abstract void Assign(ILuaValue value);
 
             /// <summary>
@@ -839,7 +839,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
                             gen.Emit(OpCodes.Box, Type);
                         gen.Emit(OpCodes.Stelem, typeof(object));
 
-                        // ILuaMultiValue argss = E.Runtime.CreateMultiValueFromObj(loc);
+                        // ILuaMultiValue args = E.Runtime.CreateMultiValueFromObj(loc);
                         LocalBuilder args = gen.DeclareLocal(typeof(ILuaMultiValue));
                         gen.Emit(OpCodes.Ldarg_0);
                         gen.Emit(OpCodes.Ldfld, data.EnvField);

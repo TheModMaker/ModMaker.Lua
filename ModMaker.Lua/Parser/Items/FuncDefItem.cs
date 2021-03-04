@@ -123,7 +123,7 @@ namespace ModMaker.Lua.Parser.Items
             public FunctionInfo()
             {
                 this.HasNested = false;
-                this.CapturesParrent = false;
+                this.CapturesParent = false;
                 this.CapturedLocals = new NameItem[0];
             }
 
@@ -133,9 +133,9 @@ namespace ModMaker.Lua.Parser.Items
             public bool HasNested { get; set; }
             /// <summary>
             /// Gets or sets whether this function captures local variables
-            /// from the parrent function.
+            /// from the parent function.
             /// </summary>
-            public bool CapturesParrent { get; set; }
+            public bool CapturesParent { get; set; }
             /// <summary>
             /// Gets or sets an array of the local variables defined in
             /// this function that are captured by nested  functions.

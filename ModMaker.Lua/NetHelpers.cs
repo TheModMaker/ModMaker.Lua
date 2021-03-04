@@ -76,7 +76,7 @@ namespace ModMaker.Lua
         public static double ReadNumber(TextReader input)
         {
             // TODO: Check whether this is used in the parser (move to ModMaker.Lua) and make this
-            //  consitent with the spec.
+            //  consistent with the spec.
             StringBuilder build = new StringBuilder();
 
             int c = input.Peek();
@@ -120,7 +120,7 @@ namespace ModMaker.Lua
             return _mb;
         }
         /// <summary>
-        /// Defines a new type in the glboal module builder with the given prefix.
+        /// Defines a new type in the global module builder with the given prefix.
         /// </summary>
         /// <param name="prefix">The name prefix of the type.</param>
         /// <returns>The newly created type.</returns>

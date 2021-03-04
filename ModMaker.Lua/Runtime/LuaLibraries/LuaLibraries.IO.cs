@@ -27,7 +27,7 @@ namespace ModMaker.Lua.Runtime
     static partial class LuaStaticLibraries
     {
         /// <summary>
-        /// Contains the io framekwork functions.
+        /// Contains the io framework functions.
         /// </summary>
         static class IO
         {

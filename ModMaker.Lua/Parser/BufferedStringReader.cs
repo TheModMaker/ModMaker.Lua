@@ -87,7 +87,7 @@ namespace ModMaker.Lua.Parser
 
 
         /// <summary>
-        /// Looks at the given number of chatacters from the buffer.
+        /// Looks at the given number of characters from the buffer.
         /// </summary>
         /// <param name="count">The number of characters to look at.</param>
         /// <returns>The read string.</returns>

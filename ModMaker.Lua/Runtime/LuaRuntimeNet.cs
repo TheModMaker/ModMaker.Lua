@@ -26,9 +26,9 @@ using System.Threading;
 namespace ModMaker.Lua.Runtime
 {
     /// <summary>
-    /// Defines the default Lua runtime.  This class is incharge of resolving
+    /// Defines the default Lua runtime.  This class is in charge of resolving
     /// operators and converting types.  This can be inherited to modify it's
-    /// behaviour.
+    /// behavior.
     /// </summary>
     public class LuaRuntimeNet : ILuaRuntime
     {

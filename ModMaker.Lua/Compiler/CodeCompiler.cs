@@ -51,7 +51,7 @@ namespace ModMaker.Lua.Compiler
         }
 
         /// <summary>
-        /// Compiles an IParseItem tree indo an IModule object so that it can
+        /// Compiles an IParseItem tree into an IModule object so that it can
         /// be executed.
         /// </summary>
         /// <param name="name">The name to given the module, can be null to

@@ -32,7 +32,7 @@ namespace ModMaker.Lua.Runtime
     public interface IModuleBinder
     {
         /// <summary>
-        /// Searches and loads the module acording to the binder.
+        /// Searches and loads the module according to the binder.
         /// </summary>
         /// <param name="E">The environment to load to.</param>
         /// <param name="name">The name of the module to find.</param>
@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Runtime
     }
 
     /// <summary>
-    /// Defines the default binding behaviour similar to that of the Lua
+    /// Defines the default binding behavior similar to that of the Lua
     /// Language Specification.
     /// </summary>
     public sealed class ModuleBinder : IModuleBinder
@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Runtime
         public string[] WhitelistPublicKeys { get; set; }
 
         /// <summary>
-        /// Searches and loads the module acording to the settings.
+        /// Searches and loads the module according to the settings.
         /// </summary>
         /// <param name="name">The name of the module to find.</param>
         /// <param name="E">The environment to load to.</param>

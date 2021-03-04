@@ -206,7 +206,7 @@ namespace ModMaker.Lua
         /// <summary>
         /// Loads and executes the file at the path specified.  The chunk is
         /// loaded into this object and can be indexed by Execute and the
-        /// indexder.
+        /// indexer.
         /// </summary>
         /// <param name="path">The path to the file.</param>
         /// <param name="args">The arguments to pass.</param>
@@ -224,7 +224,7 @@ namespace ModMaker.Lua
         /// <summary>
         /// Loads and executes the file from the given stream.  The chunk is
         /// loaded into this object and can be indexed by Execute and the
-        /// indexder.
+        /// indexer.
         /// </summary>
         /// <param name="stream">The stream to read the file from.</param>
         /// <param name="args">The arguments to pass.</param>
@@ -242,7 +242,7 @@ namespace ModMaker.Lua
         /// <summary>
         /// Loads and executes the specified text. The chunk is
         /// loaded into this object and can be indexed by Execute and the
-        /// indexder.
+        /// indexer.
         /// </summary>
         /// <param name="chunk">The chunk to execute.</param>
         /// <param name="args">The arguments to pass.</param>
@@ -472,7 +472,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic GetVariable(string path, string name)
@@ -491,7 +491,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic GetVariable(LuaSettings settings, string path, string name)
@@ -509,7 +509,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic GetVariable(ILuaEnvironment E, string path, string name)
@@ -527,7 +527,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic[] GetVariables(string path, params string[] names)
@@ -546,7 +546,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic[] GetVariables(LuaSettings settings, string path, params string[] names)
@@ -564,7 +564,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
         /// syntax errors in the file.</exception>
         public static dynamic[] GetVariables(ILuaEnvironment E, string path, params string[] names)
@@ -599,7 +599,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If the variable
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
@@ -620,7 +620,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If the variable
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
@@ -640,7 +640,7 @@ namespace ModMaker.Lua
         /// correct format.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If the variable
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
@@ -661,7 +661,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If one of the variables
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
@@ -683,7 +683,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If one of the variables
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are
@@ -704,7 +704,7 @@ namespace ModMaker.Lua
         /// correct format -or- if names contains a null string.</exception>
         /// <exception cref="System.ArgumentNullException">If any arguments are null.</exception>
         /// <exception cref="System.IO.FileNotFoundException">If the given file
-        /// chould not be found.</exception>
+        /// could not be found.</exception>
         /// <exception cref="System.InvalidCastException">If one of the variables
         /// could not be converted to the given type.</exception>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If there are

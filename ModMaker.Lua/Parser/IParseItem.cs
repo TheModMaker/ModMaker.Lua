@@ -46,7 +46,7 @@ namespace ModMaker.Lua.Parser
     public interface IParseExp : IParseItem { }
     /// <summary>
     /// A parse item that is a prefix expression, these are also expressions,
-    /// but can be used as prefixes for indesers and function calls.
+    /// but can be used as prefixes for indexers and function calls.
     /// </summary>
     public interface IParsePrefixExp : IParseExp { }
     /// <summary>

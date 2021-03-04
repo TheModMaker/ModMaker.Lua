@@ -62,7 +62,7 @@ assertEquals(3,      select('#', string.byte('ABCDEF', 4, 10)),      'byte: end 
 assertEquals('ABC',                       string.char(0x41, 0x42, 0x43), 'char: normal')
 assertEquals('',                          string.char(),               'char: zero args')
 assertEquals('" + "\uac20" + @"',         string.char(0xac20),         'char: handles UTF-16')
-assertEquals('" + "\ud801\udc37" + @"',   string.char(0xd801, 0xdc37), 'char: handles surrotgate pairs split')
+assertEquals('" + "\ud801\udc37" + @"',   string.char(0xd801, 0xdc37), 'char: handles surrogate pairs split')
 assertEquals('" + "\ud801\udc37" + @"',   string.char(0x10437),        'char: handles high code points')
 ");
         }

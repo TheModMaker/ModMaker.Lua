@@ -286,14 +286,14 @@ namespace UnitTests.Net
             table[3.0] = "3";
             table[4.0] = "4";
 
-            // Setting numerical indicies of a table
+            // Setting numerical indices of a table
             E.Runtime.SetIndex(E, table, 1.0, "NewValue");
             Assert.AreEqual("NewValue", table[1.0], "Setting number table index.");
             E.Runtime.SetIndex(E, table, 2.0, "NewValueAlso");
             Assert.AreEqual("NewValueAlso", table[2.0], "Setting number table index");
             Assert.AreEqual("3", table[3.0], "Setting table index.");
 
-            // Setting object indicies of a table
+            // Setting object indices of a table
             E.Runtime.SetIndex(E, table, "String", "NewValue");
             Assert.AreEqual("NewValue", table["String"], "Setting object table index.");
 
@@ -475,9 +475,9 @@ namespace UnitTests.Net
             args = new[] { "Foo" };
             byref = new int[0];
             actual = NetHelpers.GetCompatibleMethod(fooDerived, targetsDerived, ref args, byref, out method, out target);
-            Assert.AreEqual(true, actual, "Inheritence conflict.");
+            Assert.AreEqual(true, actual, "Inheritance conflict.");
             Assert.AreEqual(typeof(UserTypes.DerivedClass).GetMethod("Foo", new Type[] { typeof(string) }),
-                method, "Inheritence conflict.");
+                method, "Inheritance conflict.");
 
             // one argument with conflict
             try
@@ -507,7 +507,7 @@ namespace UnitTests.Net
                 method, "User-defined cast.");
             Assert.IsInstanceOfType(args[0], typeof(UserTypes.DerivedClass), "One argument with user-defined cast.");
 
-            // derived type markes with LuaIgnore
+            // derived type marked with LuaIgnore
             args = new object[] { 12.0 };
             byref = new int[0];
             actual = NetHelpers.GetCompatibleMethod(fooDerived, targetsRoot, ref args, byref, out method, out target);
@@ -588,10 +588,10 @@ namespace UnitTests.Net
             args = new object[] { "Foo", "Foo" };
             byref = new[] { 1 };
             actual = NetHelpers.GetCompatibleMethod(foo2Derived, targetsDerived, ref args, byref, out method, out target);
-            Assert.AreEqual(true, actual, "Conflict with by-reference inheritence.");
+            Assert.AreEqual(true, actual, "Conflict with by-reference inheritance.");
             Assert.AreEqual(typeof(UserTypes.DerivedClass).GetMethod("Foo2",
                 new Type[] { typeof(object), typeof(string).MakeByRefType() }),
-                method, "Conflict with by-reference inheritence.");
+                method, "Conflict with by-reference inheritance.");
 
             // two arguments passed by reference with ambiguity
             try
@@ -721,7 +721,7 @@ namespace UnitTests.Net
             }
             catch (InvalidCastException) { }
 
-            // error converting in the opposite direction of inheritence hierarchy
+            // error converting in the opposite direction of inheritance hierarchy
             try
             {
                 actual = target.ConvertType(new UserTypes.BaseClass(), typeof(UserTypes.DerivedClass));

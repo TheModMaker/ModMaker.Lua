@@ -78,16 +78,16 @@ namespace ModMaker.Lua
     public enum LuaClassAccess
     {
         /// <summary>
-        /// Lua can only derrive from types that are registered.
+        /// Lua can only derive from types that are registered.
         /// </summary>
         Registered,
         /// <summary>
-        /// Lua can derrive from types that are registered and defined in the
+        /// Lua can derive from types that are registered and defined in the
         /// .NET framework.
         /// </summary>
         System,
         /// <summary>
-        /// Lua can derrive from any type that is defined in
+        /// Lua can derive from any type that is defined in
         /// CurrentDomain.GetAssemblies().
         /// </summary>
         All,
@@ -220,7 +220,7 @@ namespace ModMaker.Lua
             }
         }
         /// <summary>
-        /// Gets or sets which types Lua defined classes can derrive from.
+        /// Gets or sets which types Lua defined classes can derive from.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the settings are read-only.</exception>
         public LuaClassAccess ClassAccess
@@ -369,7 +369,7 @@ namespace ModMaker.Lua
                 throw new InvalidOperationException(Resources.ReadonlySettings);
         }
         /// <summary>
-        /// Ensures that the LuaClassAccess is realy one of the enumerated values.
+        /// Ensures that the LuaClassAccess is really one of the enumerated values.
         /// If it is invalid, it will use the default (Registered).
         /// </summary>
         /// <param name="access">The value to check.</param>

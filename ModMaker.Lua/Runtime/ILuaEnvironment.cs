@@ -20,7 +20,7 @@ namespace ModMaker.Lua.Runtime
 {
     /// <summary>
     /// Defines the environment that Lua operates in.  It is suggested that the
-    /// type that implements this interface should derrive from DynamicObject
+    /// type that implements this interface should derive from DynamicObject
     /// to allow for dynamic member access.
     /// </summary>
     /// <remarks>

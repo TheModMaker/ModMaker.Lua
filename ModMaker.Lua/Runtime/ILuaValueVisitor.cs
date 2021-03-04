@@ -18,7 +18,7 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua.Runtime
 {
     /// <summary>
-    /// A visitor used to to visit LuaValue's.
+    /// A visitor used to visit LuaValue's.
     /// </summary>
     public interface ILuaValueVisitor
     {

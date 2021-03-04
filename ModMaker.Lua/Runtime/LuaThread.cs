@@ -75,7 +75,7 @@ namespace ModMaker.Lua.Runtime
         }
 
         /// <summary>
-        /// Suspends the current thread to allow the wating thread to execute.
+        /// Suspends the current thread to allow the waiting thread to execute.
         /// </summary>
         /// <exception cref="System.InvalidOperationException">If the thread
         /// is running or dead -or- if this is not a Lua thread.</exception>

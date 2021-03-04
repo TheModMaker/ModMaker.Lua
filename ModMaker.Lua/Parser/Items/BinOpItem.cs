@@ -100,8 +100,8 @@ namespace ModMaker.Lua.Parser.Items
         /// <summary>
         /// Creates a new instance with the given state.
         /// </summary>
-        /// <param name="lhs">The left-hand-side of the epxression.</param>
-        /// <param name="rhs">The right-hand-side of the epxression.</param>
+        /// <param name="lhs">The left-hand-side of the expression.</param>
+        /// <param name="rhs">The right-hand-side of the expression.</param>
         /// <param name="type">The type of the expression.</param>
         /// <exception cref="System.ArgumentNullException">If lhs is null.</exception>
         public BinOpItem(IParseExp lhs, BinaryOperationType type, IParseExp rhs)

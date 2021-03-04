@@ -69,7 +69,7 @@ assertEquals(0xffffff88, bit32.arshift(-0xf, -3),         'arshift(left): negati
             Lua.DoText(@"
 assertEquals(0xea,       bit32.band(0xff, 0xea),                 'band: normal')
 assertEquals(0xffffffff, bit32.band(),                           'band: zero arguments')
-assertEquals(0xea,       bit32.band(0xea),                       'band: one arguement')
+assertEquals(0xea,       bit32.band(0xea),                       'band: one argument')
 assertEquals(0x22,       bit32.band(0xff, 0xea, 0x7f, 0xa3),     'band: more than two')
 assertEquals(0x00,       bit32.band(0x42, 0xea, 0x7a, 0xa1),     'band: clears out')
 assertEquals(0xaa000000, bit32.band(0xfa0000aa, 0xaf00aa00),     'band: large number')
@@ -121,7 +121,7 @@ assertEquals(0xffffefdb, bit32.bnot(0x4500001024),      'bnot: larger than 32-bi
             Lua.DoText(@"
 assertEquals(0xff,       bit32.bor(0xaa, 0x55),                 'bor: normal')
 assertEquals(0x0,        bit32.bor(),                           'bor: zero arguments')
-assertEquals(0xea,       bit32.bor(0xea),                       'bor: one arguement')
+assertEquals(0xea,       bit32.bor(0xea),                       'bor: one argument')
 assertEquals(0xab,       bit32.bor(0x01, 0x83, 0x21, 0x2a),     'bor: more than two')
 assertEquals(0xff00aaaa, bit32.bor(0xfa0000aa, 0xaf00aa00),     'bor: large number')
 assertEquals(0xff,       bit32.bor(0xff000000f0, 0xff0000000f), 'bor: larger than 32-bits')
@@ -143,7 +143,7 @@ assertEquals(0xff,       bit32.bor(0xff000000f0, 0xff0000000f), 'bor: larger tha
             Lua.DoText(@"
 assertEquals(false, bit32.btest(0xaa, 0x55),                 'btest: normal')
 assertEquals(true,  bit32.btest(),                           'btest: zero arguments')
-assertEquals(true,  bit32.btest(0xea),                       'btest: one arguement')
+assertEquals(true,  bit32.btest(0xea),                       'btest: one argument')
 assertEquals(false, bit32.btest(0x01, 0x83, 0x21, 0x2a),     'btest: more than two')
 assertEquals(true,  bit32.btest(0xfa0000aa, 0xaf00aa00),     'btest: large number')
 assertEquals(false, bit32.btest(0xff000000f0, 0xff0000000f), 'btest: larger than 32-bits')
@@ -165,7 +165,7 @@ assertEquals(false, bit32.btest(0xff000000f0, 0xff0000000f), 'btest: larger than
             Lua.DoText(@"
 assertEquals(0x82,       bit32.bxor(0x24, 0xa6),                 'bxor: normal')
 assertEquals(0x0,        bit32.bxor(),                           'bxor: zero arguments')
-assertEquals(0xea,       bit32.bxor(0xea),                       'bxor: one arguement')
+assertEquals(0xea,       bit32.bxor(0xea),                       'bxor: one argument')
 assertEquals(0x89,       bit32.bxor(0x01, 0x83, 0x21, 0x2a),     'bxor: more than two')
 assertEquals(0x5500f848, bit32.bxor(0xfa005a1e, 0xaf00a256),     'bxor: large number')
 assertEquals(0xff,       bit32.bxor(0xff000000f0, 0xff0000000f), 'bxor: larger than 32-bits')

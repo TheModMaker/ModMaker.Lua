@@ -789,7 +789,7 @@ namespace ModMaker.Lua.Compiler
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
-            // get the vaue of the given name and push onto stack.
+            // get the value of the given name and push onto stack.
             var field = compiler.FindVariable(target);
             field.Get();
 
@@ -892,7 +892,7 @@ namespace ModMaker.Lua.Compiler
 
             foreach (var item in target.Fields)
             {
-                // Does not need to use SetItemRaw becuase there is no Metatable.
+                // Does not need to use SetItemRaw because there is no Metatable.
                 // loc.SetIndex({item.Item1}, {item.Item2});
                 gen.Emit(OpCodes.Ldloc, loc);
                 item.Key.Accept(this);

@@ -60,14 +60,14 @@ namespace ModMaker.Lua.Runtime.LuaValues
         public string Name { get; private set; }
 
         /// <summary>
-        /// Performs that actual invokation of the method.
+        /// Performs that actual invocation of the method.
         /// </summary>
         /// <param name="target">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do
-        /// overload resoltion.</param>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
+        /// overload resolution.</param>
+        /// <param name="byRef">An array of the indices that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>
         /// <exception cref="System.ArgumentException">If the object cannot be
         /// invoked with the given arguments.</exception>
@@ -85,7 +85,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// <param name="memberCall">Whether the call was using member call notation (:).</param>
         /// <param name="args">The arguments for the call.</param>
         /// <param name="overload">Specifies the overload to call; -1 to use overload-resolution.</param>
-        /// <returns>The return values from the invokation.</returns>
+        /// <returns>The return values from the invocation.</returns>
         public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args)
         {
             return InvokeInternal(self, memberCall, overload, args);
@@ -258,7 +258,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
         /// type distance is not implemented.</exception>
         /// <remarks>
         /// The distance must be a non-negative number.  The same value
-        /// means an equivilent cast.  A larger number means that it is
+        /// means an equivalent cast.  A larger number means that it is
         /// further away.  When determining overload resolution, a
         /// smaller value is attempted.  They are only used for
         /// comparison; their value is never used directly.

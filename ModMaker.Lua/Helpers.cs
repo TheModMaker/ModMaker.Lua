@@ -68,7 +68,7 @@ namespace ModMaker.Lua
         /// When checking if an argument is compatible with the formal parameter,
         /// a number is given to represent how it needs to be converted so it
         /// can be passed.  This value is stored in the respective index of
-        /// ConversionAmounts.  The indicies refer to the formal parameters
+        /// ConversionAmounts.  The indices refer to the formal parameters
         /// and do not include optional parameters or params arrays.
         ///
         /// There is a similar array called ConversionTypes that contains the
@@ -88,12 +88,12 @@ namespace ModMaker.Lua
         ///
         /// When determining which overload to chose, each overload gets it's
         /// own OverloadInfo and then they are all compared with each other
-        /// using Compare until one remains.  If the only remaing
+        /// using Compare until one remains.  If the only remaining
         /// OverloadInfo are always equal (Compare returns 0), then
         /// an AmbiguousMatchException is thrown.
         ///
         /// This assumes that when comparing, both overloads are valid with the
-        /// given arguments and they both had originaly the same arguments.
+        /// given arguments and they both had originally the same arguments.
         ///
         /// An overload that has fewer arguments added/removed through optional
         /// parameters or params arrays (stored in ParamsOrOptional) is
@@ -118,11 +118,11 @@ namespace ModMaker.Lua
         /// overloads the arguments are implicitly cast to the parameter type,
         /// then the difference of the two methods is added to a counter value.
         /// If this counter is positive, then the first overload is better
-        /// because the arguemnt types more closely resemble the parameter
+        /// because the argument types more closely resemble the parameter
         /// types.  If the number is zero, then they are the same.
         ///
         /// User-defined explicit casts operate the same way, except that there
-        /// is a seperate counter of the number of times it ocurs in each
+        /// is a separate counter of the number of times it occurs in each
         /// overload and if the two overloads are the same, the one with fewer
         /// explicit casts is chosen.
         ///
@@ -133,7 +133,7 @@ namespace ModMaker.Lua
         /// be chosen by the first counter, otherwise the result is ambiguous.
         /// The first counter is not affected by this parameter.
         ///
-        /// Consider the call to Foo(C, C), the following definitins are:
+        /// Consider the call to Foo(C, C), the following definitions are:
         ///
         /// Foo(I, A) and Foo(A, A), the second one is chosen because A is more
         /// specific than I.
@@ -148,7 +148,7 @@ namespace ModMaker.Lua
         /// interfaces.
         ///
         /// Foo(I, A) and Foo(I, I), the first one is chosen because A is more
-        /// specific than I.  Note that becuase they both define the interface
+        /// specific than I.  Note that because they both define the interface
         /// then that parameter is ignored.
         /// </remarks>
         sealed class OverloadInfo<T> where T : MethodBase
@@ -187,7 +187,7 @@ namespace ModMaker.Lua
             public readonly object Target;
 
             /// <summary>
-            /// Descibes how each argument is converted to work as an argument.
+            /// Describes how each argument is converted to work as an argument.
             /// See class remarks.
             /// </summary>
             public readonly int[] ConversionAmounts;
@@ -203,7 +203,7 @@ namespace ModMaker.Lua
             public readonly int ParamsOrOptional;
             /// <summary>
             /// Contains the number of parameters that are of type ILuaValue,
-            /// an overload that has a larger number is more desireable.
+            /// an overload that has a larger number is more desirable.
             /// </summary>
             public readonly int LuaValueCount;
             /// <summary>
@@ -351,10 +351,10 @@ namespace ModMaker.Lua
             /// <summary>
             /// Compares the current overload and the given one.  This assumes
             /// the same arguments are given to both overloads.  This is the
-            /// same semantics as IComparable.  The return alue is given by
+            /// same semantics as IComparable.  The return value is given by
             /// the following table:
             ///
-            /// 0     | They are equivilent.
+            /// 0     | They are equivalent.
             /// &gt;0 | This object is the better overload.
             /// &lt;0 | The other one is the better overload.
             /// </summary>
@@ -548,7 +548,7 @@ namespace ModMaker.Lua
         }
 
         /// <summary>
-        /// Creates an IDisposable object that calls the given funcrion when
+        /// Creates an IDisposable object that calls the given function when
         /// Dispose is called.
         /// </summary>
         /// <param name="act">The function to call on Dispose.</param>
@@ -1016,7 +1016,7 @@ namespace ModMaker.Lua
                 {
                     // Must try to convert the given type to the requested type.  This will use
                     // both implicit and explicit casts for user-defined types by default, SetValue
-                    // only works if the backing type is the same as or derrived from the
+                    // only works if the backing type is the same as or derived from the
                     // FieldType.  It does not even support implicit numerical conversion
                     var convert =
                         typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(field.FieldType);
@@ -1090,7 +1090,7 @@ namespace ModMaker.Lua
         /// <returns>The value for get or value if setting.</returns>
         /// <exception cref="System.InvalidOperationException">If the target type
         /// does not define an accessible index or member -or- if index is
-        /// not of a valid type or value -or- if attemt to set a method.</exception>
+        /// not of a valid type or value -or- if attempt to set a method.</exception>
         static ILuaValue GetSetIndex(Type targetType, object target, ILuaMultiValue indicies,
                                      ILuaValue value = null)
         {

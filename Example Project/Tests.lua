@@ -128,7 +128,7 @@ if DoThreads then
 	io.write("\tPass\n")
 end
 
---[[ recusion and proper tail-calls
+--[[ recursion and proper tail-calls
 if TailCalls then
 	io.write("Proper tail calls...\t")
 

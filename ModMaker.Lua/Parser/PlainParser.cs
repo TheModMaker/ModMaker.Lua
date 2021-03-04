@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser
 {
     /// <summary>
     /// Defines a default parser.  This parses Lua code into an IParseItem tree.
-    /// This can be extended to modify it's behaviour.
+    /// This can be extended to modify it's behavior.
     /// </summary>
     public class PlainParser : IParser
     {
@@ -106,7 +106,7 @@ namespace ModMaker.Lua.Parser
 
         /// <summary>
         /// Reads a block of code from the input.  Any end tokens
-        /// should not be read and are handled by the parrent call
+        /// should not be read and are handled by the parent call
         /// (e.g. 'end' or 'until').
         /// </summary>
         /// <param name="input">Where to read input from.</param>

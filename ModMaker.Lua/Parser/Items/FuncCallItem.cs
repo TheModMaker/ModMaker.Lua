@@ -138,7 +138,7 @@ namespace ModMaker.Lua.Parser.Items
         /// </summary>
         public object UserData { get; set; }
         /// <summary>
-        /// Gets or sets the overlaod of the function, use a negative number
+        /// Gets or sets the overload of the function, use a negative number
         /// to use overload resolution.
         /// </summary>
         public int Overload { get; set; }

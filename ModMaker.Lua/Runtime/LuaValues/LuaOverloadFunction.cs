@@ -113,8 +113,8 @@ namespace ModMaker.Lua.Runtime.LuaValues
             /// Adds all the given items to the collection.
             /// </summary>
             /// <param name="items">The collection of items to add.</param>
-            /// <param name="indicies">A function that gets the indicies for each item.</param>
-            /// <exception cref="System.ArgumentNullException">If items or indicies is null.</exception>
+            /// <param name="indicies">A function that gets the indices for each item.</param>
+            /// <exception cref="System.ArgumentNullException">If items or indices is null.</exception>
             public void AddRange(IEnumerable<T> items, Func<T, int?> indicies)
             {
                 foreach (var item in items)
@@ -196,7 +196,7 @@ namespace ModMaker.Lua.Runtime.LuaValues
 
         /// <summary>
         /// Adds an overload to the current method object.  This is used by the
-        /// environment to register multiple delegates.  The default behaviour
+        /// environment to register multiple delegates.  The default behavior
         /// is to throw a NotSupportedException.
         /// </summary>
         /// <param name="d">The delegate to register.</param>
@@ -220,14 +220,14 @@ namespace ModMaker.Lua.Runtime.LuaValues
         }
 
         /// <summary>
-        /// Performs that actual invokation of the method.
+        /// Performs that actual invocation of the method.
         /// </summary>
         /// <param name="self">The object that this was called on.</param>
         /// <param name="memberCall">Whether the call used member call syntax (:).</param>
         /// <param name="args">The current arguments, not null but maybe empty.</param>
         /// <param name="overload">The overload to chose or negative to do
-        /// overload resoltion.</param>
-        /// <param name="byRef">An array of the indicies that are passed by-reference.</param>
+        /// overload resolution.</param>
+        /// <param name="byRef">An array of the indices that are passed by-reference.</param>
         /// <returns>The values to return to Lua.</returns>
         /// <exception cref="System.ArgumentException">If the object cannot be
         /// invoked with the given arguments.</exception>

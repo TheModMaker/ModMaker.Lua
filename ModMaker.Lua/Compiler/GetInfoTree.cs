@@ -29,7 +29,7 @@ namespace ModMaker.Lua.Compiler
     {
         /// <summary>
         /// A node in the tree.  This represents a block of code. It contains
-        /// local definitions and lables that need to be resolved.  When a
+        /// local definitions and labels that need to be resolved.  When a
         /// local variable is defined, it gets a new child because labels
         /// cannot be accessed across local definitions.
         /// </summary>
@@ -38,13 +38,13 @@ namespace ModMaker.Lua.Compiler
             bool captures = false;
 
             /// <summary>
-            /// Creates a new node with the given parrent node.
+            /// Creates a new node with the given parent node.
             /// </summary>
-            public TreeNode(TreeNode parrent = null, bool passable = true)
+            public TreeNode(TreeNode parent = null, bool passable = true)
             {
-                if (parrent != null)
-                    parrent.Children.Add(this);
-                this.Parrent = parrent;
+                if (parent != null)
+                    parent.Children.Add(this);
+                this.Parent = parent;
                 this.Children = new List<TreeNode>();
                 this.Passable = passable;
                 this.Labels = new List<LabelItem>();
@@ -55,9 +55,9 @@ namespace ModMaker.Lua.Compiler
             }
 
             /// <summary>
-            /// Contains the parrent node or null if it is the root of the tree.
+            /// Contains the parent node or null if it is the root of the tree.
             /// </summary>
-            public TreeNode Parrent;
+            public TreeNode Parent;
             /// <summary>
             /// Contains the children of this block.
             /// </summary>
@@ -106,11 +106,11 @@ namespace ModMaker.Lua.Compiler
                 }
             }
             /// <summary>
-            /// True if this nest captures variables from a parrent nested
-            /// function.  This does not apply to parrent nodes but to nested
+            /// True if this nest captures variables from a parent nested
+            /// function.  This does not apply to parent nodes but to nested
             /// functions.
             /// </summary>
-            public bool CapturesParrent { get { return captures; } set { captures = value; } }
+            public bool CapturesParent { get { return captures; } set { captures = value; } }
         }
 
         TreeNode cur, root;
@@ -136,7 +136,7 @@ namespace ModMaker.Lua.Compiler
         /// Starts a new local block and returns an object that ends the block
         /// when Dispose is called.
         /// </summary>
-        /// <param name="passable">True if labels from parrent nodes are
+        /// <param name="passable">True if labels from parent nodes are
         /// visible in this node.</param>
         /// <returns>An object that will end the block when Dispose is called.</returns>
         public IDisposable Block(bool passable)
@@ -181,7 +181,7 @@ namespace ModMaker.Lua.Compiler
 
         /// <summary>
         /// Called when get/set the value of a variable, determines whether the
-        /// given variable is a capture from a parrent nested function.
+        /// given variable is a capture from a parent nested function.
         /// </summary>
         /// <param name="name">The name of the variable.</param>
         public void GetName(NameItem/*!*/ name)
@@ -204,20 +204,20 @@ namespace ModMaker.Lua.Compiler
                             node.CapturedLocals.Add(name.Name, boundItem);
                         }
 
-                        // update all the CapturesParrent for any nodes between
+                        // update all the CapturesParent for any nodes between
                         //   the current node and the node that defines the local.
                         TreeNode cur2 = cur;
                         while (cur2 != node)
                         {
-                            cur2.CapturesParrent = true;
-                            cur2 = cur2.Parrent;
+                            cur2.CapturesParent = true;
+                            cur2 = cur2.Parent;
                         }
                     }
                     return;
                 }
                 if (node.IsFunction)
                     inFunc = false;
-                node = node.Parrent;
+                node = node.Parent;
             }
         }
         /// <summary>
@@ -243,10 +243,10 @@ namespace ModMaker.Lua.Compiler
             GetNames(cur, names);
 
             info.CapturedLocals = names.ToArray();
-            info.CapturesParrent = cur.CapturesParrent;
+            info.CapturesParent = cur.CapturesParent;
             info.HasNested = cur.HasNested;
 
-            cur = cur.Parrent;
+            cur = cur.Parent;
             return info;
         }
 
@@ -275,7 +275,7 @@ namespace ModMaker.Lua.Compiler
         /// </summary>
         /// <param name="root">The current root node.</param>
         /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If a label
-        /// cound not be resolved.</exception>
+        /// could not be resolved.</exception>
         static void Resolve(TreeNode root)
         {
             if (root != null)
@@ -309,7 +309,7 @@ namespace ModMaker.Lua.Compiler
             // break statements can pass through local definitions
             while ((item.Name != "<break>" || !root.IsFunction) &&
                    (item.Name == "<break>" || root.Passable) &&
-                   (root = root.Parrent) != null);
+                   (root = root.Parent) != null);
 
             throw new SyntaxException(string.Format(Resources.LabelNotFound, item.Name), item.Debug);
         }

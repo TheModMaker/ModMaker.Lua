@@ -96,7 +96,7 @@ namespace ModMaker.Lua.Runtime
 
         /// <summary>
         /// Creates a new LuaEnvironment without initializing the state,
-        /// for use with a derrived type.
+        /// for use with a derived type.
         /// </summary>
         protected LuaEnvironmentNet()
         {
@@ -186,7 +186,7 @@ namespace ModMaker.Lua.Runtime
         /// Gets the globals table for the environment.  This can never return
         /// a null value.
         /// </summary>
-        /// <remarks>If a derrived type attempts tos set to null, an
+        /// <remarks>If a derived type attempts to set to null, an
         /// ArugmentNullException will be thrown.</remarks>
         public ILuaTable GlobalsTable
         {

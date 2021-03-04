@@ -31,11 +31,11 @@ namespace ModMaker.Lua
     /// only members that are visible are considered.
     ///
     /// If LuaIgnore is marked on a return value or a value passed by reference
-    /// (i.e. 'ref' or 'out') then it is a special return.  A special wraper
+    /// (i.e. 'ref' or 'out') then it is a special return.  A special wrapper
     /// value is passed to Lua of type LuaUserData.  The type is converted back
     /// when passed back to managed code, but behaves a little differently when
     /// in Lua code.  When determining if a member is visible to this variable,
-    /// the extra information is added acording to the LuaIgnore for how Lua
+    /// the extra information is added according to the LuaIgnore for how Lua
     /// got the variable.  The member visibility rules are the same for special
     /// returns, except they only apply to a single variable.  Lua cannot change
     /// a LuaUserData variable; however it is important to note that if your

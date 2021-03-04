@@ -29,7 +29,7 @@ namespace ModMaker.Lua.Parser.Items
         List<IParseExp> exps;
 
         /// <summary>
-        /// Creates a new instance of ForGenItem with the given names definiton.
+        /// Creates a new instance of ForGenItem with the given names definition.
         /// </summary>
         /// <param name="names">The names that are defined by this statement.</param>
         /// <exception cref="System.ArgumentException">If names does not contain
