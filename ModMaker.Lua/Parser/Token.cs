@@ -12,329 +12,317 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-namespace ModMaker.Lua.Parser
-{
+using System;
+
+namespace ModMaker.Lua.Parser {
+  /// <summary>
+  /// Defines possible types of tokens.
+  /// </summary>
+  public enum TokenType {
+    None,
+
     /// <summary>
-    /// Defines possible types of tokens.
+    /// 'foo'
     /// </summary>
-    public enum TokenType
-    {
-        None,
+    Identifier,
+    /// <summary>
+    /// '"123"'
+    /// </summary>
+    StringLiteral,
+    /// <summary>
+    /// '123'
+    /// </summary>
+    NumberLiteral,
 
-        /// <summary>
-        /// 'foo'
-        /// </summary>
-        Identifier,
-        /// <summary>
-        /// '"123"'
-        /// </summary>
-        StringLiteral,
-        /// <summary>
-        /// '123'
-        /// </summary>
-        NumberLiteral,
+    /// <summary>
+    /// 'and'
+    /// </summary>
+    And,
+    /// <summary>
+    /// 'or'
+    /// </summary>
+    Or,
+    /// <summary>
+    /// 'not'
+    /// </summary>
+    Not,
+    /// <summary>
+    /// 'nil'
+    /// </summary>
+    Nil,
+    /// <summary>
+    /// 'false'
+    /// </summary>
+    False,
+    /// <summary>
+    /// 'true'
+    /// </summary>
+    True,
 
-        /// <summary>
-        /// 'and'
-        /// </summary>
-        And,
-        /// <summary>
-        /// 'or'
-        /// </summary>
-        Or,
-        /// <summary>
-        /// 'not'
-        /// </summary>
-        Not,
-        /// <summary>
-        /// 'nil'
-        /// </summary>
-        Nil,
-        /// <summary>
-        /// 'false'
-        /// </summary>
-        False,
-        /// <summary>
-        /// 'true'
-        /// </summary>
-        True,
+    /// <summary>
+    /// 'if'
+    /// </summary>
+    If,
+    /// <summary>
+    /// 'then'
+    /// </summary>
+    Then,
+    /// <summary>
+    /// 'elseif'
+    /// </summary>
+    ElseIf,
+    /// <summary>
+    /// 'else'
+    /// </summary>
+    Else,
+    /// <summary>
+    /// 'for'
+    /// </summary>
+    For,
+    /// <summary>
+    /// 'do'
+    /// </summary>
+    Do,
+    /// <summary>
+    /// 'while'
+    /// </summary>
+    While,
+    /// <summary>
+    /// 'repeat'
+    /// </summary>
+    Repeat,
+    /// <summary>
+    /// 'until'
+    /// </summary>
+    Until,
+    /// <summary>
+    /// 'break'
+    /// </summary>
+    Break,
+    /// <summary>
+    /// 'goto'
+    /// </summary>
+    Goto,
+    /// <summary>
+    /// 'local'
+    /// </summary>
+    Local,
+    /// <summary>
+    /// 'function'
+    /// </summary>
+    Function,
+    /// <summary>
+    /// 'end'
+    /// </summary>
+    End,
+    /// <summary>
+    /// 'in'
+    /// </summary>
+    In,
+    /// <summary>
+    /// 'return'
+    /// </summary>
+    Return,
 
-        /// <summary>
-        /// 'if'
-        /// </summary>
-        If,
-        /// <summary>
-        /// 'then'
-        /// </summary>
-        Then,
-        /// <summary>
-        /// 'elseif'
-        /// </summary>
-        ElseIf,
-        /// <summary>
-        /// 'else'
-        /// </summary>
-        Else,
-        /// <summary>
-        /// 'for'
-        /// </summary>
-        For,
-        /// <summary>
-        /// 'do'
-        /// </summary>
-        Do,
-        /// <summary>
-        /// 'while'
-        /// </summary>
-        While,
-        /// <summary>
-        /// 'repeat'
-        /// </summary>
-        Repeat,
-        /// <summary>
-        /// 'until'
-        /// </summary>
-        Until,
-        /// <summary>
-        /// 'break'
-        /// </summary>
-        Break,
-        /// <summary>
-        /// 'goto'
-        /// </summary>
-        Goto,
-        /// <summary>
-        /// 'local'
-        /// </summary>
-        Local,
-        /// <summary>
-        /// 'function'
-        /// </summary>
-        Function,
-        /// <summary>
-        /// 'end'
-        /// </summary>
-        End,
-        /// <summary>
-        /// 'in'
-        /// </summary>
-        In,
-        /// <summary>
-        /// 'return'
-        /// </summary>
-        Return,
+    /// <summary>
+    /// 'class'
+    /// </summary>
+    Class,
+    /// <summary>
+    /// 'ref'
+    /// </summary>
+    Ref,
+    /// <summary>
+    /// '@'
+    /// </summary>
+    RefSymbol,
 
-        /// <summary>
-        /// 'class'
-        /// </summary>
-        Class,
-        /// <summary>
-        /// 'ref'
-        /// </summary>
-        Ref,
-        /// <summary>
-        /// '@'
-        /// </summary>
-        RefSymbol,
+    /// <summary>
+    /// '('
+    /// </summary>
+    BeginParen,
+    /// <summary>
+    /// ')'
+    /// </summary>
+    EndParen,
+    /// <summary>
+    /// '['
+    /// </summary>
+    BeginBracket,
+    /// <summary>
+    /// ']'
+    /// </summary>
+    EndBracket,
+    /// <summary>
+    /// '{'
+    /// </summary>
+    BeginTable,
+    /// <summary>
+    /// '}'
+    /// </summary>
+    EndTable,
+    /// <summary>
+    /// ','
+    /// </summary>
+    Comma,
+    /// <summary>
+    /// ';'
+    /// </summary>
+    Semicolon,
+    /// <summary>
+    /// ':'
+    /// </summary>
+    Colon,
+    /// <summary>
+    /// '::'
+    /// </summary>
+    Label,
+    /// <summary>
+    /// '.'
+    /// </summary>
+    Indexer,
+    /// <summary>
+    /// '..'
+    /// </summary>
+    Concat,
+    /// <summary>
+    /// '...'
+    /// </summary>
+    Elipsis,
 
-        /// <summary>
-        /// '('
-        /// </summary>
-        BeginParen,
-        /// <summary>
-        /// ')'
-        /// </summary>
-        EndParen,
-        /// <summary>
-        /// '['
-        /// </summary>
-        BeginBracket,
-        /// <summary>
-        /// ']'
-        /// </summary>
-        EndBracket,
-        /// <summary>
-        /// '{'
-        /// </summary>
-        BeginTable,
-        /// <summary>
-        /// '}'
-        /// </summary>
-        EndTable,
-        /// <summary>
-        /// ','
-        /// </summary>
-        Comma,
-        /// <summary>
-        /// ';'
-        /// </summary>
-        Semicolon,
-        /// <summary>
-        /// ':'
-        /// </summary>
-        Colon,
-        /// <summary>
-        /// '::'
-        /// </summary>
-        Label,
-        /// <summary>
-        /// '.'
-        /// </summary>
-        Indexer,
-        /// <summary>
-        /// '..'
-        /// </summary>
-        Concat,
-        /// <summary>
-        /// '...'
-        /// </summary>
-        Elipsis,
+    /// <summary>
+    /// '+'
+    /// </summary>
+    Add,
+    /// <summary>
+    /// '-'
+    /// </summary>
+    Subtract,
+    /// <summary>
+    /// '*'
+    /// </summary>
+    Multiply,
+    /// <summary>
+    /// '/'
+    /// </summary>
+    Divide,
+    /// <summary>
+    /// '^'
+    /// </summary>
+    Power,
+    /// <summary>
+    /// '%'
+    /// </summary>
+    Modulo,
+    /// <summary>
+    /// '#'
+    /// </summary>
+    Length,
 
-        /// <summary>
-        /// '+'
-        /// </summary>
-        Add,
-        /// <summary>
-        /// '-'
-        /// </summary>
-        Subtract,
-        /// <summary>
-        /// '*'
-        /// </summary>
-        Multiply,
-        /// <summary>
-        /// '/'
-        /// </summary>
-        Divide,
-        /// <summary>
-        /// '^'
-        /// </summary>
-        Power,
-        /// <summary>
-        /// '%'
-        /// </summary>
-        Modulo,
-        /// <summary>
-        /// '#'
-        /// </summary>
-        Length,
+    /// <summary>
+    /// '='
+    /// </summary>
+    Assign,
+    /// <summary>
+    /// '=='
+    /// </summary>
+    Equals,
+    /// <summary>
+    /// '~='
+    /// </summary>
+    NotEquals,
+    /// <summary>
+    /// '&gt;'
+    /// </summary>
+    Greater,
+    /// <summary>
+    /// '&gt;='
+    /// </summary>
+    GreaterEquals,
+    /// <summary>
+    /// '&lt;'
+    /// </summary>
+    Less,
+    /// <summary>
+    /// '&lt;='
+    /// </summary>
+    LessEquals,
+  }
 
-        /// <summary>
-        /// '='
-        /// </summary>
-        Assign,
-        /// <summary>
-        /// '=='
-        /// </summary>
-        Equals,
-        /// <summary>
-        /// '~='
-        /// </summary>
-        NotEquals,
-        /// <summary>
-        /// '&gt;'
-        /// </summary>
-        Greater,
-        /// <summary>
-        /// '&gt;='
-        /// </summary>
-        GreaterEquals,
-        /// <summary>
-        /// '&lt;'
-        /// </summary>
-        Less,
-        /// <summary>
-        /// '&lt;='
-        /// </summary>
-        LessEquals,
+  /// <summary>
+  /// Defines a single token read from the input stream.
+  /// </summary>
+  public struct Token {
+    /// <summary>
+    /// The type the token is.
+    /// </summary>
+    public TokenType Type;
+    /// <summary>
+    /// The string value of the token.
+    /// </summary>
+    public string Value;
+    /// <summary>
+    /// The starting position of the token.
+    /// </summary>
+    public long StartPos;
+    /// <summary>
+    /// The starting line of the token.
+    /// </summary>
+    public long StartLine;
+
+    /// <summary>
+    /// Creates a new token with the given values.
+    /// </summary>
+    /// <param name="value">The string value of the token.</param>
+    /// <param name="startPos">The starting position of the token.</param>
+    /// <param name="startLine">The starting line of the token.</param>
+    public Token(TokenType type, string value, long startPos, long startLine) {
+      Type = type;
+      Value = value;
+      StartPos = startPos;
+      StartLine = startLine;
     }
 
     /// <summary>
-    /// Defines a single token read from the input stream.
+    /// Checks whether two tokens are equal.
     /// </summary>
-    public struct Token
-    {
-        /// <summary>
-        /// The type the token is.
-        /// </summary>
-        public TokenType Type;
-        /// <summary>
-        /// The string value of the token.
-        /// </summary>
-        public string Value;
-        /// <summary>
-        /// The starting position of the token.
-        /// </summary>
-        public long StartPos;
-        /// <summary>
-        /// The starting line of the token.
-        /// </summary>
-        public long StartLine;
-
-        /// <summary>
-        /// Creates a new token with the given values.
-        /// </summary>
-        /// <param name="value">The string value of the token.</param>
-        /// <param name="startPos">The starting position of the token.</param>
-        /// <param name="startLine">The starting line of the token.</param>
-        public Token(TokenType type, string value, long startPos,
-                     long startLine)
-        {
-            this.Type = type;
-            this.Value = value;
-            this.StartPos = startPos;
-            this.StartLine = startLine;
-        }
-
-        /// <summary>
-        /// Checks whether two tokens are equal.
-        /// </summary>
-        /// <param name="lhs">The left-hand side.</param>
-        /// <param name="rhs">The right-hand side.</param>
-        /// <returns>True if the two token are equal, otherwise false.</returns>
-        public static bool operator ==(Token lhs, Token rhs)
-        {
-            return lhs.Type == rhs.Type && lhs.Value == rhs.Value &&
-                lhs.StartPos == rhs.StartPos && lhs.StartLine == rhs.StartLine;
-        }
-
-        /// <summary>
-        /// Checks whether two tokens are not equal.
-        /// </summary>
-        /// <param name="lhs">The left-hand side.</param>
-        /// <param name="rhs">The right-hand side.</param>
-        /// <returns>True if the two token are not equal, otherwise false.</returns>
-        public static bool operator !=(Token lhs, Token rhs)
-        {
-            return lhs.Type != rhs.Type || lhs.Value != rhs.Value ||
-                lhs.StartPos != rhs.StartPos || lhs.StartLine != rhs.StartLine;
-        }
-
-
-        /// <summary>
-        /// Determines whether the specified System.Object is  equal to the
-        /// current System.Object.
-        /// </summary>
-        /// <param name="obj">The object to compare with the current object.</param>
-        /// <returns>true if the specified System.Object is equal to the current
-        /// System.Object; otherwise, false.</returns>
-        public override bool Equals(object obj)
-        {
-            Token? lhs = obj as Token?;
-            return lhs.HasValue && lhs.Value == this;
-        }
-
-        /// <summary>
-        /// Returns the hash code for this instance.
-        /// </summary>
-        /// <returns>A 32-bit signed integer that is the hash code for this
-        /// instance.</returns>
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode() ^
-                (Type.GetHashCode() << 6 | Type.GetHashCode() >> 26) ^
-                (StartPos.GetHashCode() << 12 | StartPos.GetHashCode() >> 20) ^
-                (StartLine.GetHashCode() << 18 | StartLine.GetHashCode() >> 14);
-        }
+    /// <param name="lhs">The left-hand side.</param>
+    /// <param name="rhs">The right-hand side.</param>
+    /// <returns>True if the two token are equal, otherwise false.</returns>
+    public static bool operator ==(Token lhs, Token rhs) {
+      return lhs.Type == rhs.Type && lhs.Value == rhs.Value && lhs.StartPos == rhs.StartPos &&
+          lhs.StartLine == rhs.StartLine;
     }
+
+    /// <summary>
+    /// Checks whether two tokens are not equal.
+    /// </summary>
+    /// <param name="lhs">The left-hand side.</param>
+    /// <param name="rhs">The right-hand side.</param>
+    /// <returns>True if the two token are not equal, otherwise false.</returns>
+    public static bool operator !=(Token lhs, Token rhs) {
+      return !(lhs == rhs);
+    }
+
+    /// <summary>
+    /// Determines whether the specified System.Object is  equal to the current System.Object.
+    /// </summary>
+    /// <param name="obj">The object to compare with the current object.</param>
+    /// <returns>
+    /// true if the specified System.Object is equal to the current System.Object; otherwise,
+    /// false.
+    /// </returns>
+    public override bool Equals(object obj) {
+      Token? lhs = obj as Token?;
+      return lhs.HasValue && lhs.Value == this;
+    }
+
+    /// <summary>
+    /// Returns the hash code for this instance.
+    /// </summary>
+    /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
+    public override int GetHashCode() {
+      return HashCode.Combine(Value, Type, StartPos, StartLine);
+    }
+  }
 }
