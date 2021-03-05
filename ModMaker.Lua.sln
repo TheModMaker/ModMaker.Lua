@@ -6,7 +6,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ModMaker.Lua", "ModMaker.Lu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example Project", "Example Project\Example Project.csproj", "{63E9EB60-ACD8-4E25-8A00-2BD153FB4501}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unit Tests", "Unit Tests\Unit Tests.csproj", "{1DC05418-4E7F-4591-AD4C-F67C083E7181}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Unit Tests", "Unit Tests\Unit Tests.csproj", "{1DC05418-4E7F-4591-AD4C-F67C083E7181}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{7D025F9E-02DA-496D-9251-322007358AFA}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
