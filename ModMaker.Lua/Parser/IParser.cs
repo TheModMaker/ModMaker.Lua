@@ -15,26 +15,23 @@
 using System.IO;
 using System.Text;
 
-namespace ModMaker.Lua.Parser
-{
+namespace ModMaker.Lua.Parser {
+  /// <summary>
+  /// This object is in charge of parsing input into an object tree.  This will take a Stream object
+  /// input and will parse it into an IParseItem tree.
+  /// </summary>
+  public interface IParser {
     /// <summary>
-    /// This object is in charge of parsing input into an object tree.  This
-    /// will take a Stream object input and will parse it into an IParseItem
-    /// tree.
+    /// Parses the given Lua code into a IParseItem tree.
     /// </summary>
-    public interface IParser
-    {
-        /// <summary>
-        /// Parses the given Lua code into a IParseItem tree.
-        /// </summary>
-        /// <param name="input">The Lua code to parse.</param>
-        /// <param name="encoding">The encoding that the stream uses.</param>
-        /// <param name="name">The name of the chunk, used for exceptions.</param>
-        /// <returns>The code as an IParseItem tree.</returns>
-        /// <exception cref="ModMaker.Lua.Parser.SyntaxException">If the
-        /// code is not in the correct format.</exception>
-        /// <exception cref="System.ArgumentNullException">If input
-        /// is null.</exception>
-        IParseItem Parse(Stream input, Encoding encoding, string name);
-    }
+    /// <param name="input">The Lua code to parse.</param>
+    /// <param name="encoding">The encoding that the stream uses.</param>
+    /// <param name="name">The name of the chunk, used for exceptions.</param>
+    /// <returns>The code as an IParseItem tree.</returns>
+    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
+    /// If the code is not in the correct format.
+    /// </exception>
+    /// <exception cref="System.ArgumentNullException">If input is null.</exception>
+    IParseItem Parse(Stream input, Encoding encoding, string name);
+  }
 }
