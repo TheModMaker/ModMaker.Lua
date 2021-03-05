@@ -37,11 +37,11 @@ namespace ModMaker.Lua.Parser.Items {
       /// <summary>
       /// Contains the expression for the else if statement
       /// </summary>
-      public readonly IParseExp Expression;
+      public IParseExp Expression { get; }
       /// <summary>
       /// Contains the block of the else if statement.
       /// </summary>
-      public readonly BlockItem Block;
+      public BlockItem Block { get; }
     }
 
     public IfItem(IParseExp exp, BlockItem block) : this(exp, block, new ElseInfo[0], null) { }

@@ -36,11 +36,11 @@ namespace ModMaker.Lua.Parser.Items {
       /// <summary>
       /// Contains the expression for the argument.
       /// </summary>
-      public readonly IParseExp Expression;
+      public IParseExp Expression { get; }
       /// <summary>
       /// Contains whether the argument is passed by-ref.
       /// </summary>
-      public readonly bool IsByRef;
+      public bool IsByRef { get; }
     }
 
     /// <inheritdoc cref="FuncCallItem(IParseExp, ArgumentInfo[])"/>
