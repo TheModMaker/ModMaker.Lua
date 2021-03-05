@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of RepeatItem.
     /// </summary>
-    public RepeatItem() {}
+    public RepeatItem() { }
 
     /// <summary>
     /// Gets a label that represents a break from the loop.

@@ -38,7 +38,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="prefix">The prefix expression.</param>
     /// <param name="name">The name of the accessed member.</param>
     /// <exception cref="System.ArgumentNullException">If prefix or name is null.</exception>
-    public IndexerItem(IParseExp prefix, string name) : this(prefix, new LiteralItem(name)) {}
+    public IndexerItem(IParseExp prefix, string name) : this(prefix, new LiteralItem(name)) { }
 
     /// <summary>
     /// Gets or sets the prefix expression.

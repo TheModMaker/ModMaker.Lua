@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of WhileItem.
     /// </summary>
-    public WhileItem() {}
+    public WhileItem() { }
 
     /// <summary>
     /// Gets a label that represents a break from the loop.

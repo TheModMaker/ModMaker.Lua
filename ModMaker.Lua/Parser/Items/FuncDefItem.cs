@@ -27,7 +27,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Creates a new FuncDefItem with the given name.
     /// </summary>
     /// <param name="name">The name of the method, must be a NameItem or IndexerItem.</param>
-    public FuncDefItem(IParseVariable name) : this(name, false) {}
+    public FuncDefItem(IParseVariable name) : this(name, false) { }
     /// <summary>
     /// Creates a new FuncDefItem with the given name.
     /// </summary>
@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Parser.Items {
       /// <summary>
       /// Creates a new instance of FunctionInfo.
       /// </summary>
-      public FunctionInfo() {}
+      public FunctionInfo() { }
 
       /// <summary>
       /// Gets or sets whether this function has nested functions.

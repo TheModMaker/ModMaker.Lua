@@ -31,9 +31,8 @@ namespace ModMaker.Lua.Parser {
     /// The size of the reads that happen.
     /// </summary>
     const int _readSize = 1024 * 32;
-
-    Stream _source;
-    Decoder _decoder;
+    readonly Stream _source;
+    readonly Decoder _decoder;
     string _buffer;
     int _bufferPos;
 

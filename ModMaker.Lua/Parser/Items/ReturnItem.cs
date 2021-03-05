@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of ReturnItem.
     /// </summary>
-    public ReturnItem() {}
+    public ReturnItem() { }
 
     /// <summary>
     /// Gets the expressions of the return statement.

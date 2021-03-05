@@ -51,7 +51,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new empty IfItem.
     /// </summary>
-    public IfItem() {}
+    public IfItem() { }
 
     /// <summary>
     /// Gets the else-if statements, the first item is the conditional, the second is the block

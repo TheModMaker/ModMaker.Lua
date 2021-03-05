@@ -27,7 +27,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new empty BlockItem.
     /// </summary>
-    public BlockItem() {}
+    public BlockItem() { }
 
     /// <summary>
     /// Gets or sets the return statement of the block, can be null.

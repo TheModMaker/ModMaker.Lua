@@ -203,7 +203,7 @@ namespace ModMaker.Lua.Runtime
             }
             void exit(object code = null, object close = null)
             {
-                E.Settings.CallQuit(E, code, close);
+                E.Settings._callQuit(E, code, close);
             }
             string getenv(string name)
             {

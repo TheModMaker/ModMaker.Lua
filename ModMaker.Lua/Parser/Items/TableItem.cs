@@ -28,7 +28,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of TableItem.
     /// </summary>
-    public TableItem() {}
+    public TableItem() { }
 
     /// <summary>
     /// Gets the fields of the table.
