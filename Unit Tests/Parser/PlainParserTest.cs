@@ -747,7 +747,7 @@ end";
     public void ReadStatement_If() {
       var str = "if i then end";
       var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Exp, "i");
+      _assertIsVariable(item.Expression, "i");
       Assert.AreEqual(0, item.Block.Children.Count);
       Assert.AreEqual(0, item.Elses.Count);
       Assert.IsNull(item.ElseBlock);
@@ -757,7 +757,7 @@ end";
     public void ReadStatement_IfElse() {
       var str = "if i then else end";
       var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Exp, "i");
+      _assertIsVariable(item.Expression, "i");
       Assert.AreEqual(0, item.Block.Children.Count);
       Assert.AreEqual(0, item.Elses.Count);
       Assert.AreEqual(0, item.ElseBlock.Children.Count);
@@ -767,7 +767,7 @@ end";
     public void ReadStatement_IfElseIf() {
       var str = "if i then elseif y then x = 1 end";
       var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Exp, "i");
+      _assertIsVariable(item.Expression, "i");
       Assert.AreEqual(0, item.Block.Children.Count);
       Assert.IsNull(item.ElseBlock);
       Assert.AreEqual(1, item.Elses.Count);
@@ -809,7 +809,7 @@ end";
     public void ReadStatement_While() {
       var str = "while i do x = 1 y = 2 end";
       var item = _parseStatement<WhileItem>(str);
-      _assertIsVariable(item.Exp, "i");
+      _assertIsVariable(item.Expression, "i");
       Assert.IsNull(item.Block.Return);
       Assert.AreEqual(2, item.Block.Children.Count);
       Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[0]);

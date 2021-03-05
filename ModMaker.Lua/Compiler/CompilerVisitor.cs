@@ -663,7 +663,7 @@ namespace ModMaker.Lua.Compiler
             Label next = gen.DefineLabel(), end = gen.DefineLabel();
 
             // if (!{Exp}.IsTrue) goto next;
-            target.Exp.Accept(this);
+            target.Expression.Accept(this);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
             gen.Emit(OpCodes.Brfalse, next);
 
@@ -1034,7 +1034,7 @@ namespace ModMaker.Lua.Compiler
             gen.MarkLabel(start);
 
             // if (!{Exp}.IsTrue) goto end;
-            target.Exp.Accept(this);
+            target.Expression.Accept(this);
             gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
             gen.Emit(OpCodes.Brfalse, end);
 

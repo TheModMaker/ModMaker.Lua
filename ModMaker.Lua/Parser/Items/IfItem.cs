@@ -63,9 +63,9 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// The conditional expression for the first if block.
     /// </summary>
-    public IParseExp Exp { get; set; }
+    public IParseExp Expression { get; set; }
     /// <summary>
-    /// The block to execute if the 'Exp' is true.
+    /// The block to execute if the 'Expression' is true.
     /// </summary>
     public BlockItem Block { get; set; }
     /// <summary>

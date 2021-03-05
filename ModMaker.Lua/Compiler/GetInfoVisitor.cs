@@ -221,7 +221,7 @@ namespace ModMaker.Lua.Compiler
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
-            target.Exp.Accept(this);
+            target.Expression.Accept(this);
 
             using (tree.Block(true))
                 target.Block.Accept(this);
@@ -407,7 +407,7 @@ namespace ModMaker.Lua.Compiler
             if (target == null)
                 throw new ArgumentNullException(nameof(target));
 
-            target.Exp.Accept(this);
+            target.Expression.Accept(this);
 
             using (tree.Block(true))
             {

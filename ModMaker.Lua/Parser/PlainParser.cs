@@ -292,7 +292,7 @@ namespace ModMaker.Lua.Parser {
       Token debug = input.Expect(TokenType.If);
       var ret = new IfItem() { Debug = debug };
 
-      ret.Exp = _readExp(input, out _);
+      ret.Expression = _readExp(input, out _);
       input.Expect(TokenType.Then);
       ret.Block = _readBlock(input);
 
@@ -371,7 +371,7 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseStatement _readWhile(Lexer input) {
       Token debug = input.Expect(TokenType.While);
       var ret = new WhileItem() { Debug = debug };
-      ret.Exp = _readExp(input, out _);
+      ret.Expression = _readExp(input, out _);
       input.Expect(TokenType.Do);
       ret.Block = _readBlock(input);
       input.Expect(TokenType.End);

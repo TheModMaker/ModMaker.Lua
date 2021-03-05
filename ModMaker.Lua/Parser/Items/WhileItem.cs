@@ -31,7 +31,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the expression that determines the bounds of the loop.
     /// </summary>
-    public IParseExp Exp { get; set; }
+    public IParseExp Expression { get; set; }
     /// <summary>
     /// Gets or sets the block of this loop.
     /// </summary>
