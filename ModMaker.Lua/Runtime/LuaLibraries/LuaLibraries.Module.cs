@@ -13,39 +13,28 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections;
 
-namespace ModMaker.Lua.Runtime
-{
-    static partial class LuaStaticLibraries
-    {
-        class Module
-        {
-            ILuaEnvironment E_;
+namespace ModMaker.Lua.Runtime {
+  static partial class LuaStaticLibraries {
+    class Module {
+      readonly ILuaEnvironment _env;
 
-            public Module(ILuaEnvironment E)
-            {
-                if (!(E is ILuaEnvironmentNet))
-                {
-                    throw new InvalidOperationException(
-                        "'require' only works with the NET version of the environment.");
-                }
-                E_ = E;
-            }
-
-            public void Initialize()
-            {
-                E_.RegisterDelegate((Func<string, ILuaValue>)require, "require");
-            }
-
-            ILuaValue require(string name)
-            {
-                IModuleBinder bind = ((ILuaEnvironmentNet)E_).ModuleBinder;
-                return bind.Load(E_, name);
-            }
+      public Module(ILuaEnvironment env) {
+        if (!(env is ILuaEnvironmentNet)) {
+          throw new InvalidOperationException(
+              "'require' only works with the NET version of the environment.");
         }
+        _env = env;
+      }
+
+      public void Initialize() {
+        _env.RegisterDelegate((Func<string, ILuaValue>)require, "require");
+      }
+
+      ILuaValue require(string name) {
+        IModuleBinder bind = ((ILuaEnvironmentNet)_env).ModuleBinder;
+        return bind.Load(_env, name);
+      }
     }
+  }
 }
