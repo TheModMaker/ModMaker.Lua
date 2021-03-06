@@ -12,55 +12,49 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using ModMaker.Lua;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using ModMaker.Lua.Runtime;
 using NUnit.Framework;
-using System;
 
-namespace UnitTests.Runtime.LuaLibraries
-{
-    [TestFixture]
-    public class Table : LibraryTestBase
-    {
-        #region concat
-        [Test]
-        public void concat()
-        {
-            Lua.DoText(@"
+namespace UnitTests.Runtime.LuaLibraries {
+  [TestFixture]
+  [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Names match Lua versions")]
+  public class Table : LibraryTestBase {
+    #region concat
+    [Test]
+    public void concat() {
+      _lua.DoText(@"
 assertEquals('1c3',   table.concat({1,'c',3}),              'concat: normal')
 assertEquals('1c',    table.concat({1,'c',nil,3}),          'concat: with nil')
 assertEquals('1,c,3', table.concat({1,'c',3}, ','),         'concat: with sep')
 assertEquals('c,3,4', table.concat({1,'c',3,4}, ',', 2),    'concat: with start')
 assertEquals('c,3',   table.concat({1,'c',3,4}, ',', 2, 3), 'concat: with start & end')
 ");
-        }
+    }
 
-        [Test]
-        public void concat_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Table, "table.concat({0})");
-            RunInvalidTypeTests(LuaValueType.String, "table.concat({{1,2,3}}, {0})",
-                                allowNil: true);
-            RunInvalidTypeTests(LuaValueType.Number, "table.concat({{1,2,3}}, '1', {0})",
-                                allowNil: true);
-            RunInvalidTypeTests(LuaValueType.Number, "table.concat({{1,2,3}}, 'cat', 2, {0})",
-                                allowNil: true);
-        }
+    [Test]
+    public void concat_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Table, "table.concat({0})");
+      _runInvalidTypeTests(LuaValueType.String, "table.concat({{1,2,3}}, {0})", allowNil: true);
+      _runInvalidTypeTests(LuaValueType.Number, "table.concat({{1,2,3}}, '1', {0})",
+                           allowNil: true);
+      _runInvalidTypeTests(LuaValueType.Number, "table.concat({{1,2,3}}, 'cat', 2, {0})",
+                           allowNil: true);
+    }
 
-        [Test]
-        public void concat_NotEnoughArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.concat()");
-            });
-        }
-        #endregion
+    [Test]
+    public void concat_NotEnoughArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.concat()");
+      });
+    }
+    #endregion
 
-        #region insert
-        [Test]
-        public void insert()
-        {
-            Lua.DoText(@"
+    #region insert
+    [Test]
+    public void insert() {
+      _lua.DoText(@"
 local t = {1,2,3}
 assertEquals(3,  #t,   'insert: start length')
 
@@ -74,53 +68,47 @@ assertEquals(1,  t[1], 'insert: insert element(1)')
 assertEquals(-1, t[2], 'insert: insert element(2)')
 assertEquals(2,  t[3], 'insert: insert element(3)')
 ");
-        }
+    }
 
-        [Test]
-        public void insert_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Table, "table.insert({0}, 'c')");
-            RunInvalidTypeTests(LuaValueType.Number, "table.insert({{1,2,3}}, {0}, 'c')");
-        }
+    [Test]
+    public void insert_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Table, "table.insert({0}, 'c')");
+      _runInvalidTypeTests(LuaValueType.Number, "table.insert({{1,2,3}}, {0}, 'c')");
+    }
 
-        [Test]
-        public void insert_InvalidArg()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.insert({1,2}, -3, 'cat')");
-            });
-        }
+    [Test]
+    public void insert_InvalidArg() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.insert({1,2}, -3, 'cat')");
+      });
+    }
 
-        [Test]
-        public void insert_InvalidArg2()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.insert({1,2}, 10, 'cat')");
-            });
-        }
+    [Test]
+    public void insert_InvalidArg2() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.insert({1,2}, 10, 'cat')");
+      });
+    }
 
-        [Test]
-        public void insert_NotEnoughArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.insert()");
-            });
-        }
+    [Test]
+    public void insert_NotEnoughArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.insert()");
+      });
+    }
 
-        [Test]
-        public void insert_NotEnoughArgs2()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.insert({1,2,3})");
-            });
-        }
-        #endregion
+    [Test]
+    public void insert_NotEnoughArgs2() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.insert({1,2,3})");
+      });
+    }
+    #endregion
 
-        #region pack
-        [Test]
-        public void pack()
-        {
-            Lua.DoText(@"
+    #region pack
+    [Test]
+    public void pack() {
+      _lua.DoText(@"
 local t = table.pack(1, nil, 'cat')
 assertEquals(3,     t.n,  'pack: normal length')
 assertEquals(1,     t[1], 'pack: normal values(1)')
@@ -131,14 +119,13 @@ t = table.pack()
 assertEquals(0, #t, 'pack: empty length')
 assertEquals(0, t.n, 'pack: empty n')
 ");
-        }
-        #endregion
+    }
+    #endregion
 
-        #region remove
-        [Test]
-        public void remove()
-        {
-            Lua.DoText(@"
+    #region remove
+    [Test]
+    public void remove() {
+      _lua.DoText(@"
 local t = {1,2,3,4,5}
 local x = table.remove(t)
 assertEquals(4,   #t,   'remove: end length')
@@ -152,46 +139,41 @@ assertEquals(1, t[1],   'remove: pos table shifts(1)')
 assertEquals(3, t[2],   'remove: pos table shifts(2)')
 assertEquals(2,   x,    'remove: pos return')
 ");
-        }
+    }
 
-        [Test]
-        public void remove_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Table, "table.remove({0}, 0)");
-            RunInvalidTypeTests(LuaValueType.Number, "table.remove({{0, 1}}, {0})",
-                                allowNil: true);
-        }
+    [Test]
+    public void remove_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Table, "table.remove({0}, 0)");
+      _runInvalidTypeTests(LuaValueType.Number, "table.remove({{0, 1}}, {0})",
+                           allowNil: true);
+    }
 
-        [Test]
-        public void remove_InvalidArg()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.remove({1,2}, -3)");
-            });
-        }
+    [Test]
+    public void remove_InvalidArg() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.remove({1,2}, -3)");
+      });
+    }
 
-        [Test]
-        public void remove_InvalidArg2()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.remove({1,2}, 10)");
-            });
-        }
+    [Test]
+    public void remove_InvalidArg2() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.remove({1,2}, 10)");
+      });
+    }
 
-        [Test]
-        public void remove_NotEnoughArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.remove()");
-            });
-        }
-        #endregion
+    [Test]
+    public void remove_NotEnoughArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.remove()");
+      });
+    }
+    #endregion
 
-        #region sort
-        [Test]
-        public void sort()
-        {
-            Lua.DoText(@"
+    #region sort
+    [Test]
+    public void sort() {
+      _lua.DoText(@"
 local t = {5,2,8,1,6}
 table.sort(t)
 assertEquals(1, t[1], 'sort: normal(1)')
@@ -210,30 +192,27 @@ assertEquals(5, t[3], 'sort: comp(3)')
 assertEquals(2, t[4], 'sort: comp(2)')
 assertEquals(1, t[5], 'sort: comp(1)')
 ");
-        }
+    }
 
-        [Test]
-        public void sort_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Table, "table.sort({0}, 0)");
-            RunInvalidTypeTests(LuaValueType.Function, "table.sort({{0, 1}}, {0})",
-                                allowNil: true);
-        }
+    [Test]
+    public void sort_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Table, "table.sort({0}, 0)");
+      _runInvalidTypeTests(LuaValueType.Function, "table.sort({{0, 1}}, {0})",
+                           allowNil: true);
+    }
 
-        [Test]
-        public void sort_NotEnoughArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.sort()");
-            });
-        }
-        #endregion
+    [Test]
+    public void sort_NotEnoughArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.sort()");
+      });
+    }
+    #endregion
 
-        #region unpack
-        [Test]
-        public void unpack()
-        {
-            Lua.DoText(@"
+    #region unpack
+    [Test]
+    public void unpack() {
+      _lua.DoText(@"
 local t = {1,2,3}
 local x, y, z = table.unpack(t)
 assertEquals(1, x, 'unpack: values(1)')
@@ -254,25 +233,21 @@ assertEquals(4, select('#', table.unpack(t, -4, -1)), 'unpack: end < 0')
 assertEquals(6, select('#', table.unpack(t, 1, 6)),   'unpack: end > #t')
 assertEquals(2, select('#', table.unpack(t, 5, 6)),   'unpack: start > #t')
 ");
-        }
-
-        [Test]
-        public void unpack_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Table, "table.unpack({0})");
-            RunInvalidTypeTests(
-                    LuaValueType.Number, "table.unpack({{1,2,3}}, {0})", allowNil: true);
-            RunInvalidTypeTests(
-                    LuaValueType.Number, "table.unpack({{1,2,3}}, 2, {0})", allowNil: true);
-        }
-
-        [Test]
-        public void unpack_NotEnoughArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"table.unpack()");
-            });
-        }
-        #endregion
     }
+
+    [Test]
+    public void unpack_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Table, "table.unpack({0})");
+      _runInvalidTypeTests(LuaValueType.Number, "table.unpack({{1,2,3}}, {0})", allowNil: true);
+      _runInvalidTypeTests(LuaValueType.Number, "table.unpack({{1,2,3}}, 2, {0})", allowNil: true);
+    }
+
+    [Test]
+    public void unpack_NotEnoughArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"table.unpack()");
+      });
+    }
+    #endregion
+  }
 }

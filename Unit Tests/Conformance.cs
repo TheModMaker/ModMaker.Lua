@@ -14,15 +14,12 @@
 
 using NUnit.Framework;
 
-namespace UnitTests
-{
-    [TestFixture]
-    public class ConformanceTest : TestBase
-    {
-        [Test]
-        public void ParenthesesCollapseMultiValues()
-        {
-            Lua.DoText(@"
+namespace UnitTests {
+  [TestFixture]
+  public class ConformanceTest : TestBase {
+    [Test]
+    public void ParenthesesCollapseMultiValues() {
+      _lua.DoText(@"
 function values()
   return 1, 2
 end
@@ -51,6 +48,6 @@ local e, f = checkReturn()
 assertEquals(e, 1, 'collapse return1')
 assertEquals(f, nil, 'collapse return2')
 ");
-        }
     }
+  }
 }

@@ -13,19 +13,17 @@
 // limitations under the License.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using ModMaker.Lua.Runtime;
 using NUnit.Framework;
 
-namespace UnitTests.Runtime.LuaLibraries
-{
-    [TestFixture]
-    public class Math : LibraryTestBase
-    {
-        [Test]
-        public void General()
-        {
-            // Combine many of the methods together since they are just imported.
-            Lua.DoText(@"
+namespace UnitTests.Runtime.LuaLibraries {
+  [TestFixture]
+  [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Names match Lua versions")]
+  public class Math : LibraryTestBase {
+    [Test]
+    public void General() {
+      _lua.DoText(@"
 assertEquals(     251245,            math.abs(-251245),       'abs')
 assertEqualsDelta(0.361416951927645, math.asin(0.3536),       'asin')
 assertEqualsDelta(0.187568907875447, math.atan(0.1898),       'atan')
@@ -48,35 +46,30 @@ assertEqualsDelta(221.303904168002,  math.sqrt(48975.418),    'sqrt')
 assertEqualsDelta(-0.76663479914779, math.tan(2.48753),       'tan')
 assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
 ");
-        }
+    }
 
-        [Test]
-        public void General_InvalidTypes()
-        {
-            // Combine many of the methods together since they are just imported.
-            var oneArgumentMethods = new[] {
-                "abs", "asin", "atan", "ceil", "cos", "cosh", "deg", "exp",
-                "frexp", "floor", "rad", "sin", "sinh", "sqrt", "tan", "tanh"
-            };
-            var twoArgumentMethods = new[] {
-                "atan2", "fmod", "ldexp", "log", "pow"
-            };
+    [Test]
+    public void General_InvalidTypes() {
+      var oneArgumentMethods = new[] {
+          "abs", "asin", "atan", "ceil", "cos", "cosh", "deg", "exp",
+          "frexp", "floor", "rad", "sin", "sinh", "sqrt", "tan", "tanh"
+      };
+      var twoArgumentMethods = new[] {
+          "atan2", "fmod", "ldexp", "log", "pow"
+      };
 
-            foreach (var method in oneArgumentMethods)
-            {
-                RunInvalidTypeTests(LuaValueType.Number, "math." + method + "({0})");
-            }
-            foreach (var method in twoArgumentMethods)
-            {
-                RunInvalidTypeTests(LuaValueType.Number, "math." + method + "({0}, 4)");
-                RunInvalidTypeTests(LuaValueType.Number, "math." + method + "(73, {0})");
-            }
-        }
+      foreach (var method in oneArgumentMethods) {
+        _runInvalidTypeTests(LuaValueType.Number, "math." + method + "({0})");
+      }
+      foreach (var method in twoArgumentMethods) {
+        _runInvalidTypeTests(LuaValueType.Number, "math." + method + "({0}, 4)");
+        _runInvalidTypeTests(LuaValueType.Number, "math." + method + "(73, {0})");
+      }
+    }
 
-        [Test]
-        public void frexp()
-        {
-            Lua.DoText(@"
+    [Test]
+    public void frexp() {
+      _lua.DoText(@"
 local a, b = math.frexp(245)
 assertEqualsDelta(0.95703125,      a, 'frexp: normal(1)')
 assertEquals(     8,               b, 'frexp: normal(2)')
@@ -85,62 +78,55 @@ a, b = math.frexp(-24623)
 assertEqualsDelta(-0.751434326171, a, 'frexp: negative(1)')
 assertEquals(     15,              b, 'frexp: negative(2)')
 ");
-        }
+    }
 
-        [Test]
-        public void max()
-        {
-            Lua.DoText(@"
+    [Test]
+    public void max() {
+      _lua.DoText(@"
 assertEquals(2672368, math.max(2, -566, 451, 2672368, 1), 'max: normal')
 assertEquals(63,      math.max(63, -566, -47, 0, -7),     'max: return is first argument')
 assertEquals(8,       math.max(8),                        'max: one argument')
 ");
-        }
+    }
 
-        [Test]
-        public void max_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Number, "math.max(2, {0})");
-            RunInvalidTypeTests(LuaValueType.Number, "math.max({0}, 4, 2)");
-        }
+    [Test]
+    public void max_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Number, "math.max(2, {0})");
+      _runInvalidTypeTests(LuaValueType.Number, "math.max({0}, 4, 2)");
+    }
 
-        [Test]
-        public void max_ZeroArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"math.max()");
-            });
-        }
+    [Test]
+    public void max_ZeroArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"math.max()");
+      });
+    }
 
-        [Test]
-        public void min()
-        {
-            Lua.DoText(@"
+    [Test]
+    public void min() {
+      _lua.DoText(@"
 assertEquals(-566, math.min(2, -566, 451, 2672368, 1), 'min: normal')
 assertEquals(-63,  math.min(-63, 566, 47, 0, -7),      'min: return is first argument')
 assertEquals(8,    math.min(8),                        'min: one argument')
 ");
-        }
+    }
 
-        [Test]
-        public void min_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Number, "math.min(2, {0})");
-            RunInvalidTypeTests(LuaValueType.Number, "math.min({0}, 4, 2)");
-        }
+    [Test]
+    public void min_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Number, "math.min(2, {0})");
+      _runInvalidTypeTests(LuaValueType.Number, "math.min({0}, 4, 2)");
+    }
 
-        [Test]
-        public void min_ZeroArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"math.min()");
-            });
-        }
+    [Test]
+    public void min_ZeroArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"math.min()");
+      });
+    }
 
-        [Test]
-        public void modf()
-        {
-            Lua.DoText(@"
+    [Test]
+    public void modf() {
+      _lua.DoText(@"
 local a, b = math.modf(26825.2154672)
 assertEquals(26825,           a, 'modf: normal(1)')
 assertEqualsDelta(0.2154672,  b, 'modf: normal(2)')
@@ -161,29 +147,26 @@ a, b = math.modf(0)
 assertEquals(0,               a, 'modf: zero(1)')
 assertEqualsDelta(0,          b, 'modf: zero(2)')
 ");
-        }
+    }
 
-        [Test]
-        public void modf_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Number, "math.modf({0})");
-        }
+    [Test]
+    public void modf_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Number, "math.modf({0})");
+    }
 
-        [Test]
-        public void modf_ZeroArgs()
-        {
-            Assert.Throws<ArgumentException>(delegate {
-                Lua.DoText(@"math.modf()");
-            });
-        }
+    [Test]
+    public void modf_ZeroArgs() {
+      Assert.Throws<ArgumentException>(() => {
+        _lua.DoText(@"math.modf()");
+      });
+    }
 
-        [Test]
-        public void random()
-        {
-            // NOTE: Although the multiple runs will produce the same results, the actual value of
-            // the value is undefined; therefore we need to just check for 'randomness' and for
-            // consistency, not for specific values.
-            Lua.DoText(@"
+    [Test]
+    public void random() {
+      // NOTE: Although the multiple runs will produce the same results, the actual value of
+      // the value is undefined; therefore we need to just check for 'randomness' and for
+      // consistency, not for specific values.
+      _lua.DoText(@"
 math.randomseed(12345)
 local a = math.random()
 local b = math.random(45)
@@ -207,14 +190,13 @@ assertEquals(a, math.random(),       'random: zero-arg makes same values')
 assertEquals(b, math.random(45),     'random: one-arg makes same values')
 assertEquals(c, math.random(24, 68), 'random: two-arg makes same values')
 ");
-        }
-
-        [Test]
-        public void randon_InvalidTypes()
-        {
-            RunInvalidTypeTests(LuaValueType.Number, "math.randomseed({0})");
-            RunInvalidTypeTests(LuaValueType.Number, "math.random({0})", allowNil: true);
-            RunInvalidTypeTests(LuaValueType.Number, "math.random(12, {0})", allowNil: true);
-        }
     }
+
+    [Test]
+    public void randon_InvalidTypes() {
+      _runInvalidTypeTests(LuaValueType.Number, "math.randomseed({0})");
+      _runInvalidTypeTests(LuaValueType.Number, "math.random({0})", allowNil: true);
+      _runInvalidTypeTests(LuaValueType.Number, "math.random(12, {0})", allowNil: true);
+    }
+  }
 }
