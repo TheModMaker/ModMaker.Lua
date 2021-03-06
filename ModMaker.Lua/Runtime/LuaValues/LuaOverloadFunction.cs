@@ -129,13 +129,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
       }
 
-      /// <summary>
-      /// Returns an enumerator that iterates through the collection.
-      /// </summary>
-      /// <returns>
-      /// A System.Collections.Generic.IEnumerator&lt;T&gt; that can be used to iterate through the
-      /// collection.
-      /// </returns>
       public IEnumerator<T> GetEnumerator() {
         foreach (var item in _backing) {
           if (item != null) {
@@ -175,16 +168,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       });
     }
 
-    /// <summary>
-    /// Adds an overload to the current method object.  This is used by the environment to register
-    /// multiple delegates.  The default behavior is to throw a NotSupportedException.
-    /// </summary>
-    /// <param name="d">The delegate to register.</param>
-    /// <exception cref="System.ArgumentNullException">If d is null.</exception>
-    /// <exception cref="System.ArgumentException">If the delegate is not
-    /// compatible with the current object.</exception>
-    /// <exception cref="System.NotSupportedException">If this object does
-    /// not support adding overloads.</exception>
     public override void AddOverload(Delegate d) {
       var temp = d.Method.GetCustomAttributes(typeof(OverloadAttribute), false);
       if (temp != null && temp.Length > 0) {
@@ -195,25 +178,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
     }
 
-    /// <summary>
-    /// Performs that actual invocation of the method.
-    /// </summary>
-    /// <param name="self">The object that this was called on.</param>
-    /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-    /// <param name="args">The current arguments, not null but maybe empty.</param>
-    /// <param name="overload">
-    /// The overload to chose or negative to do overload resolution.
-    /// </param>
-    /// <param name="byRef">An array of the indices that are passed by-reference.</param>
-    /// <returns>The values to return to Lua.</returns>
-    /// <exception cref="System.ArgumentException">If the object cannot be
-    /// invoked with the given arguments.</exception>
-    /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-    /// valid overloads for the given arguments.</exception>
-    /// <exception cref="System.IndexOutOfRangeException">If overload is
-    /// larger than the number of overloads.</exception>
-    /// <exception cref="System.NotSupportedException">If this object does
-    /// not support overloads.</exception>
     protected override ILuaMultiValue _invokeInternal(ILuaValue self, bool methodCall, int overload,
                                                       ILuaMultiValue args) {
       MethodInfo method;

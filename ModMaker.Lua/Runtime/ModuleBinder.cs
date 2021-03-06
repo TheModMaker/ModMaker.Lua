@@ -75,13 +75,6 @@ namespace ModMaker.Lua.Runtime {
     /// </remarks>
     public string[] WhitelistPublicKeys { get; set; }
 
-    /// <summary>
-    /// Searches and loads the module according to the settings.
-    /// </summary>
-    /// <param name="name">The name of the module to find.</param>
-    /// <param name="env">The environment to load to.</param>
-    /// <returns>The loaded module, or null if it could not be loaded.</returns>
-    /// <exception cref="System.ArgumentNullException">If E or name is null.</exception>
     public ILuaValue Load(ILuaEnvironment env, string name) {
       if (env == null) {
         throw new ArgumentNullException(nameof(env));

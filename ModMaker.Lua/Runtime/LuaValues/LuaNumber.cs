@@ -26,55 +26,20 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="num">The number that it wraps.</param>
     public LuaNumber(double num) : base(num) { }
 
-    /// <summary>
-    /// Gets the value type of the value.
-    /// </summary>
     public override LuaValueType ValueType { get { return LuaValueType.Number; } }
 
-    /// <summary>
-    /// Converts the given value to a number, or returns null.
-    /// </summary>
-    /// <returns>The current value as a double, or null.</returns>
     public override double? AsDouble() {
       return Value;
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="other">The other value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _arithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
     }
 
-    /// <summary>
-    /// Gets the unary minus of the value.
-    /// </summary>
-    /// <returns>The unary minus of the value.</returns>
     public override ILuaValue Minus() {
       return new LuaNumber(-Value);
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self) {
       // Cannot use DefaultArithmetic since self and this are swapped.
       switch (type) {
@@ -112,18 +77,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           throw new ArgumentException(Resources.BadBinOp);
       }
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self) {
       var t = self.ToNumber();
       if (t != null) {
@@ -132,18 +85,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         throw new InvalidOperationException(Errors.CannotArithmetic(LuaValueType.String));
       }
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self) {
       return self.ArithmeticFrom(type, this);
     }

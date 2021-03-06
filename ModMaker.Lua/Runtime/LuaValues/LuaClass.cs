@@ -109,9 +109,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _data = new ItemData(env, name, @base, inter);
     }
 
-    /// <summary>
-    /// Gets the value type of the value.
-    /// </summary>
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
 
     /// <summary>

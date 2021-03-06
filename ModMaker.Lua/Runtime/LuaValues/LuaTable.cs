@@ -29,20 +29,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     static readonly LuaString _len = new LuaString("__len");
     readonly Dictionary<ILuaValue, ILuaValue> _values = new Dictionary<ILuaValue, ILuaValue>();
 
-    /// <summary>
-    /// Gets the value type of the value.
-    /// </summary>
     public override LuaValueType ValueType { get { return LuaValueType.Table; } }
 
-    /// <summary>
-    /// Gets or sets the metatable for the table.
-    /// </summary>
     public ILuaTable MetaTable { get; set; }
-    /// <summary>
-    /// Gets or sets the value at the given index.  This uses meta-methods if needed.
-    /// </summary>
-    /// <param name="index">The index to get/set.</param>
-    /// <returns>The value at the given index.</returns>
     public ILuaValue this[ILuaValue index] {
       get { return _get(index); }
       set { _set(index, value); }
@@ -96,10 +85,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       SetItemRaw(index, value);
     }
 
-    /// <summary>
-    /// Gets the length of the value.
-    /// </summary>
-    /// <returns>The length of the value.</returns>
     public override ILuaValue Length() {
       if (MetaTable != null) {
         ILuaValue meth = MetaTable.GetItemRaw(_len);
@@ -111,10 +96,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       return RawLength();
     }
-    /// <summary>
-    /// Gets the raw-length of the value.
-    /// </summary>
-    /// <returns>The length of the value.</returns>
     public override ILuaValue RawLength() {
       double i = 1;
       while (GetItemRaw(new LuaNumber(i)).ValueType != LuaValueType.Nil) {
@@ -124,38 +105,18 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return new LuaNumber(i - 1);
     }
 
-    /// <summary>
-    /// Indexes the value and returns the value.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <returns>The value at the given index.</returns>
     public override ILuaValue GetIndex(ILuaValue index) {
       return _get(index);
     }
-    /// <summary>
-    /// Indexes the value and assigns it a value.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <param name="value">The value to assign to.</param>
     public override void SetIndex(ILuaValue index, ILuaValue value) {
       _set(index, value);
     }
 
-    /// <summary>
-    /// Gets the value at the given index without using meta-methods.
-    /// </summary>
-    /// <param name="index">The index to get at.</param>
-    /// <returns>The value at the given index.</returns>
     public ILuaValue GetItemRaw(ILuaValue index) {
       index ??= LuaNil.Nil;
 
       return _values.TryGetValue(index, out ILuaValue ret) && ret != null ? ret : LuaNil.Nil;
     }
-    /// <summary>
-    /// Sets the value at the given index without using meta-methods.
-    /// </summary>
-    /// <param name="index">The index to get at.</param>
-    /// <param name="value">The value to assign to.</param>
     public void SetItemRaw(ILuaValue index, ILuaValue value) {
       index ??= LuaNil.Nil;
       value ??= LuaNil.Nil;
@@ -169,80 +130,26 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
     }
 
-    /// <summary>
-    /// Gets a IEnumerable&lt;KeyValuePair&lt;object, object&gt;&gt; to enumerate over each of the
-    /// keys of the Table.
-    /// </summary>
-    /// <returns>An enumerator to enumerate of the keys.</returns>
     public IEnumerator<KeyValuePair<ILuaValue, ILuaValue>> GetEnumerator() {
       return _values.GetEnumerator();
     }
-    /// <summary>
-    ///  Returns an enumerator that iterates through a collection.
-    /// </summary>
-    /// <returns>
-    /// An System.Collections.IEnumerator object that can be used to iterate through the
-    /// collection.
-    /// </returns>
     IEnumerator IEnumerable.GetEnumerator() {
       return _values.GetEnumerator();
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="other">The other value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _arithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self) {
       return self.ArithmeticFrom(type, this);
     }
 
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">An object to compare with this object.</param>
-    /// <returns>
-    /// true if the current object is equal to the other parameter; otherwise, false.
-    /// </returns>
     public override bool Equals(ILuaValue other) {
       return ReferenceEquals(this, other);
     }
-    /// <summary>
-    ///  Determines whether the specified System.Object is equal to the current System.Object.
-    /// </summary>
-    /// <param name="obj">The object to compare with the current object.</param>
-    /// <returns>
-    ///true if the specified object is equal to the current object; otherwise, false.
-    ///</returns>
     public override bool Equals(object obj) {
       return ReferenceEquals(this, obj);
     }
-    /// <summary>
-    /// Serves as a hash function for a particular type.
-    /// </summary>
-    /// <returns>A hash code for the current System.Object.</returns>
     public override int GetHashCode() {
       return base.GetHashCode();
     }

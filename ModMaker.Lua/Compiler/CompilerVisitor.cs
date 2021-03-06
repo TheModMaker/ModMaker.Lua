@@ -59,12 +59,6 @@ namespace ModMaker.Lua.Compiler {
       _compiler = compiler;
     }
 
-    /// <summary>
-    /// Called when the item is a binary expression item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Accept.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(BinOpItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -112,12 +106,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a block item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Accept.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(BlockItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -137,12 +125,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a class definition item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Accept.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(ClassDefItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -175,12 +157,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a for generic item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Accept.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(ForGenItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -287,12 +263,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a for numerical item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Accept.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(ForNumItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -439,12 +409,6 @@ namespace ModMaker.Lua.Compiler {
       }
       return target;
     }
-    /// <summary>
-    /// Called when the item is a function call item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(FuncCallItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -558,12 +522,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a function definition item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(FuncDefItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -635,12 +593,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a goto item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(GotoItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -654,12 +606,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is an if item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(IfItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -709,12 +655,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is an indexer item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(IndexerItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -728,12 +668,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a label item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(LabelItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -744,12 +678,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a literal item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(LiteralItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -779,12 +707,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a name item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(NameItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -796,12 +718,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a repeat item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(RepeatItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -829,12 +745,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a return item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(ReturnItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -874,12 +784,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a table item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(TableItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -910,12 +814,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a unary operation item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(UnOpItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -939,12 +837,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is an assignment item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(AssignmentItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));
@@ -1015,12 +907,6 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
-    /// <summary>
-    /// Called when the item is a while item.
-    /// </summary>
-    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
-    /// <returns>The passed target or a modification of it.</returns>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public IParseItem Visit(WhileItem target) {
       if (target == null) {
         throw new ArgumentNullException(nameof(target));

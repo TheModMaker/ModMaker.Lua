@@ -41,17 +41,6 @@ namespace ModMaker.Lua.Compiler {
       _mb = _ab.DefineDynamicModule("DynamicAssembly.dll");
     }
 
-    /// <summary>
-    /// Compiles an IParseItem tree into an IModule object so that it can be executed.
-    /// </summary>
-    /// <param name="name">The name to given the module, can be null to auto-generate.</param>
-    /// <param name="env">The current environment.</param>
-    /// <param name="item">The item to compile.</param>
-    /// <returns>A compiled version of the object.</returns>
-    /// <exception cref="System.ArgumentNullException">If E or item is null.</exception>
-    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
-    /// If there is syntax errors in the item tree.
-    /// </exception>
     public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name) {
       if (env == null) {
         throw new ArgumentNullException(nameof(env));
@@ -84,18 +73,6 @@ namespace ModMaker.Lua.Compiler {
       var ret = cb.CreateChunk(env);
       return ret;
     }
-    /// <summary>
-    /// Creates a delegate that can be called to call the given IMethod.
-    /// </summary>
-    /// <param name="env">The current environment.</param>
-    /// <param name="type">The type of the delegate.</param>
-    /// <param name="method">The method to call.</param>
-    /// <returns>A delegate that is used to call the method.</returns>
-    /// <exception cref="System.ArgumentException">If type is not a delegate type.</exception>
-    /// <exception cref="System.ArgumentNullException">If any argument is null.</exception>
-    /// <exception cref="System.NotSupportedException">
-    /// If this implementation does not support created delegates.
-    /// </exception>
     public Delegate CreateDelegate(ILuaEnvironment env, Type type, ILuaValue method) {
       if (env == null) {
         throw new ArgumentNullException(nameof(env));

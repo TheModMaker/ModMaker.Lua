@@ -54,14 +54,6 @@ namespace ModMaker.Lua.Parser {
       _functions.Add(TokenType.While, _readWhile);
     }
 
-    /// <summary>
-    /// Parses the given Lua code into a IParseItem tree.
-    /// </summary>
-    /// <param name="input">The Lua code to parse.</param>
-    /// <param name="encoding">The encoding that the stream uses.</param>
-    /// <param name="name">The name of the chunk, used for exceptions.</param>
-    /// <returns>The code as an IParseItem tree.</returns>
-    /// <remarks>Simply calls Parse(Lexer, string, bool) with force:false.</remarks>
     public IParseItem Parse(Stream input, Encoding encoding, string name) {
       var lexer = new Lexer(input, encoding, name);
       if (input == null) {

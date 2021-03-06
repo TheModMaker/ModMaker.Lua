@@ -59,26 +59,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _env = env;
     }
 
-    /// <summary>
-    /// Performs that actual invocation of the method.
-    /// </summary>
-    /// <param name="E">The current environment.</param>
-    /// <param name="target">The object that this was called on.</param>
-    /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-    /// <param name="args">The current arguments, not null but maybe empty.</param>
-    /// <param name="overload">
-    /// The overload to chose or negative to do overload resolution.
-    /// </param>
-    /// <param name="byRef">An array of the indices that are passed by-reference.</param>
-    /// <returns>The values to return to Lua.</returns>
-    /// <exception cref="System.ArgumentException">If the object cannot be
-    /// invoked with the given arguments.</exception>
-    /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-    /// valid overloads for the given arguments.</exception>
-    /// <exception cref="System.IndexOutOfRangeException">If overload is
-    /// larger than the number of overloads.</exception>
-    /// <exception cref="System.NotSupportedException">If this object does
-    /// not support overloads.</exception>
     protected override ILuaMultiValue _invokeInternal(ILuaValue target, bool methodCall,
                                                      int overload, ILuaMultiValue args) {
       return _method(_env, args, target, methodCall);

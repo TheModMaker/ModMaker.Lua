@@ -25,20 +25,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="data">The data it wraps.</param>
     public LuaUserData(T data) : base(data) { }
 
-    /// <summary>
-    /// Gets the value type of the value.
-    /// </summary>
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
-    /// <summary>
-    /// Gets whether the value is Lua true value.
-    /// </summary>
     public override bool IsTrue { get { return Value != null && Value as bool? != false; } }
 
-    /// <summary>
-    /// Indexes the value and returns the value.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <returns>The value at the given index.</returns>
     public override ILuaValue GetIndex(ILuaValue index) {
       if (Value == null) {
         throw new InvalidOperationException(Errors.CannotIndex(LuaValueType.Nil));
@@ -46,11 +35,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       return Helpers.GetSetMember(Value.GetType(), Value, index);
     }
-    /// <summary>
-    /// Indexes the value and assigns it a value.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <param name="value">The value to assign to.</param>
     public override void SetIndex(ILuaValue index, ILuaValue value) {
       if (Value == null) {
         throw new InvalidOperationException(Errors.CannotIndex(LuaValueType.Nil));
@@ -59,34 +43,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       Helpers.GetSetMember(Value.GetType(), Value, index, value);
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="other">The other value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _arithmeticBase(type, other) ?? ((ILuaValueVisitor)other).Arithmetic(type, this);
     }
-
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic<T2>(BinaryOperationType type, LuaUserData<T2> self) {
       return self.ArithmeticFrom(type, this);
     }

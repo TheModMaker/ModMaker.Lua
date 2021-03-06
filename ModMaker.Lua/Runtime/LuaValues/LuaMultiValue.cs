@@ -68,21 +68,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
     }
 
-    /// <summary>
-    /// Gets whether the value is Lua true value.
-    /// </summary>
     public override bool IsTrue { get { return _values[0].IsTrue; } }
-    /// <summary>
-    /// Gets the value type of the value.
-    /// </summary>
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
 
-    /// <summary>
-    /// Gets the value at the given index.  If the index is less than zero or larger than Count, it
-    /// should return LuaNil. This should never return null.
-    /// </summary>
-    /// <param name="index">The index to get.</param>
-    /// <returns>The value at the given index, or LuaNil.</returns>
     public ILuaValue this[int index] {
       get { return index < 0 || index >= _values.Length ? LuaNil.Nil : _values[index]; }
       set {
@@ -91,249 +79,74 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
       }
     }
-    /// <summary>
-    /// Gets the number of values in this object.
-    /// </summary>
     public int Count { get; }
 
-    /// <summary>
-    /// Indicates whether the current object is equal to another object of the same type.
-    /// </summary>
-    /// <param name="other">An object to compare with this object.</param>
-    /// <returns>
-    /// true if the current object is equal to the other parameter; otherwise, false.
-    /// </returns>
     public override bool Equals(ILuaValue other) {
       return Equals((object)other);
     }
-    /// <summary>
-    ///  Determines whether the specified System.Object is equal to the current System.Object.
-    /// </summary>
-    /// <param name="obj">The object to compare with the current object.</param>
-    /// <returns>
-    /// true if the specified object is equal to the current object; otherwise, false.
-    /// </returns>
     public override bool Equals(object obj) {
       return _values[0].Equals(obj);
     }
-    /// <summary>
-    /// Serves as a hash function for a particular type.
-    /// </summary>
-    /// <returns>A hash code for the current System.Object.</returns>
     public override int GetHashCode() {
       return _values[0].GetHashCode();
     }
-    /// <summary>
-    /// Compares the current object with another object of the same type.
-    /// </summary>
-    /// <param name="other">An object to compare with this object.</param>
-    /// <returns>
-    /// A value that indicates the relative order of the objects being compared.
-    /// The return value has the following meanings: Value Meaning Less than zero
-    /// This object is less than the other parameter.Zero This object is equal to
-    /// other. Greater than zero This object is greater than other.
-    /// </returns>
     public override int CompareTo(ILuaValue other) {
       return _values[0].CompareTo(other);
     }
 
-    /// <summary>
-    /// Gets the value for this object.  For values that don't wrap something, it simply returns
-    /// this.
-    /// </summary>
-    /// <returns>The value for this object.</returns>
     public override object GetValue() {
       return _values[0].GetValue();
     }
 
-    /// <summary>
-    /// Returns an enumerator that iterates through the collection.
-    /// </summary>
-    /// <returns>
-    /// A System.Collections.Generic.IEnumerator&lt;T&gt; that can be used to iterate through the
-    /// collection.
-    /// </returns>
     public IEnumerator<ILuaValue> GetEnumerator() {
       if (Count == 0) {
         return Enumerable.Empty<ILuaValue>().GetEnumerator();
       }
       return ((IEnumerable<ILuaValue>)_values).GetEnumerator();
     }
-    /// <summary>
-    /// Returns an enumerator that iterates through a collection.
-    /// </summary>
-    /// <returns>
-    /// An System.Collections.IEnumerator object that can be used to iterate through the collection.
-    /// </returns>
     IEnumerator IEnumerable.GetEnumerator() {
       return GetEnumerator();
     }
 
-    /// <summary>
-    /// Gets the unary minus of the value.
-    /// </summary>
-    /// <returns>The unary minus of the value.</returns>
     public override ILuaValue Minus() {
       return _values[0].Minus();
     }
-    /// <summary>
-    /// Gets the length of the value.
-    /// </summary>
-    /// <returns>The length of the value.</returns>
     public override ILuaValue Length() {
       return _values[0].Length();
     }
-    /// <summary>
-    /// Removes and multiple arguments and returns as a single item.
-    /// </summary>
-    /// <returns>Either this, or the first in a multi-value.</returns>
     public override ILuaValue Single() {
       return _values[0];
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="other">The other value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _values[0].Arithmetic(type, other);
     }
 
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaBoolean self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaClass self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaFunction self) {
       return ((ILuaValue)self).Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaNil self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaValues.LuaTable self) {
       return self.Arithmetic(type, _values[0]);
     }
-    /// <summary>
-    /// Performs a binary arithmetic operation and returns the result.
-    /// </summary>
-    /// <param name="type">The type of operation to perform.</param>
-    /// <param name="self">The first value to use.</param>
-    /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
     public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self) {
       return self.Arithmetic(type, _values[0]);
     }
 
-    /// <summary>
-    /// Returns a new object with the same values as this object except where any extra values are
-    /// removed and any missing values are set to null.
-    /// </summary>
-    /// <param name="number">The number of values to have.</param>
-    /// <returns>A new ILuaMultiValue object with the values in this object.</returns>
     public ILuaMultiValue AdjustResults(int number) {
       if (number < 0) {
         number = 0;

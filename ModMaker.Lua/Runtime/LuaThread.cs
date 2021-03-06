@@ -65,13 +65,6 @@ namespace ModMaker.Lua.Runtime {
       _releaseBacking = false;
     }
 
-    /// <summary>
-    /// Suspends the current thread to allow the waiting thread to execute.
-    /// </summary>
-    /// <exception cref="System.InvalidOperationException">If the thread
-    /// is running or dead -or- if this is not a Lua thread.</exception>
-    /// <exception cref="System.Reflection.TargetInvocationException">If
-    /// the thread throws an exception.</exception>
     public override ILuaMultiValue Resume(ILuaMultiValue args) {
       lock (_handle) {
         if (!IsLua) {
@@ -106,13 +99,6 @@ namespace ModMaker.Lua.Runtime {
         return ret ?? _env.Runtime.CreateMultiValue();
       }
     }
-    /// <summary>
-    /// Yields the calling thread.
-    /// </summary>
-    /// <param name="args">The arguments to return from Resume.</param>
-    /// <returns>The objects passed to Resume.</returns>
-    /// <exception cref="System.InvalidOperationException">If the thread
-    /// is not already running -or- if this is not a Lua thread.</exception>
     public override ILuaMultiValue Yield(ILuaMultiValue args) {
       lock (_handle) {
         if (!IsLua) {
@@ -146,10 +132,6 @@ namespace ModMaker.Lua.Runtime {
       }
     }
 
-    /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing, or resetting
-    /// unmanaged resources.
-    /// </summary>
     protected override void _dispose(bool disposing) {
       if (disposing) {
         if (_releaseBacking) {
