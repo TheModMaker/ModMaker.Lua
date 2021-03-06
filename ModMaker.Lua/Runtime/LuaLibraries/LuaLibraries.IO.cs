@@ -64,12 +64,12 @@ namespace ModMaker.Lua.Runtime {
           _ops = ops;
         }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (_stream == null) {
             return LuaMultiValue.Empty;
           }
 
-          var ret = _read(_ops, _stream, Environment);
+          var ret = _read(_ops, _stream, _environment);
 
           if (_stream.EndOfStream) {
             if (_close) {
@@ -87,41 +87,41 @@ namespace ModMaker.Lua.Runtime {
       sealed class close : LuaFrameworkFunction {
         public close(ILuaEnvironment env) : base(env, "io.close") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
-          var t = _getStream(args[0], Environment, out Stream s);
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
+          var t = _getStream(args[0], _environment, out Stream s);
           if (t != null) {
             return t;
           }
 
           try {
             s.Close();
-            return Environment.Runtime.CreateMultiValue(_createFile(s, Environment));
+            return _environment.Runtime.CreateMultiValue(_createFile(s, _environment));
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
           }
         }
       }
       sealed class flush : LuaFrameworkFunction {
         public flush(ILuaEnvironment env) : base(env, "io.flush") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
-          var t = _getStream(args[0], Environment, out _);
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
+          var t = _getStream(args[0], _environment, out _);
           if (t != null) {
             return t;
           }
 
           try {
             _output.Flush();
-            return Environment.Runtime.CreateMultiValue(_createFile(_output, Environment));
+            return _environment.Runtime.CreateMultiValue(_createFile(_output, _environment));
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
           }
         }
       }
       sealed class input : LuaFrameworkFunction {
         public input(ILuaEnvironment env) : base(env, "io.input") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
 
           if (obj != null) {
@@ -145,13 +145,13 @@ namespace ModMaker.Lua.Runtime {
             }
           }
 
-          return Environment.Runtime.CreateMultiValue(_createFile(_input, Environment));
+          return _environment.Runtime.CreateMultiValue(_createFile(_input, _environment));
         }
       }
       sealed class lines : LuaFrameworkFunction {
         public lines(ILuaEnvironment env) : base(env, "io.lines") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
           bool close;
           Stream s;
@@ -188,13 +188,13 @@ namespace ModMaker.Lua.Runtime {
           }
 
           int[] a = _parse(args.Skip(start), "io.lines");
-          return Environment.Runtime.CreateMultiValue(new LinesHelper(Environment, close, s, a));
+          return _environment.Runtime.CreateMultiValue(new LinesHelper(_environment, close, s, a));
         }
       }
       sealed class open : LuaFrameworkFunction {
         public open(ILuaEnvironment env) : base(env, "io.open") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           string s = args[0].GetValue() as string;
           string mode = args[1].GetValue() as string;
           FileMode fileMode;
@@ -203,7 +203,7 @@ namespace ModMaker.Lua.Runtime {
           mode = mode?.ToLowerInvariant();
 
           if (string.IsNullOrWhiteSpace(s)) {
-            return Environment.Runtime.CreateMultiValueFromObj(
+            return _environment.Runtime.CreateMultiValueFromObj(
                 null, "First argument must be a string filename.");
           }
 
@@ -243,7 +243,7 @@ namespace ModMaker.Lua.Runtime {
               seek = true;
               break;
             default:
-              return Environment.Runtime.CreateMultiValueFromObj(
+              return _environment.Runtime.CreateMultiValueFromObj(
                   null, "Second argument must be a valid string mode.");
           }
 
@@ -253,17 +253,17 @@ namespace ModMaker.Lua.Runtime {
                 stream.Seek(0, SeekOrigin.End);
               }
 
-              return Environment.Runtime.CreateMultiValue(_createFile(stream, Environment));
+              return _environment.Runtime.CreateMultiValue(_createFile(stream, _environment));
             }
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
           }
         }
       }
       sealed class output : LuaFrameworkFunction {
         public output(ILuaEnvironment env) : base(env, "io.output") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
           if (obj != LuaNil.Nil) {
             if (obj.ValueType == LuaValueType.String) {
@@ -285,13 +285,13 @@ namespace ModMaker.Lua.Runtime {
             }
           }
 
-          return Environment.Runtime.CreateMultiValue(_createFile(_output, Environment));
+          return _environment.Runtime.CreateMultiValue(_createFile(_output, _environment));
         }
       }
       sealed class read : LuaFrameworkFunction {
         public read(ILuaEnvironment env) : base(env, "io.read") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
           Stream s;
           int start;
@@ -313,13 +313,13 @@ namespace ModMaker.Lua.Runtime {
           }
 
           int[] a = _parse(args.Skip(start), "io.read");
-          return _read(a, new StreamReader(s), Environment);
+          return _read(a, new StreamReader(s), _environment);
         }
       }
       sealed class seek : LuaFrameworkFunction {
         public seek(ILuaEnvironment env) : base(env, "io.seek") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           Stream s = args[0].GetValue() as Stream;
           SeekOrigin origin = SeekOrigin.Current;
           long off = 0;
@@ -360,38 +360,38 @@ namespace ModMaker.Lua.Runtime {
           }
 
           if (!s.CanSeek) {
-            return Environment.Runtime.CreateMultiValueFromObj(
+            return _environment.Runtime.CreateMultiValueFromObj(
                 null, "Specified stream cannot be seeked.");
           }
 
           try {
-            return Environment.Runtime.CreateMultiValueFromObj(
+            return _environment.Runtime.CreateMultiValueFromObj(
                 Convert.ToDouble(s.Seek(off, origin)));
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
           }
         }
       }
       sealed class tmpfile : LuaFrameworkFunction {
         public tmpfile(ILuaEnvironment env) : base(env, "io.tmpfile") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           string str = Path.GetTempFileName();
           Stream s = File.Open(str, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-          return Environment.Runtime.CreateMultiValue(_createFile(s, Environment));
+          return _environment.Runtime.CreateMultiValue(_createFile(s, _environment));
         }
       }
       sealed class type : LuaFrameworkFunction {
         public type(ILuaEnvironment env) : base(env, "io.type") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
 
           if (obj.GetValue() is Stream) {
-            return Environment.Runtime.CreateMultiValueFromObj("file");
+            return _environment.Runtime.CreateMultiValueFromObj("file");
           } else if (obj.ValueType == LuaValueType.Table) {
             Stream s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
-            return Environment.Runtime.CreateMultiValueFromObj(s == null ? null : "file");
+            return _environment.Runtime.CreateMultiValueFromObj(s == null ? null : "file");
           } else {
             return LuaMultiValue.Empty;
           }
@@ -400,7 +400,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class write : LuaFrameworkFunction {
         public write(ILuaEnvironment env) : base(env, "io.write") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           ILuaValue obj = args[0];
           Stream s;
           int start;
@@ -408,7 +408,7 @@ namespace ModMaker.Lua.Runtime {
           if (obj.ValueType == LuaValueType.Table) {
             s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
             if (s == null) {
-              return Environment.Runtime.CreateMultiValueFromObj(
+              return _environment.Runtime.CreateMultiValueFromObj(
                   null, "First argument must be a file-stream or a file path.");
             }
 
@@ -425,22 +425,22 @@ namespace ModMaker.Lua.Runtime {
             for (int i = start; i < args.Count; i++) {
               var temp = args[i].GetValue();
               if (temp is double) {
-                var bt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(
+                var bt = (_environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(
                     ((double)temp).ToString(CultureInfo.InvariantCulture));
                 s.Write(bt, 0, bt.Length);
               } else if (temp is string) {
-                var bt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(temp as string);
+                var bt = (_environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(temp as string);
                 s.Write(bt, 0, bt.Length);
               } else {
                 throw new ArgumentException("Arguments to io.write must be a string or number.");
               }
             }
 
-            return Environment.Runtime.CreateMultiValue(_createFile(s, Environment));
+            return _environment.Runtime.CreateMultiValue(_createFile(s, _environment));
           } catch (ArgumentException) {
             throw;
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message, e);
           }
         }
       }
@@ -560,7 +560,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class dofile : LuaFrameworkFunction {
         public dofile(ILuaEnvironment env) : base(env, "io.dofile") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting one argument to function 'dofile'.");
           }
@@ -576,16 +576,16 @@ namespace ModMaker.Lua.Runtime {
           }
 
           string chunk = File.ReadAllText(file);
-          var parsed = PlainParser.Parse(Environment.Parser, chunk,
+          var parsed = PlainParser.Parse(_environment.Parser, chunk,
                                          Path.GetFileNameWithoutExtension(file));
-          var r = Environment.CodeCompiler.Compile(Environment, parsed, null);
+          var r = _environment.CodeCompiler.Compile(_environment, parsed, null);
           return r.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
         }
       }
       sealed class load : LuaFrameworkFunction {
         public load(ILuaEnvironment env) : base(env, "io.load") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'load'.");
           }
@@ -596,7 +596,7 @@ namespace ModMaker.Lua.Runtime {
           if (ld.ValueType == LuaValueType.Function) {
             chunk = "";
             while (true) {
-              var ret = ld.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValue());
+              var ret = ld.Invoke(LuaNil.Nil, false, -1, _environment.Runtime.CreateMultiValue());
               if (ret[0].ValueType == LuaValueType.String) {
                 if (string.IsNullOrEmpty(ret[0].GetValue() as string)) {
                   break;
@@ -614,18 +614,18 @@ namespace ModMaker.Lua.Runtime {
           }
 
           try {
-            var parsed = PlainParser.Parse(Environment.Parser, chunk, null);
-            return Environment.Runtime.CreateMultiValue(
-                Environment.CodeCompiler.Compile(Environment, parsed, null));
+            var parsed = PlainParser.Parse(_environment.Parser, chunk, null);
+            return _environment.Runtime.CreateMultiValue(
+                _environment.CodeCompiler.Compile(_environment, parsed, null));
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message);
           }
         }
       }
       sealed class loadfile : LuaFrameworkFunction {
         public loadfile(ILuaEnvironment env) : base(env, "io.loadfile") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'loadfile'.");
           }
@@ -651,12 +651,12 @@ namespace ModMaker.Lua.Runtime {
 
           string chunk = File.ReadAllText(file);
           try {
-            var parsed = PlainParser.Parse(Environment.Parser, chunk,
+            var parsed = PlainParser.Parse(_environment.Parser, chunk,
                                            Path.GetFileNameWithoutExtension(file));
-            return Environment.Runtime.CreateMultiValue(
-              Environment.CodeCompiler.Compile(Environment, parsed, null));
+            return _environment.Runtime.CreateMultiValue(
+              _environment.CodeCompiler.Compile(_environment, parsed, null));
           } catch (Exception e) {
-            return Environment.Runtime.CreateMultiValueFromObj(null, e.Message);
+            return _environment.Runtime.CreateMultiValueFromObj(null, e.Message);
           }
         }
       }

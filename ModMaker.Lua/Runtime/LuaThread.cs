@@ -144,7 +144,7 @@ namespace ModMaker.Lua.Runtime
 
                 // Fire the OnYield event.
                 var e = new YieldEventArgs(args);
-                CallOnYield(e);
+                _callOnYield(e);
 
                 // If the yield is rejected, simply return the arguments.
                 if (e.RejectYield)
@@ -169,7 +169,7 @@ namespace ModMaker.Lua.Runtime
         /// Performs application-defined tasks associated with freeing, releasing, or
         /// resetting unmanaged resources.
         /// </summary>
-        protected override void Dispose(bool disposing)
+        protected override void _dispose(bool disposing)
         {
             if (disposing)
             {

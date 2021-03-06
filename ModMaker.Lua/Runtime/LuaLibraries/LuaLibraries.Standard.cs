@@ -228,7 +228,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class overload : LuaFrameworkFunction {
         public overload(ILuaEnvironment env) : base(env, "overload") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (args.Count < 2) {
             throw new ArgumentException("Expecting at least two arguments to function 'overload'.");
           }
@@ -248,13 +248,13 @@ namespace ModMaker.Lua.Runtime {
           int i = Convert.ToInt32((double)obj.GetValue());
 
           return meth.Invoke(null, false, i,
-                             Environment.Runtime.CreateMultiValue(args.Skip(2).ToArray()));
+                             _environment.Runtime.CreateMultiValue(args.Skip(2).ToArray()));
         }
       }
       sealed class pcall : LuaFrameworkFunction {
         public pcall(ILuaEnvironment env) : base(env, "pcall") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
           }
@@ -263,15 +263,15 @@ namespace ModMaker.Lua.Runtime {
           if (func.ValueType == LuaValueType.Function) {
             try {
               var ret = func.Invoke(LuaNil.Nil, false, -1,
-                                    Environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
-              return Environment.Runtime.CreateMultiValue(
+                                    _environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
+              return _environment.Runtime.CreateMultiValue(
                   new ILuaValue[] { LuaBoolean.True }.Union(ret).ToArray());
             } catch (ThreadAbortException) {
               throw;
             } catch (ThreadInterruptedException) {
               throw;
             } catch (Exception e) {
-              return Environment.Runtime.CreateMultiValueFromObj(false, e.Message, e);
+              return _environment.Runtime.CreateMultiValueFromObj(false, e.Message, e);
             }
           } else {
             throw new ArgumentException("First argument to 'pcall' must be a function.");
@@ -281,7 +281,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class print : LuaFrameworkFunction {
         public print(ILuaEnvironment env) : base(env, "print") { }
 
-        protected override ILuaMultiValue InvokeInternal(ILuaMultiValue args) {
+        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
           StringBuilder str = new StringBuilder();
           if (args != null) {
             for (int i = 0; i < args.Count; i++) {
@@ -292,8 +292,8 @@ namespace ModMaker.Lua.Runtime {
             str.Append("\n");
           }
 
-          Stream s = Environment.Settings.Stdout;
-          byte[] txt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
+          Stream s = _environment.Settings.Stdout;
+          byte[] txt = (_environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
           s.Write(txt, 0, txt.Length);
 
           return LuaMultiValue.Empty;
