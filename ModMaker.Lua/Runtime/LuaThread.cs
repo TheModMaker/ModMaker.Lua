@@ -13,207 +13,177 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Reflection;
+using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
-namespace ModMaker.Lua.Runtime
-{
+namespace ModMaker.Lua.Runtime {
+  /// <summary>
+  /// Defines a thread in Lua.  Cannot be created in C#, use the coroutine library in Lua to create
+  /// a thread.  Threads in Lua execute synchronously.
+  /// </summary>
+  public sealed class LuaThreadNet : LuaThread {
+    readonly object _handle = new object();
+    readonly ILuaEnvironment _env;
+    readonly ILuaValue _method;
+    readonly bool _releaseBacking;
+    Exception _exception = null;
+    ILuaMultiValue _args;
+    Thread _backing;
+
     /// <summary>
-    /// Defines a thread in Lua.  Cannot be created in C#, use the coroutine library in Lua
-    /// to create a thread.  Threads in Lua execute synchronously.
+    /// Creates a new LuaThread object that represents the main thread.
     /// </summary>
-    public sealed class LuaThreadNet : LuaThread
-    {
-        object handle_ = new object();
-        Exception exception_ = null;
-        ILuaEnvironment E_;
-        ILuaMultiValue args_;
-        ILuaValue method_;
-        Thread backing_;
-        bool releaseBacking_;
-
-        /// <summary>
-        /// Creates a new LuaThread object that represents the main thread.
-        /// </summary>
-        internal LuaThreadNet()
-        {
-            Status = LuaThreadStatus.Running;
-            IsLua = false;
-            releaseBacking_ = false;
-        }
-        /// <summary>
-        /// Creates a new LuaThread object that calls the given method.
-        /// </summary>
-        /// <param name="E">The current environment.</param>
-        /// <param name="method">The method to invoke.</param>
-        internal LuaThreadNet(ILuaEnvironment E, ILuaValue method)
-        {
-            this.IsLua = true;
-            this.E_ = E;
-            this.method_ = method;
-            this.backing_ = new Thread(Do);
-            this.releaseBacking_ = true;
-        }
-        /// <summary>
-        /// Creates a new LuaThread object that calls the given method and
-        /// executes on the given thread.
-        /// </summary>
-        /// <param name="E">The current environment.</param>
-        /// <param name="method">The method to invoke.</param>
-        /// <param name="thread">The thread that will execute this thread.</param>
-        internal LuaThreadNet(ILuaEnvironment E, Thread thread, ILuaValue method)
-        {
-            this.IsLua = true;
-            this.E_ = E;
-            this.method_ = method;
-            this.backing_ = thread;
-            this.releaseBacking_ = false;
-        }
-
-        /// <summary>
-        /// Suspends the current thread to allow the waiting thread to execute.
-        /// </summary>
-        /// <exception cref="System.InvalidOperationException">If the thread
-        /// is running or dead -or- if this is not a Lua thread.</exception>
-        /// <exception cref="System.Reflection.TargetInvocationException">If
-        /// the thread throws an exception.</exception>
-        public override ILuaMultiValue Resume(ILuaMultiValue args)
-        {
-            lock (handle_)
-            {
-                if (!IsLua)
-                {
-                    throw new InvalidOperationException(
-                        "Cannot resume a thread that has been created outside Lua.");
-                }
-                if (Status == LuaThreadStatus.Running)
-                {
-                    throw new InvalidOperationException(
-                        "Cannot resume a running thread.");
-                }
-                if (Status == LuaThreadStatus.Complete)
-                {
-                    throw new InvalidOperationException(
-                        "Cannot resume a dead thread.");
-                }
-
-                if (backing_.ThreadState == ThreadState.Unstarted)
-                {
-                    backing_.Start();
-                }
-
-                args = args ?? E_.Runtime.CreateMultiValue();
-                args_ = args;
-                Status = LuaThreadStatus.Running;
-
-                Monitor.Pulse(handle_);
-                while (Status == LuaThreadStatus.Running)
-                {
-                    Monitor.Wait(handle_);
-                }
-
-                if (exception_ != null)
-                    throw new TargetInvocationException(exception_);
-
-                ILuaMultiValue ret = Interlocked.Exchange(ref args_, null);
-                return ret ?? E_.Runtime.CreateMultiValue();
-            }
-        }
-        /// <summary>
-        /// Yields the calling thread.
-        /// </summary>
-        /// <param name="args">The arguments to return from Resume.</param>
-        /// <returns>The objects passed to Resume.</returns>
-        /// <exception cref="System.InvalidOperationException">If the thread
-        /// is not already running -or- if this is not a Lua thread.</exception>
-        public override ILuaMultiValue Yield(ILuaMultiValue args)
-        {
-            lock (handle_)
-            {
-                if (!IsLua)
-                {
-                    throw new InvalidOperationException(
-                        "Cannot resume a thread that has been created outside Lua.");
-                }
-                if (Status != LuaThreadStatus.Running)
-                    throw new InvalidOperationException("Thread must be running to yield.");
-
-                // Fire the OnYield event.
-                var e = new YieldEventArgs(args);
-                _callOnYield(e);
-
-                // If the yield is rejected, simply return the arguments.
-                if (e.RejectYield)
-                    return e.ReturnArguments;
-
-                args = args ?? E_.Runtime.CreateMultiValue();
-                args_ = args;
-                Status = LuaThreadStatus.Suspended;
-
-                Monitor.Pulse(handle_);
-                while (Status != LuaThreadStatus.Running)
-                {
-                    Monitor.Wait(handle_);
-                }
-
-                ILuaMultiValue ret = Interlocked.Exchange(ref args_, null);
-                return ret ?? E_.Runtime.CreateMultiValue();
-            }
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or
-        /// resetting unmanaged resources.
-        /// </summary>
-        protected override void _dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                if (releaseBacking_)
-                {
-                    backing_.Abort();
-                    backing_.Join();
-                }
-                backing_ = null;
-            }
-        }
-
-        internal void Do()
-        {
-            try
-            {
-                lock (handle_)
-                {
-                    while (Status != LuaThreadStatus.Running)
-                    {
-                        Monitor.Wait(handle_);
-                    }
-                }
-
-                ILuaMultiValue args = Interlocked.Exchange(ref args_, null);
-                ILuaMultiValue ret = method_.Invoke(LuaNil.Nil, false, -1, args);
-
-                lock (handle_)
-                {
-                    args_ = ret;
-                    exception_ = null;
-                    Status = LuaThreadStatus.Complete;
-                    Monitor.Pulse(handle_);
-                }
-            }
-            catch (Exception e)
-            {
-                lock (handle_)
-                {
-                    exception_ = e;
-                    Status = LuaThreadStatus.Complete;
-                    Monitor.Pulse(handle_);
-                }
-            }
-        }
+    internal LuaThreadNet() {
+      Status = LuaThreadStatus.Running;
+      IsLua = false;
+      _releaseBacking = false;
     }
+    /// <summary>
+    /// Creates a new LuaThread object that calls the given method.
+    /// </summary>
+    /// <param name="env">The current environment.</param>
+    /// <param name="method">The method to invoke.</param>
+    internal LuaThreadNet(ILuaEnvironment env, ILuaValue method) {
+      IsLua = true;
+      _env = env;
+      _method = method;
+      _backing = new Thread(_do);
+      _releaseBacking = true;
+    }
+    /// <summary>
+    /// Creates a new LuaThread object that calls the given method and executes on the given thread.
+    /// </summary>
+    /// <param name="env">The current environment.</param>
+    /// <param name="method">The method to invoke.</param>
+    /// <param name="thread">The thread that will execute this thread.</param>
+    internal LuaThreadNet(ILuaEnvironment env, Thread thread, ILuaValue method) {
+      IsLua = true;
+      _env = env;
+      _method = method;
+      _backing = thread;
+      _releaseBacking = false;
+    }
+
+    /// <summary>
+    /// Suspends the current thread to allow the waiting thread to execute.
+    /// </summary>
+    /// <exception cref="System.InvalidOperationException">If the thread
+    /// is running or dead -or- if this is not a Lua thread.</exception>
+    /// <exception cref="System.Reflection.TargetInvocationException">If
+    /// the thread throws an exception.</exception>
+    public override ILuaMultiValue Resume(ILuaMultiValue args) {
+      lock (_handle) {
+        if (!IsLua) {
+          throw new InvalidOperationException(
+              "Cannot resume a thread that has been created outside Lua.");
+        }
+        if (Status == LuaThreadStatus.Running) {
+          throw new InvalidOperationException("Cannot resume a running thread.");
+        }
+        if (Status == LuaThreadStatus.Complete) {
+          throw new InvalidOperationException("Cannot resume a dead thread.");
+        }
+
+        if (_backing.ThreadState == ThreadState.Unstarted) {
+          _backing.Start();
+        }
+
+        args ??= _env.Runtime.CreateMultiValue();
+        _args = args;
+        Status = LuaThreadStatus.Running;
+
+        Monitor.Pulse(_handle);
+        while (Status == LuaThreadStatus.Running) {
+          Monitor.Wait(_handle);
+        }
+
+        if (_exception != null) {
+          throw new TargetInvocationException(_exception);
+        }
+
+        ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        return ret ?? _env.Runtime.CreateMultiValue();
+      }
+    }
+    /// <summary>
+    /// Yields the calling thread.
+    /// </summary>
+    /// <param name="args">The arguments to return from Resume.</param>
+    /// <returns>The objects passed to Resume.</returns>
+    /// <exception cref="System.InvalidOperationException">If the thread
+    /// is not already running -or- if this is not a Lua thread.</exception>
+    public override ILuaMultiValue Yield(ILuaMultiValue args) {
+      lock (_handle) {
+        if (!IsLua) {
+          throw new InvalidOperationException(
+              "Cannot resume a thread that has been created outside Lua.");
+        }
+        if (Status != LuaThreadStatus.Running) {
+          throw new InvalidOperationException("Thread must be running to yield.");
+        }
+
+        // Fire the OnYield event.
+        var e = new YieldEventArgs(args);
+        _callOnYield(e);
+
+        // If the yield is rejected, simply return the arguments.
+        if (e.RejectYield) {
+          return e.ReturnArguments;
+        }
+
+        args ??= _env.Runtime.CreateMultiValue();
+        _args = args;
+        Status = LuaThreadStatus.Suspended;
+
+        Monitor.Pulse(_handle);
+        while (Status != LuaThreadStatus.Running) {
+          Monitor.Wait(_handle);
+        }
+
+        ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        return ret ?? _env.Runtime.CreateMultiValue();
+      }
+    }
+
+    /// <summary>
+    /// Performs application-defined tasks associated with freeing, releasing, or resetting
+    /// unmanaged resources.
+    /// </summary>
+    protected override void _dispose(bool disposing) {
+      if (disposing) {
+        if (_releaseBacking) {
+          _backing.Abort();
+          _backing.Join();
+        }
+        _backing = null;
+      }
+    }
+
+    internal void _do() {
+      try {
+        lock (_handle) {
+          while (Status != LuaThreadStatus.Running) {
+            Monitor.Wait(_handle);
+          }
+        }
+
+        ILuaMultiValue args = Interlocked.Exchange(ref _args, null);
+        ILuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, -1, args);
+
+        lock (_handle) {
+          _args = ret;
+          _exception = null;
+          Status = LuaThreadStatus.Complete;
+          Monitor.Pulse(_handle);
+        }
+      } catch (Exception e) {
+        lock (_handle) {
+          _exception = e;
+          Status = LuaThreadStatus.Complete;
+          Monitor.Pulse(_handle);
+        }
+      }
+    }
+  }
 }
