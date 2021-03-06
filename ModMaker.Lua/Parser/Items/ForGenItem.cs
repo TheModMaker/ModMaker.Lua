@@ -13,9 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -23,53 +20,33 @@ namespace ModMaker.Lua.Parser.Items {
   /// e.g. for k, v in dict do ... end.
   /// </summary>
   public sealed class ForGenItem : IParseStatement {
-    readonly NameItem[] _names;
-    readonly IList<IParseExp> _exps = new List<IParseExp>();
-
     /// <summary>
     /// Creates a new instance of ForGenItem with the given names definition.
     /// </summary>
     /// <param name="names">The names that are defined by this statement.</param>
-    /// <exception cref="System.ArgumentException">
-    /// If names does not contain any names or contains a null item.
-    /// </exception>
-    /// <exception cref="System.ArgumentNullException">If names is null.</exception>
-    public ForGenItem(IEnumerable<NameItem> names) {
-      if (names == null) {
-        throw new ArgumentNullException(nameof(names));
-      }
-
-      if (names.Contains(null)) {
-        throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(names)));
-      }
-
-      _names = names.ToArray();
-
-      if (_names.Length == 0) {
-        throw new ArgumentException(Resources.DefineAtLeastOneName);
-      }
+    public ForGenItem(NameItem[] names, IParseExp[] exps, BlockItem block) {
+      Names = names;
+      Expressions = exps;
+      Block = block;
     }
 
-    /// <summary>
-    /// Gets the expressions for the for generic statement.
-    /// </summary>
-    public ReadOnlyCollection<IParseExp> Expressions {
-      get { return new ReadOnlyCollection<IParseExp>(_exps); }
-    }
     /// <summary>
     /// Gets the name definitions for the for generic statement.
     /// </summary>
-    public ReadOnlyCollection<NameItem> Names {
-      get { return new ReadOnlyCollection<NameItem>(_names); }
-    }
+    public NameItem[] Names { get; set; }
     /// <summary>
-    /// Gets the label that represents a break from the loop.
+    /// Gets the expressions for the for generic statement.
     /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
+    public IParseExp[] Expressions { get; set; }
     /// <summary>
     /// Gets or sets the block of the for generic statement.
     /// </summary>
     public BlockItem Block { get; set; }
+    /// <summary>
+    /// Gets the label that represents a break from the loop.
+    /// </summary>
+    public LabelItem Break { get; } = new LabelItem("<break>");
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
@@ -79,19 +56,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds the given expression to the object.
-    /// </summary>
-    /// <param name="item">The item to add.</param>
-    /// <exception cref="System.ArgumentException">If item is not an expression.</exception>
-    /// <exception cref="System.ArgumentNullException">If item is null.</exception>
-    public void AddExpression(IParseExp item) {
-      if (item == null) {
-        throw new ArgumentNullException(nameof(item));
-      }
-
-      _exps.Add(item);
     }
   }
 }

@@ -13,17 +13,12 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a function call expression or statement.
   /// </summary>
   public sealed class FuncCallItem : IParseStatement, IParsePrefixExp {
-    readonly IList<ArgumentInfo> _args = new List<ArgumentInfo>();
-    IParseExp _prefix;
-
     /// <summary>
     /// Contains information about an argument passed to the function.
     /// </summary>
@@ -48,60 +43,36 @@ namespace ModMaker.Lua.Parser.Items {
       public readonly bool IsByRef;
     }
 
+    /// <inheritdoc cref="FuncCallItem(IParseExp, ArgumentInfo[])"/>
+    public FuncCallItem(IParseExp prefix) : this(prefix, new ArgumentInfo[0]) { }
+
     /// <summary>
     /// Creates a new instance of FuncCallItem with the given state.
     /// </summary>
     /// <param name="prefix">The prefix expression that defines the call.</param>
+    /// <param name="args">The arguments to call with.</param>
     /// <exception cref="System.ArgumentException">
     /// If prefix is not an expression or prefix-expression.
     /// </exception>
     /// <exception cref="System.ArgumentNullException">If prefix is null.</exception>
-    public FuncCallItem(IParseExp prefix) : this(prefix, null, -1) { }
-    /// <summary>
-    /// Creates a new instance of FuncCallItem with the given state.
-    /// </summary>
-    /// <param name="prefix">The prefix expression that defines the call.</param>
-    /// <param name="instance">
-    /// The string instance call name or null if not an instance call.
-    /// </param>
-    /// <param name="overload">
-    /// The zero-based index of the overload to call, or negative to use overload resolution.
-    /// </param>
-    /// <exception cref="System.ArgumentException">
-    /// If prefix is not an expression or prefix-expression.
-    /// </exception>
-    /// <exception cref="System.ArgumentNullException">If prefix is null.</exception>
-    public FuncCallItem(IParseExp prefix, string instance, int overload) {
+    public FuncCallItem(IParseExp prefix, ArgumentInfo[] args) {
       if (prefix == null) {
         throw new ArgumentNullException(nameof(prefix));
       }
 
-      _prefix = prefix;
-      InstanceName = instance;
-      Overload = overload;
+      Arguments = args;
+      Prefix = prefix;
     }
 
+    /// <summary>
+    /// Gets or sets the prefix expression that defines what object to call.
+    /// </summary>
+    public IParseExp Prefix { get; set; }
     /// <summary>
     /// Gets the arguments that are passed to the call.  The first item is the expression that
     /// defines the value, the second item is whether the argument is passed by-reference.
     /// </summary>
-    public ReadOnlyCollection<ArgumentInfo> Arguments {
-      get { return new ReadOnlyCollection<ArgumentInfo>(_args); }
-    }
-    /// <summary>
-    /// Gets or sets the prefix expression that defines what object to call.
-    /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Prefix {
-      get { return _prefix; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _prefix = value;
-      }
-    }
+    public ArgumentInfo[] Arguments { get; set; }
     /// <summary>
     /// Gets or sets whether this is a tail call. This value is not checked for validity during
     /// compilation and may cause errors if changed.
@@ -120,11 +91,12 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the instance name of the call or null if not an instance call.
     /// </summary>
-    public string InstanceName { get; set; }
+    public string InstanceName { get; set; } = null;
     /// <summary>
     /// Gets or sets the overload of the function, use a negative number to use overload resolution.
     /// </summary>
-    public int Overload { get; set; }
+    public int Overload { get; set; } = -1;
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
@@ -134,19 +106,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds an argument expression to the function call.
-    /// </summary>
-    /// <param name="item">The expression item to add.</param>
-    /// <param name="byRef">Whether the argument is passed by reference.</param>
-    /// <exception cref="System.ArgumentNullException">If item is null.</exception>
-    public void AddItem(IParseExp item, bool byRef) {
-      if (item == null) {
-        throw new ArgumentNullException(nameof(item));
-      }
-
-      _args.Add(new ArgumentInfo(item, byRef));
     }
   }
 }

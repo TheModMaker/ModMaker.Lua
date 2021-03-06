@@ -39,7 +39,8 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the destination of the goto.
     /// </summary>
-    public LabelItem Target { get; set; }
+    public LabelItem Target { get; set; } = null;
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

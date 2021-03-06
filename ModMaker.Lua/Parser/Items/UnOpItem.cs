@@ -41,41 +41,25 @@ namespace ModMaker.Lua.Parser.Items {
   /// Defines a parse item that represents a unary operation expression.
   /// </summary>
   public sealed class UnOpItem : IParseExp {
-    IParseExp _target;
-
     /// <summary>
     /// Creates a new UnOpItem with the given state.
     /// </summary>
     /// <param name="target">The target expression.</param>
     /// <param name="type">The type of operation.</param>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
     public UnOpItem(IParseExp target, UnaryOperationType type) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
-      _target = target;
+      Target = target;
       OperationType = type;
     }
 
     /// <summary>
     /// Gets or sets the target expression.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Target {
-      get { return _target; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _target = value;
-      }
-    }
+    public IParseExp Target { get; set; }
     /// <summary>
     /// Gets or sets the operation type.
     /// </summary>
     public UnaryOperationType OperationType { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

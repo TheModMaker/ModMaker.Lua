@@ -35,6 +35,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the value of this literal.
     /// </summary>
     public object Value { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

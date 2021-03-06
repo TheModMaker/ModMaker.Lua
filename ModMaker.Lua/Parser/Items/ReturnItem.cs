@@ -13,32 +13,33 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a return statement.
   /// </summary>
   public sealed class ReturnItem : IParseItem {
-    readonly IList<IParseExp> _exps = new List<IParseExp>();
-
     /// <summary>
     /// Creates a new instance of ReturnItem.
     /// </summary>
-    public ReturnItem() { }
+    public ReturnItem() : this(new IParseExp[0]) { }
+    /// <summary>
+    /// Creates a new instance of ReturnItem.
+    /// </summary>
+    public ReturnItem(IParseExp[] exps) {
+      Expressions = exps;
+    }
 
     /// <summary>
     /// Gets the expressions of the return statement.
     /// </summary>
-    public ReadOnlyCollection<IParseExp> Expressions {
-      get { return new ReadOnlyCollection<IParseExp>(_exps); }
-    }
+    public IParseExp[] Expressions { get; set; }
     /// <summary>
     /// Gets or sets whether the last expression should be single.  Namely whether the last
     /// expression is wrapped in parentheses, e.g. return 1, (foo()).
     /// </summary>
-    public bool IsLastExpressionSingle { get; set; }
+    public bool IsLastExpressionSingle { get; set; } = false;
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
@@ -48,18 +49,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds an expression to the statement.
-    /// </summary>
-    /// <param name="expression">The expression to add.</param>
-    /// <exception cref="System.ArgumentNullException">If expression is null.</exception>
-    public void AddExpression(IParseExp expression) {
-      if (expression == null) {
-        throw new ArgumentNullException(nameof(expression));
-      }
-
-      _exps.Add(expression);
     }
   }
 }

@@ -324,5 +324,17 @@ namespace ModMaker.Lua.Parser {
     public override int GetHashCode() {
       return HashCode.Combine(Value, Type, StartPos, StartLine);
     }
+
+    public override string ToString() {
+      var need_value = Type switch {
+        TokenType.Identifier => true,
+        TokenType.NumberLiteral => true,
+        TokenType.StringLiteral => true,
+        _ => false,
+      };
+      var value = Value is string str && str.Length > 25 ? str[..25] + "..." : Value;
+      var type = need_value ? $"{Type}({value})" : Type.ToString();
+      return $"Token(Type={type}, Line={StartLine}, Pos={StartPos})";
+    }
   }
 }

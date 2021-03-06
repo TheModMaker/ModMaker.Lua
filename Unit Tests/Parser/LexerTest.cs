@@ -69,7 +69,7 @@ end");
       check(TokenType.Label, 5, 13, "::");
       check(TokenType.End, 6, 1, "end");
 
-      check(TokenType.None, 0, 0, null);
+      check(TokenType.None, 6, 4, "");
     }
 
     [Test]
@@ -92,7 +92,7 @@ end"
       check(TokenType.StringLiteral, 1, 5,
             "\"\nthis is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n");
       check(TokenType.End, 6, 1, "end");
-      check(TokenType.None, 0, 0, null);
+      check(TokenType.None, 6, 4, "");
     }
 
     [Test]

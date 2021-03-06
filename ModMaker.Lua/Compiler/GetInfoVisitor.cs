@@ -174,10 +174,10 @@ namespace ModMaker.Lua.Compiler {
         target.Block.Accept(this);
       }
 
-      for (int i = 0; i < target.Elses.Count; i++) {
+      foreach (IfItem.ElseInfo info in target.Elses) {
         using (_tree.Block(true)) {
-          target.Elses[i].Expression.Accept(this);
-          target.Elses[i].Block.Accept(this);
+          info.Expression.Accept(this);
+          info.Block.Accept(this);
         }
       }
 

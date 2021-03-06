@@ -19,55 +19,25 @@ namespace ModMaker.Lua.Parser.Items {
   /// Defines a parse item that represents an indexer expression.
   /// </summary>
   public sealed class IndexerItem : IParseVariable {
-    IParseExp _prefix;
-    IParseExp _exp;
-
     /// <summary>
     /// Creates a new IndexerItem.
     /// </summary>
     /// <param name="prefix">The prefix expression.</param>
     /// <param name="exp">The expression of the accessed member.</param>
-    /// <exception cref="System.ArgumentNullException">If prefix or exp is null.</exception>
     public IndexerItem(IParseExp prefix, IParseExp exp) {
       Prefix = prefix;
       Expression = exp;
     }
-    /// <summary>
-    /// Creates a new IndexerItem.
-    /// </summary>
-    /// <param name="prefix">The prefix expression.</param>
-    /// <param name="name">The name of the accessed member.</param>
-    /// <exception cref="System.ArgumentNullException">If prefix or name is null.</exception>
-    public IndexerItem(IParseExp prefix, string name) : this(prefix, new LiteralItem(name)) { }
 
     /// <summary>
     /// Gets or sets the prefix expression.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Prefix {
-      get { return _prefix; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _prefix = value;
-      }
-    }
+    public IParseExp Prefix { get; set; }
     /// <summary>
     /// Gets or sets the indexing expression.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Expression {
-      get { return _exp; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
+    public IParseExp Expression { get; set; }
 
-        _exp = value;
-      }
-    }
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

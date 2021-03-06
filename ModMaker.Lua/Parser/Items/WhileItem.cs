@@ -22,12 +22,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of WhileItem.
     /// </summary>
-    public WhileItem() { }
+    public WhileItem(IParseExp exp, BlockItem block) {
+      Expression = exp;
+      Block = block;
+    }
 
-    /// <summary>
-    /// Gets a label that represents a break from the loop.
-    /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
     /// <summary>
     /// Gets or sets the expression that determines the bounds of the loop.
     /// </summary>
@@ -36,6 +35,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the block of this loop.
     /// </summary>
     public BlockItem Block { get; set; }
+    /// <summary>
+    /// Gets a label that represents a break from the loop.
+    /// </summary>
+    public LabelItem Break { get; } = new LabelItem("<break>");
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

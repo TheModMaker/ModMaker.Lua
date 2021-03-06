@@ -13,32 +13,33 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a block of code.
   /// </summary>
   public sealed class BlockItem : IParseStatement {
-    readonly List<IParseStatement> _children = new List<IParseStatement>();
-
     /// <summary>
     /// Creates a new empty BlockItem.
     /// </summary>
-    public BlockItem() { }
-
+    public BlockItem() : this(new IParseStatement[0]) { }
     /// <summary>
-    /// Gets or sets the return statement of the block, can be null.
+    /// Creates a new BlockItem with the given return values.
     /// </summary>
-    public ReturnItem Return { get; set; }
+    /// <param name="statements">The statements that make up the block.</param>
+    public BlockItem(IParseStatement[] statements) {
+      Children = statements;
+    }
+
     /// <summary>
     /// Gets the children of the block item.
     /// </summary>
-    public ReadOnlyCollection<IParseStatement> Children {
-      get { return new ReadOnlyCollection<IParseStatement>(_children); }
-    }
+    public IParseStatement[] Children { get; set; }
+    /// <summary>
+    /// Gets or sets the return statement of the block, can be null.
+    /// </summary>
+    public ReturnItem Return { get; set; } = null;
+
     public object UserData { get; set; }
     public Token Debug { get; set; }
 
@@ -48,37 +49,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds a child element to the block.
-    /// </summary>
-    /// <param name="child">The child statement to add.</param>
-    /// <exception cref="System.ArgumentNullException">If child is null.</exception>
-    public void AddItem(IParseStatement child) {
-      if (child == null) {
-        throw new ArgumentNullException(nameof(child));
-      }
-
-      _children.Add(child);
-    }
-    /// <summary>
-    /// Adds a range of child elements to the block.
-    /// </summary>
-    /// <param name="children">The children to add.</param>
-    /// <exception cref="System.ArgumentException">
-    /// If children contains a null item -or- if one of the children is not a statement.
-    /// </exception>
-    /// <exception cref="System.ArgumentNullException">If children is null.</exception>
-    public void AddRange(IEnumerable<IParseStatement> children) {
-      if (children == null) {
-        throw new ArgumentNullException(nameof(children));
-      }
-
-      if (children.Contains(null)) {
-        throw new ArgumentException(string.Format(Resources.CannotContainNull, nameof(children)));
-      }
-
-      _children.AddRange(children);
     }
   }
 }

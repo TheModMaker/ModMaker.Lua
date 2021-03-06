@@ -148,6 +148,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the type of the operation, e.g. addition.
     /// </summary>
     public BinaryOperationType OperationType { get; set; }
+
     public object UserData { get; set; }
     public Token Debug { get; set; }
 

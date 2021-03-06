@@ -172,9 +172,9 @@ namespace ModMaker.Lua.Compiler {
 
       using (_compiler.LocalBlock()) {
         // temp = new ILuaValue[...];
-        var temp = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Count);
+        var temp = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Length);
 
-        for (int i = 0; i < target.Expressions.Count; i++) {
+        for (int i = 0; i < target.Expressions.Length; i++) {
           // temp[{i}] = {item};
           gen.Emit(OpCodes.Ldloc, temp);
           gen.Emit(OpCodes.Ldc_I4, i);
@@ -224,7 +224,7 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Stloc, ret);
         _compiler.RemoveTemporary(enumerator);
 
-        for (int i = 0; i < target.Names.Count; i++) {
+        for (int i = 0; i < target.Names.Length; i++) {
           // {_names[i]} = ret[{i}];
           var field = _compiler.DefineLocal(target.Names[i]);
           field.StartSet();
@@ -464,13 +464,13 @@ namespace ModMaker.Lua.Compiler {
       }
 
       // var args = new ILuaValue[...];
-      LocalBuilder args = _compiler.CreateArray(typeof(ILuaValue), target.Arguments.Count);
-      for (int i = 0; i < target.Arguments.Count; i++) {
+      LocalBuilder args = _compiler.CreateArray(typeof(ILuaValue), target.Arguments.Length);
+      for (int i = 0; i < target.Arguments.Length; i++) {
         // args[i] = {item};
         gen.Emit(OpCodes.Ldloc, args);
         gen.Emit(OpCodes.Ldc_I4, i);
         target.Arguments[i].Expression.Accept(this);
-        if (i + 1 == target.Arguments.Count && target.IsLastArgSingle) {
+        if (i + 1 == target.Arguments.Length && target.IsLastArgSingle) {
           gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
         }
 
@@ -508,7 +508,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       // support byRef
-      for (int i = 0; i < target.Arguments.Count; i++) {
+      for (int i = 0; i < target.Arguments.Length; i++) {
         if (target.Arguments[i].IsByRef) {
           _assignValue(target.Arguments[i].Expression, false, null, () => {
             // $value = rargs[{i}];
@@ -751,7 +751,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
-      if (target.Expressions.Count == 1 && !target.IsLastExpressionSingle &&
+      if (target.Expressions.Length == 1 && !target.IsLastExpressionSingle &&
           target.Expressions[0] is FuncCallItem func) {
         func.IsTailCall = true;
         target.Expressions[0].Accept(this);
@@ -759,14 +759,14 @@ namespace ModMaker.Lua.Compiler {
       }
 
       // ILuaValue[] loc = new ILuaValue[{Expressions.Count}];
-      LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Count);
+      LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Length);
 
-      for (int i = 0; i < target.Expressions.Count; i++) {
+      for (int i = 0; i < target.Expressions.Length; i++) {
         // loc[{i}] = {Expressions[i]};
         gen.Emit(OpCodes.Ldloc, loc);
         gen.Emit(OpCodes.Ldc_I4, i);
         target.Expressions[i].Accept(this);
-        if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle) {
+        if (i + 1 == target.Expressions.Length && target.IsLastExpressionSingle) {
           gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
         }
 
@@ -845,14 +845,14 @@ namespace ModMaker.Lua.Compiler {
       ILGenerator gen = _compiler.CurrentGenerator;
 
       // ILuaValue[] loc = new ILuaValue[{target.Expressions.Count}];
-      LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Count);
+      LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Length);
       // ILuaValue[] names = new ILuaValue[{target.Names.Count}];
-      LocalBuilder names = _compiler.CreateArray(typeof(ILuaValue), target.Names.Count);
+      LocalBuilder names = _compiler.CreateArray(typeof(ILuaValue), target.Names.Length);
 
       // Have to evaluate the name indexer expressions before setting the values otherwise the
       // following will fail:
       // i, t[i] = i+1, 20
-      for (int i = 0; i < target.Names.Count; i++) {
+      for (int i = 0; i < target.Names.Length; i++) {
         if (target.Names[i] is IndexerItem item) {
           gen.Emit(OpCodes.Ldloc, names);
           gen.Emit(OpCodes.Ldc_I4, i);
@@ -861,12 +861,12 @@ namespace ModMaker.Lua.Compiler {
         }
       }
 
-      for (int i = 0; i < target.Expressions.Count; i++) {
+      for (int i = 0; i < target.Expressions.Length; i++) {
         // loc[{i}] = {exps[i]};
         gen.Emit(OpCodes.Ldloc, loc);
         gen.Emit(OpCodes.Ldc_I4, i);
         target.Expressions[i].Accept(this);
-        if (i + 1 == target.Expressions.Count && target.IsLastExpressionSingle) {
+        if (i + 1 == target.Expressions.Length && target.IsLastExpressionSingle) {
           gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Single)));
         }
 
@@ -884,7 +884,7 @@ namespace ModMaker.Lua.Compiler {
       gen.Emit(OpCodes.Stloc, exp);
       _compiler.RemoveTemporary(loc);
 
-      for (int i = 0; i < target.Names.Count; i++) {
+      for (int i = 0; i < target.Names.Length; i++) {
         _assignValue(
             target.Names[i], target.Local,
             !(target.Names[i] is IndexerItem) ? (Action)null : () => {

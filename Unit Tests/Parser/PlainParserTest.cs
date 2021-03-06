@@ -51,7 +51,7 @@ namespace UnitTests.Parser {
     T _parseStatement<T>(string input) where T : class {
       var block = _parseBlock(input) as BlockItem;
       Assert.IsNotNull(block);
-      Assert.AreEqual(1, block.Children.Count);
+      Assert.AreEqual(1, block.Children.Length);
       var ret = block.Children[0] as T;
       Assert.IsNotNull(ret);
       return ret;
@@ -64,7 +64,7 @@ namespace UnitTests.Parser {
     /// <returns>The parsed expression.</returns>
     T _parseExpression<T>(string input) where T : class {
       var assign = _parseStatement<AssignmentItem>("local x = " + input);
-      Assert.AreEqual(assign.Expressions.Count, 1);
+      Assert.AreEqual(assign.Expressions.Length, 1);
       var ret = assign.Expressions[0] as T;
       Assert.IsNotNull(ret);
       return ret;
@@ -109,7 +109,7 @@ end";
       BlockItem block = actual as BlockItem;
       Assert.IsInstanceOf<BlockItem>(actual);
       Assert.IsNotNull(block.Children);
-      Assert.AreEqual(3, block.Children.Count, "Block.Children.Count");
+      Assert.AreEqual(3, block.Children.Length, "Block.Children.Count");
       _validateDebug(block.Debug, "Block", "local", 1, 1);
 
       // Check the return statement of the main block
@@ -118,7 +118,7 @@ end";
         Assert.IsInstanceOf<ReturnItem>(block.Return);
         _validateDebug(ret.Debug, "Block.Return", null, 0, 0);
         Assert.IsNotNull(ret.Expressions);
-        Assert.AreEqual(0, ret.Expressions.Count);
+        Assert.AreEqual(0, ret.Expressions.Length);
       }
 
       // local a = 12
@@ -131,7 +131,7 @@ end";
         // Check the names
         {
           Assert.IsNotNull(init.Names, "Block.Children[0].Names");
-          Assert.AreEqual(1, init.Names.Count, "Block.Children[0].Names.Count");
+          Assert.AreEqual(1, init.Names.Length, "Block.Children[0].Names.Count");
 
           NameItem name = init.Names[0] as NameItem;
           Assert.IsNotNull(name, "Block.Children[0].Names[0]");
@@ -142,7 +142,7 @@ end";
         // Check the expressions
         {
           Assert.IsNotNull(init.Expressions, "Block.Children[0].Expressions");
-          Assert.AreEqual(1, init.Expressions.Count, "Block.Children[0].Expressions.Count");
+          Assert.AreEqual(1, init.Expressions.Length, "Block.Children[0].Expressions.Count");
 
           LiteralItem literal = init.Expressions[0] as LiteralItem;
           Assert.IsNotNull(literal, "Block.Children[0].Expressions[0]");
@@ -161,7 +161,7 @@ end";
         // Check the names
         {
           Assert.IsNotNull(init.Names, "Block.Children[1].Names");
-          Assert.AreEqual(1, init.Names.Count, "Block.Children[1].Names.Count");
+          Assert.AreEqual(1, init.Names.Length, "Block.Children[1].Names.Count");
 
           NameItem name = init.Names[0] as NameItem;
           Assert.IsNotNull(name, "Block.Children[1].Names[0]");
@@ -172,14 +172,14 @@ end";
         // Check the expressions
         {
           Assert.IsNotNull(init.Expressions, "Block.Children[1].Expressions");
-          Assert.AreEqual(1, init.Expressions.Count, "Block.Children[1].Expressions.Count");
+          Assert.AreEqual(1, init.Expressions.Length, "Block.Children[1].Expressions.Count");
 
           TableItem table = init.Expressions[0] as TableItem;
           Assert.IsNotNull(table, "Block.Children[1].Expressions[0]");
           _validateDebug(table.Debug, "Block.Children[1].Expressions[0]", "{", 2, 5);
 
           Assert.IsNotNull(table.Fields, "Block.Children[1].Expressions[0].Fields");
-          Assert.AreEqual(1, table.Fields.Count, "Block.Children[1].Expressions[0].Fields.Count");
+          Assert.AreEqual(1, table.Fields.Length, "Block.Children[1].Expressions[0].Fields.Count");
 
           var field = table.Fields[0];
           {
@@ -223,7 +223,7 @@ end";
                     ret.Expressions,
                     "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions");
                 Assert.AreEqual(
-                    0, ret.Expressions.Count,
+                    0, ret.Expressions.Length,
                     "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions.Count");
               }
 
@@ -232,7 +232,7 @@ end";
                 Assert.IsNotNull(funcBlock.Children,
                                  "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children");
                 Assert.AreEqual(
-                    1, funcBlock.Children.Count,
+                    1, funcBlock.Children.Length,
                     "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children.Count");
 
                 // print ( i )
@@ -272,7 +272,7 @@ end";
                         call.Arguments,
                         "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments");
                     Assert.AreEqual(
-                        1, call.Arguments.Count,
+                        1, call.Arguments.Length,
                         "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments.Count");
 
                     NameItem name = call.Arguments[0].Expression as NameItem;
@@ -313,14 +313,14 @@ end";
             Assert.IsNotNull(ret, "Block.Children[2].Block.Return");
             _validateDebug(ret.Debug, "Block.Children[2].Block.Return", null, 0, 0);
             Assert.IsNotNull(ret.Expressions, "Block.Children[2].Block.Return.Expressions");
-            Assert.AreEqual(0, ret.Expressions.Count,
+            Assert.AreEqual(0, ret.Expressions.Length,
                             "Block.Children[2].Block.Return.Expressions.Count");
           }
 
           // Check the children
           {
             Assert.IsNotNull(someBlock.Children, "Block.Children[2].Block.Children");
-            Assert.AreEqual(2, someBlock.Children.Count, "Block.Children[2].Block.Children.Count");
+            Assert.AreEqual(2, someBlock.Children.Length, "Block.Children[2].Block.Children.Count");
 
             // a , b , c = ...
             {
@@ -332,7 +332,7 @@ end";
               // Validate the names
               {
                 Assert.IsNotNull(varInit.Names, "Block.Children[2].Block.Children[0].Names");
-                Assert.AreEqual(3, varInit.Names.Count,
+                Assert.AreEqual(3, varInit.Names.Length,
                                 "Block.Children[2].Block.Children[0].Names.Count");
 
                 NameItem name = varInit.Names[0] as NameItem;
@@ -360,7 +360,7 @@ end";
               {
                 Assert.IsNotNull(varInit.Expressions,
                                  "Block.Children[2].Block.Children[0].Expressions");
-                Assert.AreEqual(1, varInit.Expressions.Count,
+                Assert.AreEqual(1, varInit.Expressions.Length,
                                 "Block.Children[2].Block.Children[0].Expressions.Count");
 
                 NameItem name = varInit.Expressions[0] as NameItem;
@@ -417,7 +417,7 @@ end";
                 {
                   Assert.IsNotNull(forBlock.Children,
                                    "Block.Children[2].Block.Children[1].Block.Children");
-                  Assert.AreEqual(1, forBlock.Children.Count,
+                  Assert.AreEqual(1, forBlock.Children.Length,
                                   "Block.Children[2].Block.Children[1].Block.Children.Count");
 
                   // print ( i )
@@ -455,7 +455,7 @@ end";
                           call.Arguments,
                           "Block.Children[2].Block.Children[1].Block.Children[0].Arguments");
                       Assert.AreEqual(
-                          1, call.Arguments.Count,
+                          1, call.Arguments.Length,
                           "Block.Children[2].Block.Children[1].Block.Children[0].Arguments.Count");
 
                       NameItem name = call.Arguments[0].Expression as NameItem;
@@ -560,7 +560,7 @@ end";
     public void ReadExp_Literals() {
       var str = "foo(nil, false, true, 123, 'foo')";
       var item = _parseExpression<FuncCallItem>(str);
-      Assert.AreEqual(5, item.Arguments.Count);
+      Assert.AreEqual(5, item.Arguments.Length);
       _assertIsLiteral(item.Arguments[0].Expression, null);
       _assertIsLiteral(item.Arguments[1].Expression, false);
       _assertIsLiteral(item.Arguments[2].Expression, true);
@@ -589,7 +589,7 @@ end";
       Assert.AreEqual(-1, item.Overload);
       Assert.IsFalse(item.Statement);
 
-      Assert.AreEqual(5, item.Arguments.Count);
+      Assert.AreEqual(5, item.Arguments.Length);
       _assertIsVariable(item.Arguments[0].Expression, "foo");
       Assert.IsFalse(item.Arguments[0].IsByRef);
       Assert.IsInstanceOf<BinOpItem>(item.Arguments[1].Expression);
@@ -606,7 +606,7 @@ end";
     public void ReadExp_CallLastSingle() {
       var item = _parseExpression<FuncCallItem>("foo((x))");
       Assert.IsTrue(item.IsLastArgSingle);
-      Assert.AreEqual(1, item.Arguments.Count);
+      Assert.AreEqual(1, item.Arguments.Length);
       _assertIsVariable(item.Arguments[0].Expression, "x");
     }
 
@@ -629,7 +629,7 @@ end";
     public void ReadExp_CallWithString() {
       var item = _parseExpression<FuncCallItem>("foo 'bar'");
       _assertIsVariable(item.Prefix, "foo");
-      Assert.AreEqual(1, item.Arguments.Count);
+      Assert.AreEqual(1, item.Arguments.Length);
       _assertIsLiteral(item.Arguments[0].Expression, "bar");
       Assert.IsFalse(item.Arguments[0].IsByRef);
     }
@@ -638,7 +638,7 @@ end";
     public void ReadExp_CallWithTable() {
       var item = _parseExpression<FuncCallItem>("foo {}");
       _assertIsVariable(item.Prefix, "foo");
-      Assert.AreEqual(1, item.Arguments.Count);
+      Assert.AreEqual(1, item.Arguments.Length);
       Assert.IsInstanceOf<TableItem>(item.Arguments[0].Expression);
       Assert.IsFalse(item.Arguments[0].IsByRef);
     }
@@ -646,13 +646,13 @@ end";
     [Test]
     public void ReadTable_Empty() {
       var item = _parseExpression<TableItem>("{}");
-      Assert.AreEqual(0, item.Fields.Count);
+      Assert.AreEqual(0, item.Fields.Length);
     }
 
     [Test]
     public void ReadTable_AcceptsNamedKeys() {
       var item = _parseExpression<TableItem>("{x=1,y=2}");
-      Assert.AreEqual(2, item.Fields.Count);
+      Assert.AreEqual(2, item.Fields.Length);
       _assertIsLiteral(item.Fields[0].Key, "x");
       _assertIsLiteral(item.Fields[0].Value, 1);
       _assertIsLiteral(item.Fields[1].Key, "y");
@@ -662,7 +662,7 @@ end";
     [Test]
     public void ReadTable_AcceptsExpressionKeys() {
       var item = _parseExpression<TableItem>("{[x+1]=1}");
-      Assert.AreEqual(1, item.Fields.Count);
+      Assert.AreEqual(1, item.Fields.Length);
       Assert.IsInstanceOf<BinOpItem>(item.Fields[0].Key);
       _assertIsLiteral(item.Fields[0].Value, 1);
     }
@@ -670,7 +670,7 @@ end";
     [Test]
     public void ReadTable_AcceptsJustValues() {
       var item = _parseExpression<TableItem>("{10; 20; 30}");
-      Assert.AreEqual(3, item.Fields.Count);
+      Assert.AreEqual(3, item.Fields.Length);
       _assertIsLiteral(item.Fields[0].Key, 1);
       _assertIsLiteral(item.Fields[0].Value, 10);
       _assertIsLiteral(item.Fields[1].Key, 2);
@@ -683,7 +683,7 @@ end";
     public void ReadTable_AcceptsMixedKeysAndValues() {
       var str = "{ [f(1)] = g; 'x', 'y'; x = 1, f(x), [30] = 23; 45 }";
       var item = _parseExpression<TableItem>(str);
-      Assert.AreEqual(7, item.Fields.Count);
+      Assert.AreEqual(7, item.Fields.Length);
       Assert.IsInstanceOf<FuncCallItem>(item.Fields[0].Key);
       _assertIsVariable(item.Fields[0].Value, "g");
       _assertIsLiteral(item.Fields[1].Key, 1);
@@ -724,12 +724,12 @@ end";
     public void ReadStatement_ForGeneric() {
       var str = "for x, y in foo do end";
       var item = _parseStatement<ForGenItem>(str);
-      Assert.AreEqual(2, item.Names.Count);
+      Assert.AreEqual(2, item.Names.Length);
       Assert.AreEqual("x", item.Names[0].Name);
       Assert.AreEqual("y", item.Names[1].Name);
-      Assert.AreEqual(1, item.Expressions.Count);
+      Assert.AreEqual(1, item.Expressions.Length);
       _assertIsVariable(item.Expressions[0], "foo");
-      Assert.AreEqual(0, item.Block.Children.Count);
+      Assert.AreEqual(0, item.Block.Children.Length);
     }
 
     [Test]
@@ -740,7 +740,7 @@ end";
       _assertIsVariable(item.Start, "i");
       _assertIsVariable(item.Limit, "j");
       _assertIsVariable(item.Step, "k");
-      Assert.AreEqual(0, item.Block.Children.Count);
+      Assert.AreEqual(0, item.Block.Children.Length);
     }
 
     [Test]
@@ -748,8 +748,8 @@ end";
       var str = "if i then end";
       var item = _parseStatement<IfItem>(str);
       _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Count);
-      Assert.AreEqual(0, item.Elses.Count);
+      Assert.AreEqual(0, item.Block.Children.Length);
+      Assert.AreEqual(0, item.Elses.Length);
       Assert.IsNull(item.ElseBlock);
     }
 
@@ -758,9 +758,9 @@ end";
       var str = "if i then else end";
       var item = _parseStatement<IfItem>(str);
       _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Count);
-      Assert.AreEqual(0, item.Elses.Count);
-      Assert.AreEqual(0, item.ElseBlock.Children.Count);
+      Assert.AreEqual(0, item.Block.Children.Length);
+      Assert.AreEqual(0, item.Elses.Length);
+      Assert.AreEqual(0, item.ElseBlock.Children.Length);
     }
 
     [Test]
@@ -768,11 +768,11 @@ end";
       var str = "if i then elseif y then x = 1 end";
       var item = _parseStatement<IfItem>(str);
       _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Count);
+      Assert.AreEqual(0, item.Block.Children.Length);
       Assert.IsNull(item.ElseBlock);
-      Assert.AreEqual(1, item.Elses.Count);
+      Assert.AreEqual(1, item.Elses.Length);
       _assertIsVariable(item.Elses[0].Expression, "y");
-      Assert.AreEqual(1, item.Elses[0].Block.Children.Count);
+      Assert.AreEqual(1, item.Elses[0].Block.Children.Length);
       Assert.IsInstanceOf<AssignmentItem>(item.Elses[0].Block.Children[0]);
     }
 
@@ -781,7 +781,7 @@ end";
       var str = "repeat x = 1 until i";
       var item = _parseStatement<RepeatItem>(str);
       _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(1, item.Block.Children.Count);
+      Assert.AreEqual(1, item.Block.Children.Length);
       Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[0]);
     }
 
@@ -801,7 +801,7 @@ end";
     public void ReadStatement_Do() {
       var item = _parseStatement<BlockItem>("do x = 1 end");
       Assert.IsNull(item.Return);
-      Assert.AreEqual(1, item.Children.Count);
+      Assert.AreEqual(1, item.Children.Length);
       Assert.IsInstanceOf<AssignmentItem>(item.Children[0]);
     }
 
@@ -811,7 +811,7 @@ end";
       var item = _parseStatement<WhileItem>(str);
       _assertIsVariable(item.Expression, "i");
       Assert.IsNull(item.Block.Return);
-      Assert.AreEqual(2, item.Block.Children.Count);
+      Assert.AreEqual(2, item.Block.Children.Length);
       Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[0]);
       Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[1]);
     }

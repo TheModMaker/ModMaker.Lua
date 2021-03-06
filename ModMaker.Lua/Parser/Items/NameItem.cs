@@ -33,6 +33,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the name of this instance.
     /// </summary>
     public string Name { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

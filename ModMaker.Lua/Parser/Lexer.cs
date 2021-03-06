@@ -177,9 +177,11 @@ namespace ModMaker.Lua.Parser {
     /// <param name="token">An optional token object to replace the current token.</param>
     /// <returns>A new SyntaxException object.</returns>
     public SyntaxException SyntaxError(string message, Token? token = null) {
-      return new SyntaxException(
-          message, Name,
-          token ?? new Token(TokenType.None, _input.Peek(1), _input.Column, _input.Line));
+      if (token == null && _peek.Count > 0) {
+        token = _peek.Peek();
+      }
+      token ??= new Token(TokenType.None, _input.Peek(1), _input.Column, _input.Line);
+      return new SyntaxException(message, Name, token.Value);
     }
 
     /// <summary>
@@ -221,7 +223,7 @@ namespace ModMaker.Lua.Parser {
 
       string first = _input.Peek(1);
       if (first == "") {
-        return new Token();
+        return new Token(TokenType.None, "", _input.Column, _input.Line);
       } else if (first == "_" || char.IsLetter(first, 0)) {
         return _readIdentifier();
       } else if (_tokens.ContainsKey(_input.Peek(3))) {

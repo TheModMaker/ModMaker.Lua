@@ -13,81 +13,12 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a function definition.
   /// </summary>
   public sealed class FuncDefItem : IParseStatement, IParseExp {
-    readonly IList<NameItem> _args = new List<NameItem>();
-
-    /// <summary>
-    /// Creates a new FuncDefItem with the given name.
-    /// </summary>
-    /// <param name="name">The name of the method, must be a NameItem or IndexerItem.</param>
-    public FuncDefItem(IParseVariable name) : this(name, false) { }
-    /// <summary>
-    /// Creates a new FuncDefItem with the given name.
-    /// </summary>
-    /// <param name="name">The name of the method, must be a NameItem or IndexerItem.</param>
-    /// <param name="local">True if this is a local definition, otherwise false.</param>
-    public FuncDefItem(IParseVariable name, bool local) {
-      Prefix = name;
-      Local = local;
-    }
-
-    /// <summary>
-    /// Gets the name of the arguments defined for this function definition.
-    /// </summary>
-    public ReadOnlyCollection<NameItem> Arguments {
-      get { return new ReadOnlyCollection<NameItem>(_args); }
-    }
-    /// <summary>
-    /// Gets or sets the prefix expression for this function definition, must be a NameItem or an
-    /// IndexerItem.
-    /// </summary>
-    public IParseVariable Prefix { get; set; }
-    /// <summary>
-    /// Gets or sets whether this is a local function definition.
-    /// </summary>
-    public bool Local { get; set; }
-    /// <summary>
-    /// Gets or sets the name if the instance method or null if this isn't an instance method.
-    /// </summary>
-    public string InstanceName { get; set; }
-    /// <summary>
-    /// Gets or sets the block of the function.
-    /// </summary>
-    public BlockItem Block { get; set; }
-    /// <summary>
-    /// Gets or sets information about the function. To get this information, use GetInfoVisitor.
-    /// </summary>
-    public FunctionInfo FunctionInformation { get; set; }
-    public Token Debug { get; set; }
-    public object UserData { get; set; }
-
-    public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
-      return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds a new argument to the definition.
-    /// </summary>
-    /// <param name="item">The item to add.</param>
-    /// <exception cref="System.ArgumentNullException">If item is null.</exception>
-    public void AddArgument(NameItem item) {
-      if (item == null) {
-        throw new ArgumentNullException(nameof(item));
-      }
-
-      _args.Add(item);
-    }
-
     /// <summary>
     /// Defines information about a function definition.  This is used by GetInfoVisitor and the
     /// compiler.  This manages captured variables and allows for smaller generated code.
@@ -112,6 +43,52 @@ namespace ModMaker.Lua.Parser.Items {
       /// nested  functions.
       /// </summary>
       public NameItem[] CapturedLocals { get; set; } = new NameItem[0];
+    }
+
+    /// <summary>
+    /// Creates a new FuncDefItem with the given name.
+    /// </summary>
+    /// <param name="name">The name of the method, must be a NameItem or IndexerItem.</param>
+    public FuncDefItem(NameItem[] args, BlockItem block) {
+      Arguments = args;
+      Block = block;
+    }
+
+    /// <summary>
+    /// Gets the name of the arguments defined for this function definition.
+    /// </summary>
+    public NameItem[] Arguments { get; set; }
+    /// <summary>
+    /// Gets or sets the block of the function.
+    /// </summary>
+    public BlockItem Block { get; set; }
+    /// <summary>
+    /// Gets or sets whether this is a local function definition.
+    /// </summary>
+    public bool Local { get; set; } = false;
+    /// <summary>
+    /// Gets or sets the prefix expression for this function definition, must be a NameItem or an
+    /// IndexerItem.
+    /// </summary>
+    public IParseVariable Prefix { get; set; } = null;
+    /// <summary>
+    /// Gets or sets the name if the instance method or null if this isn't an instance method.
+    /// </summary>
+    public string InstanceName { get; set; } = null;
+    /// <summary>
+    /// Gets or sets information about the function. To get this information, use GetInfoVisitor.
+    /// </summary>
+    public FunctionInfo FunctionInformation { get; set; } = null;
+
+    public Token Debug { get; set; }
+    public object UserData { get; set; }
+
+    public IParseItem Accept(IParseItemVisitor visitor) {
+      if (visitor == null) {
+        throw new ArgumentNullException(nameof(visitor));
+      }
+
+      return visitor.Visit(this);
     }
   }
 }

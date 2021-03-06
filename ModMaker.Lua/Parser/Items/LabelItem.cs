@@ -24,10 +24,6 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     /// <param name="name">The name of the label.</param>
     public LabelItem(string name) {
-      if (name == null) {
-        throw new ArgumentNullException(nameof(name));
-      }
-
       Name = name;
     }
 
@@ -35,6 +31,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the name of the label.
     /// </summary>
     public string Name { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

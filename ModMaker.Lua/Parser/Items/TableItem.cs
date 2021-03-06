@@ -14,28 +14,29 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a table definition expression.
   /// </summary>
   public sealed class TableItem : IParseExp {
-    readonly IList<KeyValuePair<IParseExp, IParseExp>> _fields =
-        new List<KeyValuePair<IParseExp, IParseExp>>();
-    double _nextId = 1;
+    /// <summary>
+    /// Creates a new TableItem with no entries.
+    /// </summary>
+    public TableItem() : this(new KeyValuePair<IParseExp, IParseExp>[0]) { }
 
     /// <summary>
     /// Creates a new instance of TableItem.
     /// </summary>
-    public TableItem() { }
+    public TableItem(KeyValuePair<IParseExp, IParseExp>[] fields) {
+      Fields = fields;
+    }
 
     /// <summary>
     /// Gets the fields of the table.
     /// </summary>
-    public ReadOnlyCollection<KeyValuePair<IParseExp, IParseExp>> Fields {
-      get { return new ReadOnlyCollection<KeyValuePair<IParseExp, IParseExp>>(_fields); }
-    }
+    public KeyValuePair<IParseExp, IParseExp>[] Fields { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
@@ -45,23 +46,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds a new item to the table definition.
-    /// </summary>
-    /// <param name="index">The index expression.</param>
-    /// <param name="exp">The value expression.</param>
-    /// <exception cref="System.ArgumentNullException">If exp is null.</exception>
-    public void AddItem(IParseExp index, IParseExp exp) {
-      if (exp == null) {
-        throw new ArgumentNullException(nameof(exp));
-      }
-
-      if (index == null) {
-        index = new LiteralItem(_nextId++);
-      }
-
-      _fields.Add(new KeyValuePair<IParseExp, IParseExp>(index, exp));
     }
   }
 }

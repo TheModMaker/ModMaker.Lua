@@ -27,7 +27,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="name">The name of the class.</param>
     /// <param name="implements">The types that it implements.</param>
     public ClassDefItem(string name, string[] implements) {
-      implements = implements ?? new string[0];
+      implements ??= new string[0];
       Name = name;
       Implements = new List<string>(implements.Where(s => !string.IsNullOrEmpty(s)));
     }
@@ -40,6 +40,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets the types that this class implements.
     /// </summary>
     public IList<string> Implements { get; private set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

@@ -20,9 +20,6 @@ namespace ModMaker.Lua.Parser.Items {
   /// e.g. for i = 2, 4 do ... end.
   /// </summary>
   public sealed class ForNumItem : IParseStatement {
-    IParseExp _start;
-    IParseExp _limit;
-
     /// <summary>
     /// Creates a new ForNumItem with the given name.
     /// </summary>
@@ -31,7 +28,8 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="start">The item that defines the start of the loop.</param>
     /// <param name="step">The item that defines the step of the loop.</param>
     /// <exception cref="System.ArgumentNullException">If name, start, or limit is null.</exception>
-    public ForNumItem(NameItem name, IParseExp start, IParseExp limit, IParseExp step) {
+    public ForNumItem(NameItem name, IParseExp start, IParseExp limit, IParseExp step,
+                      BlockItem block) {
       if (name == null) {
         throw new ArgumentNullException(nameof(name));
       }
@@ -44,16 +42,13 @@ namespace ModMaker.Lua.Parser.Items {
         throw new ArgumentNullException(nameof(limit));
       }
 
-      _start = start;
-      _limit = limit;
+      Start = start;
+      Limit = limit;
       Step = step;
       Name = name;
+      Block = block;
     }
 
-    /// <summary>
-    /// Gets the label that represents a break from the loop.
-    /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
     /// <summary>
     /// Gets or sets the name of the variable in the loop.
     /// </summary>
@@ -62,30 +57,12 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the expression that determines the start of the loop.
     /// </summary>
     /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Start {
-      get { return _start; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _start = value;
-      }
-    }
+    public IParseExp Start { get; set; }
     /// <summary>
     /// Gets or sets the expression that determines the limit of the loop.
     /// </summary>
     /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Limit {
-      get { return _limit; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _limit = value;
-      }
-    }
+    public IParseExp Limit { get; set; }
     /// <summary>
     /// Gets or sets the expression that determines the step of the loop.
     /// </summary>
@@ -94,6 +71,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the block of the for loop.
     /// </summary>
     public BlockItem Block { get; set; }
+    /// <summary>
+    /// Gets the label that represents a break from the loop.
+    /// </summary>
+    public LabelItem Break { get; } = new LabelItem("<break>");
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 

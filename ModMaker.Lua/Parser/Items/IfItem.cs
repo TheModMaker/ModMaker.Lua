@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -22,8 +20,6 @@ namespace ModMaker.Lua.Parser.Items {
   /// else, and zero or more optional else if statements.
   /// </summary>
   public sealed class IfItem : IParseStatement {
-    readonly IList<ElseInfo> _elses = new List<ElseInfo>();
-
     /// <summary>
     /// Contains information about an else if statement.
     /// </summary>
@@ -48,18 +44,14 @@ namespace ModMaker.Lua.Parser.Items {
       public readonly BlockItem Block;
     }
 
-    /// <summary>
-    /// Creates a new empty IfItem.
-    /// </summary>
-    public IfItem() { }
-
-    /// <summary>
-    /// Gets the else-if statements, the first item is the conditional, the second is the block
-    /// contents.
-    /// </summary>
-    public ReadOnlyCollection<ElseInfo> Elses {
-      get { return new ReadOnlyCollection<ElseInfo>(_elses); }
+    public IfItem(IParseExp exp, BlockItem block) : this(exp, block, new ElseInfo[0], null) { }
+    public IfItem(IParseExp exp, BlockItem block, ElseInfo[] elses, BlockItem elseBlock = null) {
+      Expression = exp;
+      Block = block;
+      Elses = elses;
+      ElseBlock = elseBlock;
     }
+
     /// <summary>
     /// The conditional expression for the first if block.
     /// </summary>
@@ -69,9 +61,15 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public BlockItem Block { get; set; }
     /// <summary>
+    /// Gets the else-if statements, the first item is the conditional, the second is the block
+    /// contents.
+    /// </summary>
+    public ElseInfo[] Elses { get; set; }
+    /// <summary>
     /// The else block to execute if none are true.
     /// </summary>
     public BlockItem ElseBlock { get; set; }
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
@@ -81,24 +79,6 @@ namespace ModMaker.Lua.Parser.Items {
       }
 
       return visitor.Visit(this);
-    }
-    /// <summary>
-    /// Adds an else expression to this instance.
-    /// </summary>
-    /// <param name="exp">The else expression.</param>
-    /// <param name="block">The else block.</param>
-    /// <exception cref="System.ArgumentNullException">If exp or block is null.</exception>
-    /// <exception cref="System.ArgumentException">If exp is not an expression.</exception>
-    public void AddElse(IParseExp exp, BlockItem block) {
-      if (exp == null) {
-        throw new ArgumentNullException(nameof(exp));
-      }
-
-      if (block == null) {
-        throw new ArgumentNullException(nameof(block));
-      }
-
-      _elses.Add(new ElseInfo(exp, block));
     }
   }
 }

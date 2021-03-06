@@ -22,12 +22,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of RepeatItem.
     /// </summary>
-    public RepeatItem() { }
+    public RepeatItem(IParseExp exp, BlockItem block) {
+      Block = block;
+      Expression = exp;
+    }
 
-    /// <summary>
-    /// Gets a label that represents a break from the loop.
-    /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
     /// <summary>
     /// Gets or sets the block of the loop.
     /// </summary>
@@ -36,6 +35,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the expression that defines the end of the loop.
     /// </summary>
     public IParseExp Expression { get; set; }
+    /// <summary>
+    /// Gets a label that represents a break from the loop.
+    /// </summary>
+    public LabelItem Break { get; } = new LabelItem("<break>");
+
     public Token Debug { get; set; }
     public object UserData { get; set; }
 
