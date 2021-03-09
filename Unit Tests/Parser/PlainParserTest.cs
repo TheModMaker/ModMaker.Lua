@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -23,19 +22,6 @@ using NUnit.Framework;
 namespace UnitTests.Parser {
   [TestFixture]
   public class PlainParserTest {
-    class SyntaxErrorCollection : List<Tuple<string, int>> {
-      public SyntaxErrorCollection() { }
-      public void Add(string body, int column) {
-        Add(new Tuple<string, int>(body, column));
-      }
-    }
-
-    void _validateDebug(Token debug, string prefix, string value, long startLine, long startPos) {
-      Assert.AreEqual(value, debug.Value, prefix + ".Debug.Value");
-      Assert.AreEqual(startLine, debug.StartLine, prefix + ".Debug.StartLine");
-      Assert.AreEqual(startPos, debug.StartPos, prefix + ".Debug.StartPos");
-    }
-
     IParseItem _parseBlock(string input) {
       PlainParser target = new PlainParser();
       var encoding = Encoding.UTF8;
@@ -43,57 +29,29 @@ namespace UnitTests.Parser {
       return target.Parse(stream, encoding, null);
     }
 
-    /// <summary>
-    /// Parses the given statement code.
-    /// </summary>
-    /// <param name="input">The input code.</param>
-    /// <returns>The parsed statement.</returns>
-    T _parseStatement<T>(string input) where T : class {
+    IParseItem _parseStatement(string input) {
       var block = _parseBlock(input) as BlockItem;
       Assert.IsNotNull(block);
       Assert.AreEqual(1, block.Children.Length);
-      var ret = block.Children[0] as T;
-      Assert.IsNotNull(ret);
-      return ret;
+      return block.Children[0];
     }
 
-    /// <summary>
-    /// Parses the given expression code.
-    /// </summary>
-    /// <param name="input">The input code.</param>
-    /// <returns>The parsed expression.</returns>
-    T _parseExpression<T>(string input) where T : class {
-      var assign = _parseStatement<AssignmentItem>("local x = " + input);
-      Assert.AreEqual(assign.Expressions.Length, 1);
-      var ret = assign.Expressions[0] as T;
-      Assert.IsNotNull(ret);
-      return ret;
+    IParseItem _parseExpression(string input) {
+      var stmt = _parseStatement("local x = " + input) as AssignmentItem;
+      Assert.IsNotNull(stmt);
+      Assert.AreEqual(1, stmt.Expressions.Length);
+      return stmt.Expressions[0];
     }
 
-    /// <summary>
-    /// Asserts the given parsed item is a variable with the given name.
-    /// </summary>
-    /// <param name="item">The item to check.</param>
-    /// <param name="name">The expected name of the variable.</param>
-    void _assertIsVariable(IParseItem item, string name) {
-      var nameItem = item as NameItem;
-      Assert.IsNotNull(nameItem);
-      Assert.AreEqual(name, nameItem.Name);
+    void _checkSyntaxError(string input, Token token) {
+      var err = Assert.Throws<SyntaxException>(() => _parseBlock(input));
+      Assert.AreEqual(token, err.SourceToken);
     }
 
-    /// <summary>
-    /// Asserts the given parsed item is a literal with the given value.
-    /// </summary>
-    /// <param name="item">The item to check.</param>
-    /// <param name="value">The expected value of the literal.</param>
-    void _assertIsLiteral(IParseItem item, object value) {
-      var literal = item as LiteralItem;
-      Assert.IsNotNull(literal);
-      Assert.AreEqual(value, literal.Value);
-    }
+    #region Expressions
 
     [Test]
-    public void GenralParse() {
+    public void GenralParseWithDebug() {
       string input1 =
 @"local a = 12
 t = { [34]= function() print(i) end }
@@ -103,761 +61,893 @@ function Some(a, ...)
         print(i)
     end
 end";
-      IParseItem actual = _parseBlock(input1);
 
-      // Check the main block
-      BlockItem block = actual as BlockItem;
-      Assert.IsInstanceOf<BlockItem>(actual);
-      Assert.IsNotNull(block.Children);
-      Assert.AreEqual(3, block.Children.Length, "Block.Children.Count");
-      _validateDebug(block.Debug, "Block", "local", 1, 1);
-
-      // Check the return statement of the main block
-      {
-        ReturnItem ret = block.Return;
-        Assert.IsInstanceOf<ReturnItem>(block.Return);
-        _validateDebug(ret.Debug, "Block.Return", null, 0, 0);
-        Assert.IsNotNull(ret.Expressions);
-        Assert.AreEqual(0, ret.Expressions.Length);
-      }
-
-      // local a = 12
-      {
-        AssignmentItem init = block.Children[0] as AssignmentItem;
-        Assert.IsNotNull(init, "Block.Children[0]");
-        Assert.AreEqual(true, init.Local);
-        _validateDebug(init.Debug, "Block.Children[0]", "local", 1, 1);
-
-        // Check the names
-        {
-          Assert.IsNotNull(init.Names, "Block.Children[0].Names");
-          Assert.AreEqual(1, init.Names.Length, "Block.Children[0].Names.Count");
-
-          NameItem name = init.Names[0] as NameItem;
-          Assert.IsNotNull(name, "Block.Children[0].Names[0]");
-          Assert.AreEqual("a", name.Name, "Block.Children[0].Names[0].Name");
-          _validateDebug(name.Debug, "Block.Children[0].Names[0]", "a", 1, 7);
-        }
-
-        // Check the expressions
-        {
-          Assert.IsNotNull(init.Expressions, "Block.Children[0].Expressions");
-          Assert.AreEqual(1, init.Expressions.Length, "Block.Children[0].Expressions.Count");
-
-          LiteralItem literal = init.Expressions[0] as LiteralItem;
-          Assert.IsNotNull(literal, "Block.Children[0].Expressions[0]");
-          Assert.AreEqual(12.0, literal.Value, "Block.Children[0].Expressions[0].Value");
-          _validateDebug(literal.Debug, "Block.Children[0].Expressions[0]", "12", 1, 11);
-        }
-      }
-
-      // t = { [34]= function() print(i) end }
-      {
-        AssignmentItem init = block.Children[1] as AssignmentItem;
-        Assert.IsNotNull(init, "Block.Children[1]");
-        Assert.AreEqual(false, init.Local);
-        _validateDebug(init.Debug, "Block.Children[1]", "t", 2, 1);
-
-        // Check the names
-        {
-          Assert.IsNotNull(init.Names, "Block.Children[1].Names");
-          Assert.AreEqual(1, init.Names.Length, "Block.Children[1].Names.Count");
-
-          NameItem name = init.Names[0] as NameItem;
-          Assert.IsNotNull(name, "Block.Children[1].Names[0]");
-          Assert.AreEqual("t", name.Name, "Block.Children[1].Names[0].Name");
-          _validateDebug(name.Debug, "Block.Children[1].Names[0]", "t", 2, 1);
-        }
-
-        // Check the expressions
-        {
-          Assert.IsNotNull(init.Expressions, "Block.Children[1].Expressions");
-          Assert.AreEqual(1, init.Expressions.Length, "Block.Children[1].Expressions.Count");
-
-          TableItem table = init.Expressions[0] as TableItem;
-          Assert.IsNotNull(table, "Block.Children[1].Expressions[0]");
-          _validateDebug(table.Debug, "Block.Children[1].Expressions[0]", "{", 2, 5);
-
-          Assert.IsNotNull(table.Fields, "Block.Children[1].Expressions[0].Fields");
-          Assert.AreEqual(1, table.Fields.Length, "Block.Children[1].Expressions[0].Fields.Count");
-
-          var field = table.Fields[0];
-          {
-            LiteralItem literal = field.Key as LiteralItem;
-            Assert.IsNotNull(literal, "Block.Children[1].Expressions[0].Fields[0].Item1");
-            Assert.AreEqual(34.0, literal.Value,
-                            "Block.Children[1].Expressions[0].Fields[0].Item1.Value");
-            _validateDebug(literal.Debug, "Block.Children[1].Expressions[0].Fields[0].Item1", "34",
-                           2, 8);
+      Token d(TokenType t, string value, int line, int col) => new Token(t, value, col, line);
+      IParseItem expected = new BlockItem(new IParseStatement[] {
+          new AssignmentItem(new[] {
+              new NameItem("a") { Debug = d(TokenType.Identifier, "a", 1, 7) }
+          }, new[] {
+              new LiteralItem(12.0) { Debug = d(TokenType.NumberLiteral, "12", 1, 11) },
+          }) {
+              Debug = d(TokenType.Local, "local", 1, 1),
+              IsLastExpressionSingle = false,
+              Local = true,
+          },
+          new AssignmentItem(new[] {
+              new NameItem("t") { Debug = d(TokenType.Identifier, "t", 2, 1) },
+          }, new[] {
+              new TableItem(new[] {
+                  new KeyValuePair<IParseExp, IParseExp>(
+                      new LiteralItem(34.0) { Debug = d(TokenType.NumberLiteral, "34", 2, 8) },
+                      new FuncDefItem(
+                          new NameItem[0],
+                          new BlockItem(new[] {
+                              new FuncCallItem(
+                                  new NameItem("print") {
+                                      Debug = d(TokenType.Identifier, "print", 2, 24),
+                                  },
+                                  new[] {
+                                      new FuncCallItem.ArgumentInfo(
+                                          new NameItem("i") {
+                                              Debug = d(TokenType.Identifier, "i", 2, 30),
+                                          },
+                                          false)
+                                  }) {
+                                      Debug = d(TokenType.Identifier, "print", 2, 24),
+                                      Statement = true,
+                                  },
+                          }) {
+                             Debug = d(TokenType.Identifier, "print", 2, 24),
+                             Return = new ReturnItem(),
+                      }) {
+                        Debug = d(TokenType.Function, "function", 2, 13)
+                      }),
+              }) { Debug = d(TokenType.BeginTable, "{", 2, 5) },
+          }) {
+              Debug = d(TokenType.Identifier, "t", 2, 1),
+              IsLastExpressionSingle = false,
+              Local = false,
+          },
+          new FuncDefItem(new[] {
+              new NameItem("a") { Debug = d(TokenType.Identifier, "a", 3, 15) },
+              new NameItem("...") { Debug = d(TokenType.Elipsis, "...", 3, 18) },
+          }, new BlockItem(new IParseStatement[] {
+              new AssignmentItem(new[] {
+                  new NameItem("a") { Debug = d(TokenType.Identifier, "a", 4, 5) },
+                  new NameItem("b") { Debug = d(TokenType.Identifier, "b", 4, 8) },
+                  new NameItem("c") { Debug = d(TokenType.Identifier, "c", 4, 11) },
+              }, new[] {
+                  new NameItem("...") { Debug = d(TokenType.Elipsis, "...", 4, 15) },
+              }) { Debug = d(TokenType.Identifier, "a", 4, 5) },
+              new ForNumItem(
+                  new NameItem("i") { Debug = d(TokenType.Identifier, "i", 5, 9) },
+                  new LiteralItem(12.0) { Debug = d(TokenType.NumberLiteral, "12", 5, 12) },
+                  new LiteralItem(23.0) { Debug = d(TokenType.NumberLiteral, "23", 5, 16) },
+                  null,
+                  new BlockItem(new[] {
+                      new FuncCallItem(
+                          new NameItem("print") { Debug = d(TokenType.Identifier, "print", 6, 9) },
+                          new[] {
+                              new FuncCallItem.ArgumentInfo(
+                                  new NameItem("i") {
+                                      Debug = d(TokenType.Identifier, "i", 6, 15)
+                                  }, false)
+                          }) {
+                          Debug = d(TokenType.Identifier, "print", 6, 9),
+                          Statement = true,
+                      }
+                  }) {
+                      Debug = d(TokenType.Identifier, "print", 6, 9)
+                  }) { Debug = d(TokenType.For, "for", 5, 5) },
+          }) {
+              Debug = d(TokenType.Identifier, "a", 4, 5),
+              Return = new ReturnItem(),
+          }) {
+              Debug = d(TokenType.Function, "function", 3, 1),
+              Local = false,
+              Prefix = new NameItem("Some") { Debug = d(TokenType.Identifier, "Some", 3, 10) },
           }
-          {
-            FuncDefItem func = field.Value as FuncDefItem;
-            Assert.IsNotNull(func, "Block.Children[1].Expressions[0].Fields[0].Item2");
-            Assert.IsNull(func.InstanceName,
-                          "Block.Children[1].Expressions[0].Fields[0].Item2.InstanceName");
-            Assert.IsNull(func.Prefix, "Block.Children[1].Expressions[0].Fields[0].Item2.Prefix");
-            Assert.AreEqual(false, func.Local,
-                            "Block.Children[1].Expressions[0].Fields[0].Item2.Local");
-            Assert.IsNull(func.FunctionInformation,
-                          "Block.Children[1].Expressions[0].Fields[0].Item2.FunctionInformation");
-            _validateDebug(func.Debug, "Block.Children[1].Expressions[0].Fields[0].Item2",
-                           "function", 2, 13);
-
-            // Validate the block
-            {
-              BlockItem funcBlock = func.Block;
-              Assert.IsNotNull(funcBlock, "Block.Children[1].Expressions[0].Fields[0].Item2.Block");
-              _validateDebug(funcBlock.Debug,
-                             "Block.Children[1].Expressions[0].Fields[0].Item2.Block", "print", 2,
-                             24);
-
-              // Validate the return
-              {
-                ReturnItem ret = funcBlock.Return;
-                Assert.IsNotNull(ret,
-                                 "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return");
-                _validateDebug(ret.Debug,
-                               "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return",
-                               null, 0, 0);
-                Assert.IsNotNull(
-                    ret.Expressions,
-                    "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions");
-                Assert.AreEqual(
-                    0, ret.Expressions.Length,
-                    "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Return.Expressions.Count");
-              }
-
-              // Validate the statement
-              {
-                Assert.IsNotNull(funcBlock.Children,
-                                 "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children");
-                Assert.AreEqual(
-                    1, funcBlock.Children.Length,
-                    "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children.Count");
-
-                // print ( i )
-                {
-                  FuncCallItem call = funcBlock.Children[0] as FuncCallItem;
-                  Assert.IsNotNull(
-                      call, "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0]");
-                  Assert.AreEqual(
-                      true, call.Statement,
-                      "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Statement");
-                  Assert.IsNull(
-                      call.InstanceName,
-                      "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].InstanceName");
-                  _validateDebug(
-                      call.Debug,
-                      "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0]", "print",
-                      2, 24);
-
-                  // Validate the prefix
-                  {
-                    NameItem name = call.Prefix as NameItem;
-                    Assert.IsNotNull(
-                        call.Prefix,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix");
-                    Assert.AreEqual(
-                        "print", name.Name,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix.Name");
-                    _validateDebug(
-                      name.Debug,
-                      "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Prefix.Name",
-                      "print", 2, 24);
-                  }
-
-                  // Validate the arguments
-                  {
-                    Assert.IsNotNull(
-                        call.Arguments,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments");
-                    Assert.AreEqual(
-                        1, call.Arguments.Length,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments.Count");
-
-                    NameItem name = call.Arguments[0].Expression as NameItem;
-                    Assert.IsNotNull(
-                        name,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0]");
-                    Assert.AreEqual(
-                        "i", name.Name,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0].Name");
-                    _validateDebug(
-                        name.Debug,
-                        "Block.Children[1].Expressions[0].Fields[0].Item2.Block.Children[0].Arguments[0]",
-                        "i", 2, 30);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-      // function Some(a, ...)
-      {
-        FuncDefItem func = block.Children[2] as FuncDefItem;
-        Assert.IsNotNull(func, "Block.Children[2]");
-        Assert.AreEqual(false, func.Local, "Block.Children[2].Local");
-        Assert.IsNull(func.InstanceName, "Block.Children[2].InstanceName");
-        _validateDebug(func.Debug, "Block.Children[2]", "function", 3, 1);
-
-        // Validate the block
-        {
-          BlockItem someBlock = func.Block;
-          _validateDebug(someBlock.Debug, "Block.Children[2].Block", "a", 4, 5);
-
-          // Validate the return
-          {
-            ReturnItem ret = someBlock.Return;
-            Assert.IsNotNull(ret, "Block.Children[2].Block.Return");
-            _validateDebug(ret.Debug, "Block.Children[2].Block.Return", null, 0, 0);
-            Assert.IsNotNull(ret.Expressions, "Block.Children[2].Block.Return.Expressions");
-            Assert.AreEqual(0, ret.Expressions.Length,
-                            "Block.Children[2].Block.Return.Expressions.Count");
-          }
-
-          // Check the children
-          {
-            Assert.IsNotNull(someBlock.Children, "Block.Children[2].Block.Children");
-            Assert.AreEqual(2, someBlock.Children.Length, "Block.Children[2].Block.Children.Count");
-
-            // a , b , c = ...
-            {
-              AssignmentItem varInit = someBlock.Children[0] as AssignmentItem;
-              Assert.IsNotNull(varInit, "Block.Children[2].Block.Children[0]");
-              Assert.AreEqual(false, varInit.Local, "Block.Children[2].Block.Children[0].Local");
-              _validateDebug(varInit.Debug, "Block.Children[2].Block.Children[0]", "a", 4, 5);
-
-              // Validate the names
-              {
-                Assert.IsNotNull(varInit.Names, "Block.Children[2].Block.Children[0].Names");
-                Assert.AreEqual(3, varInit.Names.Length,
-                                "Block.Children[2].Block.Children[0].Names.Count");
-
-                NameItem name = varInit.Names[0] as NameItem;
-                Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[0]");
-                Assert.AreEqual(name.Name, "a",
-                                "Block.Children[2].Block.Children[0].Names[0].Name");
-                _validateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[0]", "a", 4,
-                               5);
-
-                name = varInit.Names[1] as NameItem;
-                Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[1]");
-                Assert.AreEqual(name.Name, "b",
-                                "Block.Children[2].Block.Children[0].Names[1].Name");
-                _validateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[1]", "b", 4,
-                               8);
-
-                name = varInit.Names[2] as NameItem;
-                Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Names[2]");
-                Assert.AreEqual(name.Name, "c",
-                                "Block.Children[2].Block.Children[0].Names[2].Name");
-                _validateDebug(name.Debug, "Block.Children[2].Block.Children[0].Names[2]", "c", 4,
-                               11);
-              }
-              // Validate the expressions
-              {
-                Assert.IsNotNull(varInit.Expressions,
-                                 "Block.Children[2].Block.Children[0].Expressions");
-                Assert.AreEqual(1, varInit.Expressions.Length,
-                                "Block.Children[2].Block.Children[0].Expressions.Count");
-
-                NameItem name = varInit.Expressions[0] as NameItem;
-                Assert.IsNotNull(name, "Block.Children[2].Block.Children[0].Expressions[0]");
-                Assert.AreEqual(name.Name, "...",
-                                "Block.Children[2].Block.Children[0].Expressions[0].Name");
-                _validateDebug(name.Debug, "Block.Children[2].Block.Children[0].Expressions[0]",
-                               "...", 4, 15);
-              }
-            }
-            // for i= 12, 23 do print ( i ) end
-            {
-              ForNumItem forLoop = someBlock.Children[1] as ForNumItem;
-              Assert.IsNotNull(forLoop, "Block.Children[2].Block.Children[1]");
-              _validateDebug(forLoop.Debug, "Block.Children[2].Block.Children[1]", "for", 5, 5);
-
-              // Validate the name
-              {
-                NameItem name = forLoop.Name;
-                Assert.IsNotNull(name, "Block.Children[2].Block.Children[1].Name");
-                _validateDebug(name.Debug, "Block.Children[2].Block.Children[1].Name", "i", 5, 9);
-                Assert.AreEqual(name.Name, "i", "Block.Children[2].Block.Children[1].Name.Name");
-              }
-
-              // Validate the start
-              {
-                LiteralItem lit = forLoop.Start as LiteralItem;
-                Assert.IsNotNull(lit, "Block.Children[2].Block.Children[1].Start");
-                Assert.AreEqual(12.0, lit.Value, "Block.Children[2].Block.Children[1].Start.Value");
-                _validateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Start", "12", 5, 12);
-              }
-
-              // Validate the limit
-              {
-                LiteralItem lit = forLoop.Limit as LiteralItem;
-                Assert.IsNotNull(lit, "Block.Children[2].Block.Children[1].Limit");
-                Assert.AreEqual(23.0, lit.Value, "Block.Children[2].Block.Children[1].Limit.Value");
-                _validateDebug(lit.Debug, "Block.Children[2].Block.Children[1].Limit", "23", 5, 16);
-              }
-
-              // Validate the step
-              {
-                Assert.IsNull(forLoop.Step, "Block.Children[2].Block.Children[1].Step");
-              }
-
-              // Validate the block
-              {
-                BlockItem forBlock = forLoop.Block;
-                _validateDebug(forBlock.Debug, "Block.Children[2].Block.Children[1].Block", "print",
-                               6, 9);
-                Assert.IsNull(forBlock.Return, "Block.Children[2].Block.Children[1].Block.Return");
-
-                // Validate the statement
-                {
-                  Assert.IsNotNull(forBlock.Children,
-                                   "Block.Children[2].Block.Children[1].Block.Children");
-                  Assert.AreEqual(1, forBlock.Children.Length,
-                                  "Block.Children[2].Block.Children[1].Block.Children.Count");
-
-                  // print ( i )
-                  {
-                    FuncCallItem call = forBlock.Children[0] as FuncCallItem;
-                    Assert.IsNotNull(call, "Block.Children[2].Block.Children[1].Block.Children[0]");
-                    Assert.AreEqual(
-                        true, call.Statement,
-                        "Block.Children[2].Block.Children[1].Block.Children[0].Statement");
-                    Assert.IsNull(
-                        call.InstanceName,
-                        "Block.Children[2].Block.Children[1].Block.Children[0].InstanceName");
-                    _validateDebug(
-                        call.Debug, "Block.Children[2].Block.Children[1].Block.Children[0]",
-                        "print", 6, 9);
-
-                    // Validate the prefix
-                    {
-                      NameItem name = call.Prefix as NameItem;
-                      Assert.IsNotNull(
-                          call.Prefix,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Prefix");
-                      Assert.AreEqual(
-                          "print", name.Name,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Prefix.Name");
-                      _validateDebug(
-                          name.Debug,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Prefix.Name",
-                          "print", 6, 9);
-                    }
-
-                    // Validate the arguments
-                    {
-                      Assert.IsNotNull(
-                          call.Arguments,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Arguments");
-                      Assert.AreEqual(
-                          1, call.Arguments.Length,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Arguments.Count");
-
-                      NameItem name = call.Arguments[0].Expression as NameItem;
-                      Assert.IsNotNull(
-                          name,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0]");
-                      Assert.AreEqual(
-                          "i", name.Name,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0].Name");
-                      _validateDebug(
-                          name.Debug,
-                          "Block.Children[2].Block.Children[1].Block.Children[0].Arguments[0]", "i",
-                          6, 15);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    [Test]
-    public void ReadExp_NestedUnaryOps() {
-      var item = _parseExpression<IParseExp>("-#not foo");
-      var types = new[] {
-          UnaryOperationType.Minus,
-          UnaryOperationType.Length,
-          UnaryOperationType.Not,
+      }) {
+        Return = new ReturnItem(),
+        Debug = d(TokenType.Local, "local", 1, 1),
       };
-      foreach (var type in types) {
-        var cur = item as UnOpItem;
-        Assert.IsNotNull(cur);
-        Assert.AreEqual(type, cur.OperationType);
-        item = cur.Target;
-      }
+
+      ParseItemEquals.CheckEquals(expected, _parseBlock(input1), checkDebug: true);
     }
 
     [Test]
-    public void ReadExp_UnaryWithAdd() {
+    public void UnaryExpression_Nested() {
+      ParseItemEquals.CheckEquals(
+          new UnOpItem(
+              new UnOpItem(
+                  new UnOpItem(new NameItem("foo"), UnaryOperationType.Not),
+                  UnaryOperationType.Length),
+              UnaryOperationType.Minus),
+          _parseExpression("-#not foo"));
+    }
+
+    [Test]
+    public void UnaryExpression_WithAdd() {
       // This should be parsed as (-foo)+bar
-      var item = _parseExpression<BinOpItem>("-foo+bar");
-      var first = item.Lhs as UnOpItem;
-      Assert.IsNotNull(first);
-      Assert.AreEqual(UnaryOperationType.Minus, first.OperationType);
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new UnOpItem(new NameItem("foo"), UnaryOperationType.Minus),
+              BinaryOperationType.Add,
+              new NameItem("bar")),
+          _parseExpression("-foo+bar"));
 
       // This should be parsed as foo + (not bar)
-      item = _parseExpression<BinOpItem>("foo + not bar");
-      var second = item.Rhs as UnOpItem;
-      Assert.IsNotNull(second);
-      Assert.AreEqual(UnaryOperationType.Not, second.OperationType);
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Add,
+              new UnOpItem(new NameItem("bar"), UnaryOperationType.Not)),
+          _parseExpression("foo + not bar"));
     }
 
     [Test]
-    public void ReadExp_UnaryWithPower() {
+    public void UnaryExpression_WithPower() {
       // This should be parsed as -(foo^bar)
-      var item = _parseExpression<UnOpItem>("-foo^bar");
-      Assert.AreEqual(UnaryOperationType.Minus, item.OperationType);
-      var target = item.Target as BinOpItem;
-      Assert.IsNotNull(target);
-      Assert.AreEqual(BinaryOperationType.Power, target.OperationType);
+      ParseItemEquals.CheckEquals(
+          new UnOpItem(
+              new BinOpItem(new NameItem("foo"), BinaryOperationType.Power, new NameItem("bar")),
+              UnaryOperationType.Minus),
+          _parseExpression("-foo^bar"));
     }
 
     [Test]
-    public void ReadExp_UnaryKeepsPrecedence() {
+    public void UnaryExpression_KeepsPrecedence() {
       // This should be parsed as (foo * (-bar)) + baz
-      var item = _parseExpression<BinOpItem>("foo*-bar+baz");
-      Assert.AreEqual(BinaryOperationType.Add, item.OperationType);
-      var left = item.Lhs as BinOpItem;
-      Assert.IsNotNull(left);
-      Assert.AreEqual(BinaryOperationType.Multiply, left.OperationType);
-      var neg = left.Rhs as UnOpItem;
-      Assert.IsNotNull(neg);
-      Assert.AreEqual(UnaryOperationType.Minus, neg.OperationType);
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new BinOpItem(
+                  new NameItem("foo"),
+                  BinaryOperationType.Multiply,
+                  new UnOpItem(new NameItem("bar"), UnaryOperationType.Minus)),
+              BinaryOperationType.Add,
+              new NameItem("baz")),
+          _parseExpression("foo*-bar+baz"));
+      // This should be parsed as foo * (-(bar ^ baz))
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Multiply,
+              new UnOpItem(
+                  new BinOpItem(
+                      new NameItem("bar"), BinaryOperationType.Power, new NameItem("baz")),
+              UnaryOperationType.Minus)),
+          _parseExpression("foo*-bar^baz"));
     }
 
     [Test]
-    public void ReadExp_BinaryHandlesPrecedence() {
+    public void BinaryExpression_HandlesPrecedence() {
       // This should be parsed as foo+(bar*baz)
-      var item = _parseExpression<BinOpItem>("foo+bar*baz");
-      Assert.AreEqual(BinaryOperationType.Add, item.OperationType);
-      var right = item.Rhs as BinOpItem;
-      Assert.IsNotNull(right);
-      Assert.AreEqual(BinaryOperationType.Multiply, right.OperationType);
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Add,
+              new BinOpItem(
+                  new NameItem("bar"), BinaryOperationType.Multiply, new NameItem("baz"))),
+          _parseExpression("foo+bar*baz"));
+      // This should be parsed as (foo*bar)+baz
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new BinOpItem(new NameItem("foo"), BinaryOperationType.Multiply, new NameItem("bar")),
+              BinaryOperationType.Add,
+              new NameItem("baz")),
+          _parseExpression("foo*bar+baz"));
     }
 
     [Test]
-    public void ReadExp_BinaryHandlesRightAssociative() {
+    public void BinaryExpression_HandlesRightAssociative() {
       // This should be parsed as foo^(bar^baz)
-      var item = _parseExpression<BinOpItem>("foo^bar^baz");
-      Assert.AreEqual(BinaryOperationType.Power, item.OperationType);
-      _assertIsVariable(item.Lhs, "foo");
-      var right = item.Rhs as BinOpItem;
-      Assert.IsNotNull(right);
-      Assert.AreEqual(BinaryOperationType.Power, right.OperationType);
-      _assertIsVariable(right.Lhs, "bar");
-      _assertIsVariable(right.Rhs, "baz");
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Power,
+              new BinOpItem(new NameItem("bar"), BinaryOperationType.Power, new NameItem("baz"))),
+          _parseExpression("foo^bar^baz"));
     }
 
     [Test]
-    public void ReadExp_Literals() {
-      var str = "foo(nil, false, true, 123, 'foo')";
-      var item = _parseExpression<FuncCallItem>(str);
-      Assert.AreEqual(5, item.Arguments.Length);
-      _assertIsLiteral(item.Arguments[0].Expression, null);
-      _assertIsLiteral(item.Arguments[1].Expression, false);
-      _assertIsLiteral(item.Arguments[2].Expression, true);
-      _assertIsLiteral(item.Arguments[3].Expression, 123.0);
-      _assertIsLiteral(item.Arguments[4].Expression, "foo");
+    public void BinaryExpression_HandlesRightAssociativeWithAdd() {
+      // Concat is 8 and add is 9; since we use +1 to handle right-associative, this validates we
+      // don't mishandle that.
+      // This should be parsed as foo..(bar+baz)
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Concat,
+              new BinOpItem(new NameItem("bar"), BinaryOperationType.Add, new NameItem("baz"))),
+          _parseExpression("foo..bar+baz"));
+      // This should be parsed as (foo+bar)..baz
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new BinOpItem(new NameItem("foo"), BinaryOperationType.Add, new NameItem("bar")),
+              BinaryOperationType.Concat,
+              new NameItem("baz")),
+          _parseExpression("foo+bar..baz"));
+      // This should be parsed as (foo+bar)..(baz+cat)
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new BinOpItem(new NameItem("foo"), BinaryOperationType.Add, new NameItem("bar")),
+              BinaryOperationType.Concat,
+              new BinOpItem(new NameItem("baz"), BinaryOperationType.Add, new NameItem("cat"))),
+          _parseExpression("foo+bar..baz+cat"));
+      // This should be parsed as foo..((bar+baz)..cat)
+      ParseItemEquals.CheckEquals(
+          new BinOpItem(
+              new NameItem("foo"),
+              BinaryOperationType.Concat,
+              new BinOpItem(
+                  new BinOpItem(new NameItem("bar"), BinaryOperationType.Add, new NameItem("baz")),
+                  BinaryOperationType.Concat,
+                  new NameItem("cat"))),
+          _parseExpression("foo..bar+baz..cat"));
     }
 
     [Test]
-    public void ReadExp_Indexer() {
-      var item = _parseExpression<IndexerItem>("foo.bar[baz + 1]");
-      var left = item.Prefix as IndexerItem;
-      Assert.IsNotNull(left);
-      _assertIsVariable(left.Prefix, "foo");
-      _assertIsLiteral(left.Expression, "bar");
-      var right = item.Expression as BinOpItem;
-      Assert.IsNotNull(right);
+    public void Literals() {
+      ParseItemEquals.CheckEquals(new LiteralItem(null), _parseExpression("nil"));
+      ParseItemEquals.CheckEquals(new LiteralItem(false), _parseExpression("false"));
+      ParseItemEquals.CheckEquals(new LiteralItem(true), _parseExpression("true"));
+      ParseItemEquals.CheckEquals(new LiteralItem(123.0), _parseExpression("123"));
+      ParseItemEquals.CheckEquals(new LiteralItem("foo"), _parseExpression("'foo'"));
     }
 
     [Test]
-    public void ReadExp_Call() {
-      string str = "foo(foo, 1 + 2, ref i, ref(j[2]), @j.bar)";
-      var item = _parseExpression<FuncCallItem>(str);
-      _assertIsVariable(item.Prefix, "foo");
-      Assert.IsFalse(item.IsLastArgSingle);
-      Assert.IsNull(item.InstanceName);
-      Assert.AreEqual(-1, item.Overload);
-      Assert.IsFalse(item.Statement);
-
-      Assert.AreEqual(5, item.Arguments.Length);
-      _assertIsVariable(item.Arguments[0].Expression, "foo");
-      Assert.IsFalse(item.Arguments[0].IsByRef);
-      Assert.IsInstanceOf<BinOpItem>(item.Arguments[1].Expression);
-      Assert.IsFalse(item.Arguments[1].IsByRef);
-      _assertIsVariable(item.Arguments[2].Expression, "i");
-      Assert.IsTrue(item.Arguments[2].IsByRef);
-      Assert.IsInstanceOf<IndexerItem>(item.Arguments[3].Expression);
-      Assert.IsTrue(item.Arguments[3].IsByRef);
-      Assert.IsInstanceOf<IndexerItem>(item.Arguments[4].Expression);
-      Assert.IsTrue(item.Arguments[4].IsByRef);
+    public void Properties() {
+      ParseItemEquals.CheckEquals(
+          new IndexerItem(new NameItem("foo"), new LiteralItem("bar")),
+          _parseExpression("foo.bar"));
     }
 
     [Test]
-    public void ReadExp_CallLastSingle() {
-      var item = _parseExpression<FuncCallItem>("foo((x))");
-      Assert.IsTrue(item.IsLastArgSingle);
-      Assert.AreEqual(1, item.Arguments.Length);
-      _assertIsVariable(item.Arguments[0].Expression, "x");
+    public void Properties_Multiple() {
+      ParseItemEquals.CheckEquals(
+          new IndexerItem(
+              new IndexerItem(
+                  new IndexerItem(new NameItem("foo"), new LiteralItem("bar")),
+                  new LiteralItem("baz")),
+              new LiteralItem("cat")),
+          _parseExpression("foo.bar.baz.cat"));
     }
 
     [Test]
-    public void ReadExp_CallInstanceMethod() {
-      var item = _parseExpression<FuncCallItem>("bar:foo()");
-      _assertIsVariable(item.Prefix, "bar");
-      Assert.AreEqual("foo", item.InstanceName);
+    public void Properties_Errors() {
+      _checkSyntaxError("local x = a. .a", new Token(TokenType.Indexer, ".", 14, 1));
+      _checkSyntaxError("local x = a.2", new Token(TokenType.NumberLiteral, "2", 13, 1));
     }
 
     [Test]
-    public void ReadExp_CallOverload() {
-      var item = _parseExpression<FuncCallItem>("foo`123()");
-      Assert.AreEqual(123, item.Overload);
-      item = _parseExpression<FuncCallItem>("bar:foo`456()");
-      Assert.AreEqual(456, item.Overload);
+    public void Indexer() {
+      ParseItemEquals.CheckEquals(
+          new IndexerItem(
+              new NameItem("foo"),
+              new BinOpItem(new NameItem("a"), BinaryOperationType.Add, new NameItem("b"))),
+          _parseExpression("foo[a + b]"));
     }
 
     [Test]
-    public void ReadExp_CallWithString() {
-      var item = _parseExpression<FuncCallItem>("foo 'bar'");
-      _assertIsVariable(item.Prefix, "foo");
-      Assert.AreEqual(1, item.Arguments.Length);
-      _assertIsLiteral(item.Arguments[0].Expression, "bar");
-      Assert.IsFalse(item.Arguments[0].IsByRef);
+    public void Indexer_Multiple() {
+      ParseItemEquals.CheckEquals(
+          new IndexerItem(
+              new IndexerItem(
+                  new NameItem("foo"),
+                  new BinOpItem(new NameItem("a"), BinaryOperationType.Add, new NameItem("b"))),
+              new NameItem("c")),
+          _parseExpression("foo[a + b][c]"));
     }
 
     [Test]
-    public void ReadExp_CallWithTable() {
-      var item = _parseExpression<FuncCallItem>("foo {}");
-      _assertIsVariable(item.Prefix, "foo");
-      Assert.AreEqual(1, item.Arguments.Length);
-      Assert.IsInstanceOf<TableItem>(item.Arguments[0].Expression);
-      Assert.IsFalse(item.Arguments[0].IsByRef);
+    public void Indexer_Errors() {
+      _checkSyntaxError("local x = a[", new Token(TokenType.None, "", 13, 1));
+      _checkSyntaxError("local x = a[]", new Token(TokenType.EndBracket, "]", 13, 1));
+      _checkSyntaxError("local x = a[a,b]", new Token(TokenType.Comma, ",", 14, 1));
     }
 
     [Test]
-    public void ReadTable_Empty() {
-      var item = _parseExpression<TableItem>("{}");
-      Assert.AreEqual(0, item.Fields.Length);
+    public void Call() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] { new FuncCallItem.ArgumentInfo(new LiteralItem(1.0), false) }),
+          _parseExpression("foo(1)"));
     }
 
     [Test]
-    public void ReadTable_AcceptsNamedKeys() {
-      var item = _parseExpression<TableItem>("{x=1,y=2}");
-      Assert.AreEqual(2, item.Fields.Length);
-      _assertIsLiteral(item.Fields[0].Key, "x");
-      _assertIsLiteral(item.Fields[0].Value, 1);
-      _assertIsLiteral(item.Fields[1].Key, "y");
-      _assertIsLiteral(item.Fields[1].Value, 2);
+    public void Call_MultipleArgs() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] {
+                  new FuncCallItem.ArgumentInfo(new NameItem("a"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("b"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("c"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("d"), false),
+              }),
+          _parseExpression("foo(a, b, c, d)"));
     }
 
     [Test]
-    public void ReadTable_AcceptsExpressionKeys() {
-      var item = _parseExpression<TableItem>("{[x+1]=1}");
-      Assert.AreEqual(1, item.Fields.Length);
-      Assert.IsInstanceOf<BinOpItem>(item.Fields[0].Key);
-      _assertIsLiteral(item.Fields[0].Value, 1);
+    public void Call_ByRefArgs() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] {
+                  new FuncCallItem.ArgumentInfo(new NameItem("a"), true),
+                  new FuncCallItem.ArgumentInfo(new NameItem("b"), true),
+                  new FuncCallItem.ArgumentInfo(new NameItem("c"), true),
+                  new FuncCallItem.ArgumentInfo(
+                      new IndexerItem(new NameItem("d"), new LiteralItem("bar")), true),
+              }),
+          _parseExpression("foo(ref a, ref(b), @c, @d.bar)"));
     }
 
     [Test]
-    public void ReadTable_AcceptsJustValues() {
-      var item = _parseExpression<TableItem>("{10; 20; 30}");
-      Assert.AreEqual(3, item.Fields.Length);
-      _assertIsLiteral(item.Fields[0].Key, 1);
-      _assertIsLiteral(item.Fields[0].Value, 10);
-      _assertIsLiteral(item.Fields[1].Key, 2);
-      _assertIsLiteral(item.Fields[1].Value, 20);
-      _assertIsLiteral(item.Fields[2].Key, 3);
-      _assertIsLiteral(item.Fields[2].Value, 30);
+    public void Call_LastArgSingle() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] { new FuncCallItem.ArgumentInfo(new NameItem("a"), false) }) { IsLastArgSingle = true },
+          _parseExpression("foo((a))"));
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] {
+                  new FuncCallItem.ArgumentInfo(new NameItem("a"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("b"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("c"), false),
+              }) { IsLastArgSingle = true },
+          _parseExpression("foo(a, b, (c))"));
     }
 
     [Test]
-    public void ReadTable_AcceptsMixedKeysAndValues() {
-      var str = "{ [f(1)] = g; 'x', 'y'; x = 1, f(x), [30] = 23; 45 }";
-      var item = _parseExpression<TableItem>(str);
-      Assert.AreEqual(7, item.Fields.Length);
-      Assert.IsInstanceOf<FuncCallItem>(item.Fields[0].Key);
-      _assertIsVariable(item.Fields[0].Value, "g");
-      _assertIsLiteral(item.Fields[1].Key, 1);
-      _assertIsLiteral(item.Fields[1].Value, "x");
-      _assertIsLiteral(item.Fields[2].Key, 2);
-      _assertIsLiteral(item.Fields[2].Value, "y");
-      _assertIsLiteral(item.Fields[3].Key, "x");
-      _assertIsLiteral(item.Fields[3].Value, 1);
-      _assertIsLiteral(item.Fields[4].Key, 3);
-      Assert.IsInstanceOf<FuncCallItem>(item.Fields[4].Value);
-      _assertIsLiteral(item.Fields[5].Key, 30);
-      _assertIsLiteral(item.Fields[5].Value, 23);
-      _assertIsLiteral(item.Fields[6].Key, 4);
-      _assertIsLiteral(item.Fields[6].Value, 45);
+    public void Call_NotLastArgSingle() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] {
+                  new FuncCallItem.ArgumentInfo(
+                      new BinOpItem(new NameItem("a"), BinaryOperationType.Add,
+                                    new LiteralItem(1.0)),
+                      false),
+              }) { IsLastArgSingle = false },
+          _parseExpression("foo((a)+1)"));
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] {
+                  new FuncCallItem.ArgumentInfo(new NameItem("a"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("b"), false),
+                  new FuncCallItem.ArgumentInfo(new NameItem("c"), false),
+              }) { IsLastArgSingle = false },
+          _parseExpression("foo(a, (b), c)"));
     }
 
     [Test]
-    public void ReadStatement_ClassOldStyle() {
-      var str = "class \"Foo\" (Bar, Baz)";
-      var item = _parseStatement<ClassDefItem>(str);
-      Assert.AreEqual("Foo", item.Name);
-      Assert.AreEqual(2, item.Implements.Count);
-      Assert.AreEqual("Bar", item.Implements[0]);
-      Assert.AreEqual("Baz", item.Implements[1]);
+    public void Call_InstanceMethod() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(new NameItem("foo")) { InstanceName = "bar" },
+          _parseExpression("foo:bar()"));
     }
 
     [Test]
-    public void ReadStatement_ClassNewStyle() {
-      var str = "class Foo : Bar, Baz";
-      var item = _parseStatement<ClassDefItem>(str);
-      Assert.AreEqual("Foo", item.Name);
-      Assert.AreEqual(2, item.Implements.Count);
-      Assert.AreEqual("Bar", item.Implements[0]);
-      Assert.AreEqual("Baz", item.Implements[1]);
+    public void Call_Statement() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(new NameItem("foo")) { Statement = true },
+          _parseStatement("foo()"));
     }
 
     [Test]
-    public void ReadStatement_ForGeneric() {
-      var str = "for x, y in foo do end";
-      var item = _parseStatement<ForGenItem>(str);
-      Assert.AreEqual(2, item.Names.Length);
-      Assert.AreEqual("x", item.Names[0].Name);
-      Assert.AreEqual("y", item.Names[1].Name);
-      Assert.AreEqual(1, item.Expressions.Length);
-      _assertIsVariable(item.Expressions[0], "foo");
-      Assert.AreEqual(0, item.Block.Children.Length);
+    public void Call_Overload() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(new NameItem("foo")) { Overload = 123 },
+          _parseExpression("foo`123()"));
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(new NameItem("foo")) { InstanceName = "bar", Overload = 123 },
+          _parseExpression("foo:bar`123()"));
     }
 
     [Test]
-    public void ReadStatement_ForNumber() {
-      var str = "for x = i, j, k do end";
-      var item = _parseStatement<ForNumItem>(str);
-      Assert.AreEqual("x", item.Name.Name);
-      _assertIsVariable(item.Start, "i");
-      _assertIsVariable(item.Limit, "j");
-      _assertIsVariable(item.Step, "k");
-      Assert.AreEqual(0, item.Block.Children.Length);
+    public void Call_WithString() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"),
+              new[] { new FuncCallItem.ArgumentInfo(new LiteralItem("bar"), false) }),
+          _parseExpression("foo 'bar'"));
     }
 
     [Test]
-    public void ReadStatement_If() {
-      var str = "if i then end";
-      var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Length);
-      Assert.AreEqual(0, item.Elses.Length);
-      Assert.IsNull(item.ElseBlock);
+    public void Call_WithTable() {
+      ParseItemEquals.CheckEquals(
+          new FuncCallItem(
+              new NameItem("foo"), new[] { new FuncCallItem.ArgumentInfo(new TableItem(), false) }),
+          _parseExpression("foo {}"));
     }
 
     [Test]
-    public void ReadStatement_IfElse() {
-      var str = "if i then else end";
-      var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Length);
-      Assert.AreEqual(0, item.Elses.Length);
-      Assert.AreEqual(0, item.ElseBlock.Children.Length);
+    public void Call_Errors() {
+      _checkSyntaxError("a(()", new Token(TokenType.EndParen, ")", 4, 1));
+      _checkSyntaxError("a())", new Token(TokenType.EndParen, ")", 4, 1));
+      _checkSyntaxError("a(,)", new Token(TokenType.Comma, ",", 3, 1));
+      _checkSyntaxError("a(a,,b)", new Token(TokenType.Comma, ",", 5, 1));
+      _checkSyntaxError("a(ref(a,b))", new Token(TokenType.Comma, ",", 8, 1));
+      _checkSyntaxError("a(a b)", new Token(TokenType.Identifier, "b", 5, 1));
+      _checkSyntaxError("a:1(a b)", new Token(TokenType.NumberLiteral, "1", 3, 1));
     }
 
     [Test]
-    public void ReadStatement_IfElseIf() {
-      var str = "if i then elseif y then x = 1 end";
-      var item = _parseStatement<IfItem>(str);
-      _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(0, item.Block.Children.Length);
-      Assert.IsNull(item.ElseBlock);
-      Assert.AreEqual(1, item.Elses.Length);
-      _assertIsVariable(item.Elses[0].Expression, "y");
-      Assert.AreEqual(1, item.Elses[0].Block.Children.Length);
-      Assert.IsInstanceOf<AssignmentItem>(item.Elses[0].Block.Children[0]);
+    public void Table_Empty() {
+      ParseItemEquals.CheckEquals(new TableItem(), _parseExpression("{}"));
     }
 
     [Test]
-    public void ReadStatement_Repeat() {
-      var str = "repeat x = 1 until i";
-      var item = _parseStatement<RepeatItem>(str);
-      _assertIsVariable(item.Expression, "i");
-      Assert.AreEqual(1, item.Block.Children.Length);
-      Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[0]);
+    public void Table_NamedKeys() {
+      ParseItemEquals.CheckEquals(
+          new TableItem(new[] {
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("x"), new LiteralItem(1.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("y"), new LiteralItem(2.0)),
+          }),
+          _parseExpression("{x=1, y=2}"));
     }
 
     [Test]
-    public void ReadStatement_Label() {
-      var item = _parseStatement<LabelItem>("::foo::");
-      Assert.AreEqual("foo", item.Name);
+    public void Table_ExpressionKeys() {
+      ParseItemEquals.CheckEquals(
+          new TableItem(new[] {
+              new KeyValuePair<IParseExp, IParseExp>(
+                  new BinOpItem(new NameItem("x"), BinaryOperationType.Add,
+                                new LiteralItem(1.0)),
+                  new LiteralItem(1.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new NameItem("y"), new LiteralItem(2.0)),
+          }),
+          _parseExpression("{[x+1]=1, [y]=2}"));
     }
 
     [Test]
-    public void ReadStatement_Goto() {
-      var item = _parseStatement<GotoItem>("goto x");
-      Assert.AreEqual("x", item.Name);
+    public void Table_PlainValues() {
+      ParseItemEquals.CheckEquals(
+          new TableItem(new[] {
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(1.0), new LiteralItem(10.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(2.0), new LiteralItem(20.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(3.0), new LiteralItem(30.0)),
+          }),
+          _parseExpression("{10, 20, 30}"));
     }
 
     [Test]
-    public void ReadStatement_Do() {
-      var item = _parseStatement<BlockItem>("do x = 1 end");
-      Assert.IsNull(item.Return);
-      Assert.AreEqual(1, item.Children.Length);
-      Assert.IsInstanceOf<AssignmentItem>(item.Children[0]);
+    public void Table_MixedSeparators() {
+      ParseItemEquals.CheckEquals(
+          new TableItem(new[] {
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("a"), new LiteralItem(1.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("b"), new LiteralItem(2.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("c"), new LiteralItem(3.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("d"), new LiteralItem(4.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("e"), new LiteralItem(5.0)),
+          }),
+          _parseExpression("{a=1, b=2; c=3; d=4, e=5}"));
     }
 
     [Test]
-    public void ReadStatement_While() {
-      var str = "while i do x = 1 y = 2 end";
-      var item = _parseStatement<WhileItem>(str);
-      _assertIsVariable(item.Expression, "i");
-      Assert.IsNull(item.Block.Return);
-      Assert.AreEqual(2, item.Block.Children.Length);
-      Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[0]);
-      Assert.IsInstanceOf<AssignmentItem>(item.Block.Children[1]);
+    public void Table_MixedValuesAndKeys() {
+      ParseItemEquals.CheckEquals(
+          new TableItem(new[] {
+              new KeyValuePair<IParseExp, IParseExp>(
+                  new FuncCallItem(new NameItem("f")), new NameItem("g")),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(1.0), new LiteralItem("x")),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(2.0), new LiteralItem("y")),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem("x"), new LiteralItem(1.0)),
+              new KeyValuePair<IParseExp, IParseExp>(
+                  new LiteralItem(3.0), new FuncCallItem(new NameItem("g"))),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(30.0), new LiteralItem(23.0)),
+              new KeyValuePair<IParseExp, IParseExp>(new LiteralItem(4.0), new LiteralItem(45.0)),
+          }),
+          _parseExpression("{[f()]=g, 'x', 'y', x=1, g(), [30]=23, 45}"));
     }
 
     [Test]
-    public void SyntaxError() {
-      var tests = new SyntaxErrorCollection() {
-          { "local", 6 },
-
-          { "func(ref(x, foo)", 11 },
-          { "func(x,,)", 8 },
-          { "func(x 5)", 8 },
-          { "x = foo[2)", 10 },
-          { "x = foo(1]", 10 },
-          { "x = foo.345", 9 },
-
-          { "{123, [345 + 2 = 3}", 16 },
-          { "{123, ", 7 },
-          { "{123,,", 6 },
-          { "{123;;", 6 },
-          { "{[123] 34}", 8 },
-          { "{123", 5 },
-          { "{123 end", 6 },
-
-          { "if x", 5 },
-          { "if x else end", 6 },
-          { "if x end", 6 },
-          { "if x then elseif x end", 20 },
-          { "for x = 1 do end", 11 },
-          { "for x = 1,, do end", 11 },
-          { "for x = 1, 2, do end", 15 },
-          { "for x, 9 in x do end", 8 },
-          { "while i end", 9 },
-          { "::foo x = 1", 7 },
-          { "::end::", 3 },
-      };
-      foreach (var test in tests) {
-        try {
-          _parseBlock(test.Item1);
-          Assert.Fail("Expected to throw error: {0}", test.Item1);
-        } catch (SyntaxException e) {
-          Assert.AreEqual(test.Item2, e.SourceToken.StartPos,
-                          "Error in wrong position, Code: {0}, Message: {1}",
-                          test.Item1, e.Message);
-        }
-      }
+    public void Table_Errors() {
+      _checkSyntaxError("{x+1=1}", new Token(TokenType.BeginTable, "{", 1, 1));
+      _checkSyntaxError("{[x=1}", new Token(TokenType.Assign, "=", 4, 1));
+      _checkSyntaxError("{[x], 1}", new Token(TokenType.Comma, ",", 5, 1));
+      _checkSyntaxError("{a,,b}", new Token(TokenType.Comma, ",", 4, 1));
+      _checkSyntaxError("{a a}", new Token(TokenType.Identifier, "a", 4, 1));
+      _checkSyntaxError("{a", new Token(TokenType.None, "", 3, 1));
     }
+
+    #endregion
+
+    #region Statements
+
+    [Test]
+    public void Assignment() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(1.0) }),
+          _parseStatement("x = 1"));
+    }
+
+    [Test]
+    public void Assignment_Multiples() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] {
+              new NameItem("x"),
+              new NameItem("y"),
+              new NameItem("z"),
+          }, new[] {
+              new LiteralItem(1.0),
+              new LiteralItem(2.0),
+              new LiteralItem(3.0),
+          }),
+          _parseStatement("x,y,z = 1,2,3"));
+    }
+
+    [Test]
+    public void Assignment_Local() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] { new NameItem("x") },
+                             new[] { new LiteralItem(1.0) }) { Local = true },
+          _parseStatement("local x = 1"));
+    }
+
+    [Test]
+    public void Assignment_LastArgSingle() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] { new NameItem("x") },
+                             new[] { new LiteralItem(1.0) }) { IsLastExpressionSingle = true },
+          _parseStatement("x = (1)"));
+    }
+
+    [Test]
+    public void Assignment_NotLastArgSingle() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] { new NameItem("x") },
+                             new[] { new LiteralItem(1.0), new LiteralItem(2.0) }),
+          _parseStatement("x = (1), 2"));
+    }
+
+    [Test]
+    public void Assignment_Errors() {
+      _checkSyntaxError("local x, 1 = 2", new Token(TokenType.NumberLiteral, "1", 10, 1));
+      _checkSyntaxError("local x, y[1] = 2", new Token(TokenType.Identifier, "y", 10, 1));
+      _checkSyntaxError("x, 8 = 2", new Token(TokenType.NumberLiteral, "8", 4, 1));
+      _checkSyntaxError("x, = 2", new Token(TokenType.Assign, "=", 4, 1));
+      _checkSyntaxError("x, y z = 2", new Token(TokenType.Identifier, "z", 6, 1));
+    }
+
+    [Test]
+    public void Class_OldStyle() {
+      ParseItemEquals.CheckEquals(
+          new ClassDefItem("Foo", new[] { "Bar", "Baz" }),
+          _parseStatement("class \"Foo\" (Bar, Baz)"));
+    }
+
+    [Test]
+    public void Class_NewStyle() {
+      ParseItemEquals.CheckEquals(
+          new ClassDefItem("Foo", new[] { "Bar", "Baz" }),
+          _parseStatement("class Foo : Bar, Baz"));
+    }
+
+    [Test]
+    public void Class_NewStyleWithIndexer() {
+      ParseItemEquals.CheckEquals(
+          new ClassDefItem("Foo", new[] { "Bar.Baz.Cat" }),
+          _parseStatement("class Foo : Bar.Baz.Cat"));
+    }
+
+    [Test]
+    public void Class_Errors() {
+      _checkSyntaxError("class", new Token(TokenType.None, "", 6, 1));
+      _checkSyntaxError("class()", new Token(TokenType.BeginParen, "(", 6, 1));
+      _checkSyntaxError("class Foo :", new Token(TokenType.None, "", 12, 1));
+      _checkSyntaxError("class Foo : Foo.", new Token(TokenType.None, "", 17, 1));
+      _checkSyntaxError("class Foo : Foo.123", new Token(TokenType.NumberLiteral, "123", 17, 1));
+      _checkSyntaxError("class 123", new Token(TokenType.NumberLiteral, "123", 7, 1));
+      _checkSyntaxError("class \"Foo\" (\"a\")", new Token(TokenType.StringLiteral, "a", 14, 1));
+      _checkSyntaxError("class \"Foo\" (A,)", new Token(TokenType.EndParen, ")", 16, 1));
+      _checkSyntaxError("class \"Foo\" (A, B C)", new Token(TokenType.Identifier, "C", 19, 1));
+    }
+
+    [Test]
+    public void Return_Empty() {
+      ParseItemEquals.CheckEquals(
+          new BlockItem() { Return = new ReturnItem() },
+          _parseBlock("return"));
+    }
+
+    [Test]
+    public void Return_OneValue() {
+      ParseItemEquals.CheckEquals(
+          new BlockItem() {
+            Return = new ReturnItem(new[] {
+                  new BinOpItem(new NameItem("a"), BinaryOperationType.Add, new NameItem("b")),
+              })
+          },
+          _parseBlock("return a + b"));
+    }
+
+    [Test]
+    public void Return_MultipleValues() {
+      ParseItemEquals.CheckEquals(
+          new BlockItem() {
+            Return = new ReturnItem(
+                  new[] { new NameItem("a"), new NameItem("b"), new NameItem("c") })
+          },
+          _parseBlock("return a, b, c"));
+    }
+
+    [Test]
+    public void Return_LastExpressionSingle() {
+      ParseItemEquals.CheckEquals(
+          new BlockItem() {
+            Return = new ReturnItem(
+                  new[] { new NameItem("a"), new NameItem("b"), new NameItem("c") }) {
+              IsLastExpressionSingle = true
+            }
+          },
+          _parseBlock("return a, b, (c)"));
+    }
+
+    [Test]
+    public void Return_Errors() {
+      _checkSyntaxError("return 1,", new Token(TokenType.None, "", 10, 1));
+      // Cannot have code after a return
+      _checkSyntaxError("return 1 return 2", new Token(TokenType.Return, "return", 10, 1));
+      _checkSyntaxError("return 1 x = 0", new Token(TokenType.Identifier, "x", 10, 1));
+      _checkSyntaxError("if false then return 1 x = 0 end",
+                        new Token(TokenType.Identifier, "x", 24, 1));
+    }
+
+    [Test]
+    public void NumericFor() {
+      ParseItemEquals.CheckEquals(
+          new ForNumItem(new NameItem("x"), new LiteralItem(1.0), new LiteralItem(2.0),
+                         new LiteralItem(3.0), new BlockItem()),
+          _parseStatement("for x = 1, 2, 3 do end"));
+    }
+
+    [Test]
+    public void NumericFor_NoStep() {
+      ParseItemEquals.CheckEquals(
+          new ForNumItem(new NameItem("x"), new LiteralItem(1.0), new LiteralItem(2.0), null,
+                         new BlockItem()),
+          _parseStatement("for x = 1, 2 do end"));
+    }
+
+    [Test]
+    public void NumericFor_Errors() {
+      _checkSyntaxError("for 1, 2 do end", new Token(TokenType.NumberLiteral, "1", 5, 1));
+      _checkSyntaxError("for x 1, 2 do end", new Token(TokenType.NumberLiteral, "1", 7, 1));
+      _checkSyntaxError("for x = 1 do end", new Token(TokenType.Do, "do", 11, 1));
+      _checkSyntaxError("for x = 1,, 2 do end", new Token(TokenType.Comma, ",", 11, 1));
+      _checkSyntaxError("for x = 1, 2 end", new Token(TokenType.End, "end", 14, 1));
+      _checkSyntaxError("for x = 1, 2 do", new Token(TokenType.None, "", 16, 1));
+      _checkSyntaxError("for x = 1, 2 do x = 0 elseif",
+                        new Token(TokenType.ElseIf, "elseif", 23, 1));
+    }
+
+    [Test]
+    public void GenericFor() {
+      ParseItemEquals.CheckEquals(
+          new ForGenItem(new[] { new NameItem("x") }, new[] { new NameItem("foo") },
+                         new BlockItem()),
+          _parseStatement("for x in foo do end"));
+    }
+
+    [Test]
+    public void GenericFor_Multiples() {
+      ParseItemEquals.CheckEquals(
+          new ForGenItem(
+              new[] { new NameItem("x"), new NameItem("y"), new NameItem("z") },
+              new IParseExp[] { new NameItem("foo"), new FuncCallItem(new NameItem("run")) },
+              new BlockItem()),
+          _parseStatement("for x, y, z in foo, run() do end"));
+    }
+
+    [Test]
+    public void GenericFor_Errors() {
+      _checkSyntaxError("for x, in y do end", new Token(TokenType.In, "in", 8, 1));
+      _checkSyntaxError("for x in y, do end", new Token(TokenType.Do, "do", 13, 1));
+      _checkSyntaxError("for x, 1 in y do end", new Token(TokenType.NumberLiteral, "1", 8, 1));
+      _checkSyntaxError("for x in y end", new Token(TokenType.End, "end", 12, 1));
+    }
+
+    [Test]
+    public void If() {
+      ParseItemEquals.CheckEquals(
+          new IfItem(new NameItem("i"), new BlockItem()),
+          _parseStatement("if i then end"));
+    }
+
+    [Test]
+    public void If_Else() {
+      ParseItemEquals.CheckEquals(
+          new IfItem(new NameItem("i"),
+          new BlockItem(new[] {
+              new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(0.0) }),
+          }),
+          new IfItem.ElseInfo[0],
+          new BlockItem(new[] {
+              new AssignmentItem(new[] { new NameItem("y") }, new[] { new LiteralItem(1.0) }),
+          })),
+          _parseStatement("if i then x = 0 else y = 1 end"));
+    }
+
+    [Test]
+    public void If_ElseIf() {
+      ParseItemEquals.CheckEquals(
+          new IfItem(new NameItem("i"),
+          new BlockItem(new[] {
+              new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(0.0) }),
+          }),
+          new[] {
+              new IfItem.ElseInfo(new NameItem("y"), new BlockItem(new[] {
+                  new AssignmentItem(new[] { new NameItem("z") }, new[] { new LiteralItem(1.0) }),
+              }))
+          }),
+          _parseStatement("if i then x = 0 elseif y then z = 1 end"));
+    }
+
+    [Test]
+    public void If_Errors() {
+      _checkSyntaxError("if x end", new Token(TokenType.End, "end", 6, 1));
+      _checkSyntaxError("if x else end", new Token(TokenType.Else, "else", 6, 1));
+      _checkSyntaxError("if x then elseif end", new Token(TokenType.End, "end", 18, 1));
+      _checkSyntaxError("if x then elseif y end", new Token(TokenType.End, "end", 20, 1));
+      _checkSyntaxError("if x then", new Token(TokenType.None, "", 10, 1));
+    }
+
+    [Test]
+    public void Repeat() {
+      ParseItemEquals.CheckEquals(
+          new RepeatItem(
+              new NameItem("i"),
+              new BlockItem(new[] {
+                  new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(1.0) }),
+              })),
+          _parseStatement("repeat x = 1 until i"));
+    }
+
+    [Test]
+    public void Repeat_Errors() {
+      _checkSyntaxError("repeat x = 1 until", new Token(TokenType.None, "", 19, 1));
+      _checkSyntaxError("repeat x = 1", new Token(TokenType.None, "", 13, 1));
+      _checkSyntaxError("repeat x = 1 end", new Token(TokenType.End, "end", 14, 1));
+    }
+
+    [Test]
+    public void Label() {
+      ParseItemEquals.CheckEquals(
+          new LabelItem("foo"),
+          _parseStatement("::foo::"));
+    }
+
+    [Test]
+    public void Label_Errors() {
+      _checkSyntaxError("::foo", new Token(TokenType.None, "", 6, 1));
+      _checkSyntaxError("::foo x = 1", new Token(TokenType.Identifier, "x", 7, 1));
+      _checkSyntaxError("::foo: x = 1", new Token(TokenType.Colon, ":", 6, 1));
+      _checkSyntaxError("::1::", new Token(TokenType.NumberLiteral, "1", 3, 1));
+      _checkSyntaxError(": :foo::", new Token(TokenType.Colon, ":", 1, 1));
+    }
+
+    [Test]
+    public void Break() {
+      ParseItemEquals.CheckEquals(
+          new RepeatItem(
+              new NameItem("i"),
+              new BlockItem(new[] { new GotoItem("<break>") })),
+          _parseStatement("repeat break until i"));
+    }
+
+    [Test]
+    public void Goto() {
+      ParseItemEquals.CheckEquals(
+          new GotoItem("foo"),
+          _parseStatement("goto foo"));
+    }
+
+    [Test]
+    public void Goto_Errors() {
+      _checkSyntaxError("goto", new Token(TokenType.None, "", 5, 1));
+      _checkSyntaxError("goto 1", new Token(TokenType.NumberLiteral, "1", 6, 1));
+    }
+
+    [Test]
+    public void Do() {
+      ParseItemEquals.CheckEquals(
+          new BlockItem(new[] {
+              new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(1.0) }),
+          }),
+          _parseStatement("do x = 1 end"));
+    }
+
+    [Test]
+    public void While() {
+      ParseItemEquals.CheckEquals(
+          new WhileItem(
+              new NameItem("i"),
+              new BlockItem(new[] {
+                  new AssignmentItem(new[] { new NameItem("x") }, new[] { new LiteralItem(1.0) }),
+              })),
+          _parseStatement("while i do x = 1 end"));
+    }
+
+    [Test]
+    public void While_Errors() {
+      _checkSyntaxError("while 1", new Token(TokenType.None, "", 8, 1));
+      _checkSyntaxError("while do end", new Token(TokenType.Do, "do", 7, 1));
+      _checkSyntaxError("while 1 x = 1 end", new Token(TokenType.Identifier, "x", 9, 1));
+    }
+
+    #endregion
+
+    #region Function definitions
+
+    [Test]
+    public void FuncDef() {
+      ParseItemEquals.CheckEquals(
+          new FuncDefItem(new NameItem[0], new BlockItem() { Return = new ReturnItem() }) {
+            Prefix = new NameItem("foo"),
+          },
+          _parseStatement("function foo() end"));
+    }
+
+    [Test]
+    public void FuncDef_Args() {
+      ParseItemEquals.CheckEquals(
+          new FuncDefItem(new[] { new NameItem("a"), new NameItem("b"), new NameItem("...") },
+                          new BlockItem() { Return = new ReturnItem() }) {
+            Prefix = new NameItem("foo"),
+          },
+          _parseStatement("function foo(a, b, ...) end"));
+    }
+
+    [Test]
+    public void FuncDef_InstanceName() {
+      ParseItemEquals.CheckEquals(
+          new FuncDefItem(new[] { new NameItem("a"), new NameItem("b"), new NameItem("...") },
+                          new BlockItem() { Return = new ReturnItem() }) {
+            Prefix = new NameItem("foo"),
+            InstanceName = "bar",
+          },
+          _parseStatement("function foo:bar(a, b, ...) end"));
+    }
+
+    [Test]
+    public void FuncDef_Local() {
+      ParseItemEquals.CheckEquals(
+          new FuncDefItem(new NameItem[0], new BlockItem() { Return = new ReturnItem() }) {
+            Prefix = new NameItem("foo"),
+            Local = true,
+          },
+          _parseStatement("local function foo() end"));
+    }
+
+    [Test]
+    public void FuncDef_Indexer() {
+      ParseItemEquals.CheckEquals(
+          new FuncDefItem(new NameItem[0], new BlockItem() { Return = new ReturnItem() }) {
+            Prefix = new IndexerItem(new IndexerItem(new NameItem("a"), new LiteralItem("b")),
+                                     new LiteralItem("c")),
+          },
+          _parseStatement("function a.b.c() end"));
+    }
+
+    [Test]
+    public void FuncDef_Errors() {
+      _checkSyntaxError("function() end", new Token(TokenType.Function, "function", 1, 1));
+      _checkSyntaxError("x = function a(a) end", new Token(TokenType.Function, "function", 5, 1));
+
+      _checkSyntaxError("function f f() end", new Token(TokenType.Identifier, "f", 12, 1));
+      _checkSyntaxError("function a:1() end", new Token(TokenType.NumberLiteral, "1", 12, 1));
+      _checkSyntaxError("function a.1() end", new Token(TokenType.NumberLiteral, "1", 12, 1));
+      _checkSyntaxError("function a.() end", new Token(TokenType.BeginParen, "(", 12, 1));
+      _checkSyntaxError("function a(..., a) end", new Token(TokenType.Comma, ",", 15, 1));
+      _checkSyntaxError("function a(a,) end", new Token(TokenType.EndParen, ")", 14, 1));
+    }
+
+    #endregion
   }
 }

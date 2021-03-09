@@ -170,13 +170,10 @@ namespace ModMaker.Lua.Parser {
       if (input.PeekType(TokenType.StringLiteral)) {
         className = input.Expect(TokenType.StringLiteral).Value;
         if (input.ReadIfType(TokenType.BeginParen)) {
-          while (!input.PeekType(TokenType.EndParen)) {
+          do {
             Token name = input.Expect(TokenType.Identifier);
             implements.Add(name.Value);
-            if (!input.ReadIfType(TokenType.Comma)) {
-              break;
-            }
-          }
+          } while (input.ReadIfType(TokenType.Comma));
           input.Expect(TokenType.EndParen);
         }
       } else {
@@ -206,7 +203,8 @@ namespace ModMaker.Lua.Parser {
 
       bool isParentheses = false;
       if (!input.PeekType(TokenType.End) && !input.PeekType(TokenType.Until) &&
-          !input.PeekType(TokenType.ElseIf) && !input.PeekType(TokenType.Else)) {
+          !input.PeekType(TokenType.ElseIf) && !input.PeekType(TokenType.Else) &&
+          !input.PeekType(TokenType.None)) {
         values.Add(_readExp(input, out isParentheses));
         while (input.ReadIfType(TokenType.Comma)) {
           values.Add(_readExp(input, out isParentheses));
@@ -388,9 +386,10 @@ namespace ModMaker.Lua.Parser {
                                                      IParseVariable variable) {
       var names = new List<IParseVariable>() { variable };
       while (input.ReadIfType(TokenType.Comma)) {
+        var curDebug = input.Peek();
         var exp = _readExp(input, out _);
         if ((local && !(exp is NameItem)) || (!local && !(exp is IParseVariable))) {
-          throw new SyntaxException(Resources.NameOrExpForVar, input.Name, debug);
+          throw new SyntaxException(Resources.NameOrExpForVar, input.Name, curDebug);
         }
         names.Add((IParseVariable)exp);
       }
@@ -404,8 +403,7 @@ namespace ModMaker.Lua.Parser {
           exps.Add(_readExp(input, out isParentheses));
         }
       } else if (!local) {
-        throw new SyntaxException(string.Format(Resources.InvalidDefinition, "assignment"),
-                                  input.Name, debug);
+        throw input.SyntaxError(string.Format(Resources.InvalidDefinition, "assignment"));
       }
 
       return new AssignmentItem(names.ToArray(), exps.ToArray()) {
@@ -453,7 +451,7 @@ namespace ModMaker.Lua.Parser {
               if (!int.TryParse(instName.Substring(idx + 1), out overload)) {
                 throw input.SyntaxError(Resources.OnlyNumbersInOverload);
               }
-              instName = instName.Substring(0, idx - 1);
+              instName = instName.Substring(0, idx);
             }
           } else if (ret is NameItem name) {
             int idx = name.Name.IndexOf('`');
@@ -461,7 +459,7 @@ namespace ModMaker.Lua.Parser {
               if (!int.TryParse(name.Name.Substring(idx + 1), out overload)) {
                 throw input.SyntaxError(Resources.OnlyNumbersInOverload);
               }
-              name.Name = name.Name.Substring(0, idx - 1);
+              name.Name = name.Name.Substring(0, idx);
             }
           }
 
@@ -592,18 +590,22 @@ namespace ModMaker.Lua.Parser {
       if (name != null && !canName) {
         throw new SyntaxException(Resources.FunctionCantHaveName, input.Name, debug);
       }
+      if (name == null && canName) {
+        throw new SyntaxException("Function statements must provide name", input.Name, debug);
+      }
 
       var args = new List<NameItem>();
       input.Expect(TokenType.BeginParen);
-      while (!input.PeekType(TokenType.EndParen)) {
-        Token temp = input.PeekType(TokenType.Elipsis) ?
-                         input.Expect(TokenType.Elipsis) :
-                         input.Expect(TokenType.Identifier);
-        args.Add(new NameItem(temp.Value) { Debug = temp });
-
-        if (!input.PeekType(TokenType.EndParen)) {
-          input.Expect(TokenType.Comma);
-        }
+      if (!input.PeekType(TokenType.EndParen)) {
+        do {
+          Token temp = input.PeekType(TokenType.Elipsis) ?
+                           input.Expect(TokenType.Elipsis) :
+                           input.Expect(TokenType.Identifier);
+          args.Add(new NameItem(temp.Value) { Debug = temp });
+          if (temp.Value == "...") {
+            break;
+          }
+        } while (input.ReadIfType(TokenType.Comma));
       }
       input.Expect(TokenType.EndParen);
       BlockItem chunk = _readBlock(input);
