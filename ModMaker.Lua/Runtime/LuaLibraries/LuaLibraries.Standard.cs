@@ -41,8 +41,8 @@ namespace ModMaker.Lua.Runtime {
         Register(env, table, (Func<ILuaTable, ILuaTable, ILuaValue>)setmetatable);
         Register(env, table, (Func<ILuaTable, double?>)tonumber);
         Register(env, table, (Func<ILuaTable, string>)type);
+        Register(env, table, (Func<LuaFunction, int, ILuaValue>)overload);
 
-        table.SetItemRaw(new LuaString("overload"), new overload(env));
         table.SetItemRaw(new LuaString("pcall"), new pcall(env));
         table.SetItemRaw(new LuaString("print"), new print(env));
 
@@ -110,7 +110,7 @@ namespace ModMaker.Lua.Runtime {
           if (meta != null) {
             var m = meta.GetItemRaw(_tostring);
             if (m != null && m.ValueType == LuaValueType.Function) {
-              var result = m.Invoke(value, true, -1, LuaMultiValue.Empty);
+              var result = m.Invoke(value, true, LuaMultiValue.Empty);
               return result[0].ToString();
             }
           }
@@ -142,7 +142,7 @@ namespace ModMaker.Lua.Runtime {
         if (meta != null) {
           ILuaValue method = meta.GetItemRaw(_ipairs);
           if (method != null && method != LuaNil.Nil) {
-            var ret = method.Invoke(table, true, -1, LuaMultiValue.Empty);
+            var ret = method.Invoke(table, true, LuaMultiValue.Empty);
             // The runtime will correctly expand the results (because the multi-value
             // is at the end).
             return new object[] { ret.AdjustResults(3) };
@@ -171,7 +171,7 @@ namespace ModMaker.Lua.Runtime {
         if (meta != null) {
           ILuaValue p = meta.GetItemRaw(_pairs);
           if (p != null && p != LuaNil.Nil) {
-            var ret = p.Invoke(table, true, -1, LuaMultiValue.Empty);
+            var ret = p.Invoke(table, true, LuaMultiValue.Empty);
             return new object[] { ret.AdjustResults(3) };
           }
         }
@@ -224,33 +224,15 @@ namespace ModMaker.Lua.Runtime {
       static string type(ILuaValue value) {
         return value.ValueType.ToString().ToLower();
       }
-
-      sealed class overload : LuaFrameworkFunction {
-        public overload(ILuaEnvironment env) : base(env, "overload") { }
-
-        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
-          if (args.Count < 2) {
-            throw new ArgumentException("Expecting at least two arguments to function 'overload'.");
-          }
-
-          ILuaValue meth = args[0];
-          ILuaValue obj = args[1];
-
-          if (meth.ValueType != LuaValueType.Function) {
-            throw new ArgumentException("First argument to function 'overload' must be a method.");
-          }
-
-          if (obj.ValueType != LuaValueType.Number || ((double)obj.GetValue() % 1 != 0)) {
-            throw new ArgumentException(
-                "Second argument to function 'overload' must be an integer.");
-          }
-
-          int i = Convert.ToInt32((double)obj.GetValue());
-
-          return meth.Invoke(null, false, i,
-                             _environment.Runtime.CreateMultiValue(args.Skip(2).ToArray()));
+      static ILuaValue overload(LuaFunction func, int index) {
+        if (func is LuaOverloadFunction overload) {
+          return overload.GetOverload(index);
+        } else {
+          // Allow calling with other function types, but just return the original function.
+          return func;
         }
       }
+
       sealed class pcall : LuaFrameworkFunction {
         public pcall(ILuaEnvironment env) : base(env, "pcall") { }
 
@@ -262,7 +244,7 @@ namespace ModMaker.Lua.Runtime {
           ILuaValue func = args[0];
           if (func.ValueType == LuaValueType.Function) {
             try {
-              var ret = func.Invoke(LuaNil.Nil, false, -1,
+              var ret = func.Invoke(LuaNil.Nil, false,
                                     _environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
               return _environment.Runtime.CreateMultiValue(
                   new ILuaValue[] { LuaBoolean.True }.Union(ret).ToArray());

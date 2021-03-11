@@ -207,7 +207,7 @@ namespace ModMaker.Lua.Runtime {
         ILuaValue var = args[2];
 
         while (true) {
-          var ret = target.Invoke(LuaNil.Nil, false, -1, CreateMultiValue(s, var));
+          var ret = target.Invoke(LuaNil.Nil, false, CreateMultiValue(s, var));
           if (ret == null || ret[0] == null || ret[0] == LuaNil.Nil) {
             yield break;
           }

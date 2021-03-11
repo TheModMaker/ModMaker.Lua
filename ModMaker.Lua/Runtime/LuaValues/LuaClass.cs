@@ -41,11 +41,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return Helpers.GetSetMember(Type, null, index);
     }
 
-    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args) {
-      if (overload >= 0) {
-        throw new NotSupportedException(string.Format(Resources.CannotUseOverload, "LuaType"));
-      }
-
+    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
       if (args == null) {
         args = new LuaMultiValue();
       }
@@ -208,7 +204,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Injects:
     ///
     /// <code>
-    /// ILuaMultiValue ret = this.methodField.Invoke(this, false, -1, arguments);
+    /// ILuaMultiValue ret = this.methodField.Invoke(this, false, arguments);
     /// return E.Runtime.ConvertType(ret[0], returnType);
     /// </code>
     /// </summary>
@@ -224,7 +220,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="env">The field that holds the environment.</param>
     static void _callFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField,
                                     LocalBuilder arguments, FieldBuilder env) {
-      //$PUSH this.{methodField}.Invoke(E.Runtime.CreateValue(this), true, -1, arguments);
+      //$PUSH this.{methodField}.Invoke(E.Runtime.CreateValue(this), true, arguments);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, methodField);
       gen.Emit(OpCodes.Ldarg_0);
@@ -235,9 +231,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
       gen.Emit(OpCodes.Ldc_I4_1);
-      gen.Emit(OpCodes.Ldc_I4_M1);
       gen.Emit(OpCodes.Ldloc, arguments);
-      gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
+      gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
 
       // Convert and push result if the return type is not null.
       if (returnType != null && returnType != typeof(void)) {
@@ -308,13 +303,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
                    typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
       ctorgen.Emit(OpCodes.Stloc, args);
 
-      // ctor.Invoke(target, true, -1, args);
+      // ctor.Invoke(target, true, args);
       ctorgen.Emit(OpCodes.Ldarg, 5);
       ctorgen.Emit(OpCodes.Ldloc, target);
       ctorgen.Emit(OpCodes.Ldc_I4_1);
-      ctorgen.Emit(OpCodes.Ldc_I4_M1);
       ctorgen.Emit(OpCodes.Ldloc, args);
-      ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod("Invoke"));
+      ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
       ctorgen.Emit(OpCodes.Pop);
 
       ctorgen.MarkLabel(end);
@@ -339,19 +333,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       public override void SetIndex(ILuaValue index, ILuaValue value) {
         string name = index.GetValue() as string;
-        int overload = -1;
         if (name == null) {
           throw new InvalidOperationException(
               string.Format(Resources.BadIndexType, "class definition", "string"));
-        }
-
-        // find if name is defining an overload.
-        if (name.Contains('`')) {
-          if (!int.TryParse(name.Substring(name.IndexOf('`') + 1), out overload)) {
-            throw new InvalidOperationException(Resources.OnlyNumbersInOverload);
-          }
-
-          name = name.Substring(0, name.IndexOf('`'));
         }
 
         // find the members with the given name.
@@ -362,12 +346,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           throw new InvalidOperationException(string.Format(Resources.NoMemberFound, _type, name));
         }
 
-        if (members.Length > 1 && overload == -1) {
+        if (members.Length > 1) {
           throw new AmbiguousMatchException(string.Format(Resources.NoMemberFound, _type, name));
-        }
-
-        if (overload != -1 && overload >= members.Length) {
-          throw new InvalidOperationException(Resources.OverloadOutOfRange);
         }
 
         // set the backing parent object.
@@ -377,7 +357,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             throw new InvalidOperationException(string.Format(Resources.MustBeFunction, name));
           }
 
-          Item item = _parent._createItem(name, new[] { members[overload == -1 ? 0 : overload] });
+          Item item = _parent._createItem(name, new[] { members[0] });
           item.Assign(value);
           _parent._items.Add(item);
         } else if (members[0].MemberType == MemberTypes.Property) {
@@ -499,8 +479,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     #endregion
 
-    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload,
-                                          ILuaMultiValue args) {
+    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
       return new LuaMultiValue(new LuaUserData<object>(CreateInstance(args.ToArray())));
     }
 

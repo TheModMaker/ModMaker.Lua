@@ -29,7 +29,8 @@ namespace UnitTests.Runtime.LuaLibraries {
       public UserData() { }
     }
 
-    protected LibraryTestBase() {
+    public override void SetUp() {
+      base.SetUp();
       _lua.Register(typeof(UserData));
     }
 

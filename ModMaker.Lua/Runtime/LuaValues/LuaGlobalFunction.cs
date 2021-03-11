@@ -52,9 +52,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     protected override ILuaMultiValue _invokeInternal(ILuaValue target, bool memberCall,
-                                                      int overload, ILuaMultiValue args) {
+                                                      ILuaMultiValue args) {
       ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, new[] { _env });
-      return method.Invoke(LuaNil.Nil, false, -1, args);
+      return method.Invoke(LuaNil.Nil, false, args);
     }
   }
 }

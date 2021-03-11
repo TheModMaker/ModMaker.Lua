@@ -328,20 +328,19 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="realMethod">The real method to call.</param>
     /// <param name="envField">The field that contains the environment.</param>
     static void _addInvoke(TypeBuilder tb, MethodBuilder realMethod, FieldBuilder envField) {
-      //// ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload,
-      ////                       ILuaMultiValue args);
+      //// ILuaMultiValue Invoke(ILuaValue self, bool memberCall,  ILuaMultiValue args);
       MethodBuilder mb = tb.DefineMethod(
           nameof(ILuaValue.Invoke),
           MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
           typeof(ILuaMultiValue),
-          new Type[] { typeof(ILuaValue), typeof(bool), typeof(int), typeof(ILuaMultiValue) });
+          new Type[] { typeof(ILuaValue), typeof(bool), typeof(ILuaMultiValue) });
       var gen = mb.GetILGenerator();
 
       // return this.Invoke(this.Environment, args);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, envField);
-      gen.Emit(OpCodes.Ldarg, 4);
+      gen.Emit(OpCodes.Ldarg, 3);
       gen.Emit(OpCodes.Callvirt, realMethod);
       gen.Emit(OpCodes.Ret);
     }

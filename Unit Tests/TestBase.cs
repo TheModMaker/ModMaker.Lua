@@ -24,7 +24,8 @@ namespace UnitTests {
   /// assertions that will fail the test.
   /// </summary>
   public class TestBase {
-    protected TestBase() {
+    [SetUp]
+    public virtual void SetUp() {
       _lua = new Lua();
       _lua.Register((Action<string>)Assert.Fail, "fail");
       _lua.Register((Action<object, object, string>)_assertEquals, "assertEquals");
@@ -63,7 +64,7 @@ namespace UnitTests {
     void _assertThrows(string message, ILuaValue value) {
       bool throws = false;
       try {
-        value.Invoke(LuaNil.Nil, false, -1, _lua.Environment.Runtime.CreateMultiValue());
+        value.Invoke(LuaNil.Nil, false, _lua.Environment.Runtime.CreateMultiValue());
       } catch (Exception) {
         throws = true;
       }

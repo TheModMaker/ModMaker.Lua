@@ -24,124 +24,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// based on runtime types of the arguments and does any needed conversion so it will work.
   /// </summary>
   public class LuaOverloadFunction : LuaFunction {
-    /// <summary>
-    /// A special list for specifying overloads with OverloadAttribute. There are two kinds of
-    /// objects, fixed and free.  Fixed indicies cannot move and there can be only one of them.
-    /// These are the overloads marked with OverloadAttribute.  The free ones move to make room for
-    /// adding fixed variables.
-    /// </summary>
-    /// <typeparam name="T">The generic type of the list.</typeparam>
-    sealed class OverloadList<T> : IEnumerable<T> {
-      /// <summary>
-      /// The backing list of objects.  If the bool is true, it is fixed and cannot move; otherwise
-      /// it is free and can move.
-      /// </summary>
-      readonly IList<Tuple<bool, T>> _backing = new List<Tuple<bool, T>>();
-
-      /// <summary>
-      /// Creates a new empty OverloadList&lt;T&gt;.
-      /// </summary>
-      public OverloadList() { }
-
-      /// <summary>
-      /// Adds a new 'free' overload.  This variable can move around and may have a dynamic index
-      /// if new fixed variables are added.
-      /// </summary>
-      /// <param name="item">The item to add, can be null for nullable types.</param>
-      public void Add(T item) {
-        // Try to find a null slot.
-        for (int i = 0; i < _backing.Count; i++) {
-          if (_backing[i] == null) {
-            _backing[i] = new Tuple<bool, T>(false, item);
-            return;
-          }
-        }
-
-        // Otherwise append to the end.
-        _backing.Add(new Tuple<bool, T>(false, item));
-      }
-      /// <summary>
-      /// Adds a new 'fixed' overload.  This variable cannot move and will have the given fixed
-      /// index.  An exception is thrown if the index is already occupied.
-      /// </summary>
-      /// <param name="item">The item to add, can be null for nullable types.</param>
-      /// <param name="index">The index to add to.</param>
-      /// <exception cref="System.InvalidOperationException">If the index
-      /// is occupied by another fixed object.</exception>
-      public void Add(T item, int index) {
-        if (_backing.Count > index && _backing[index] != null && _backing[index].Item1) {
-          throw new InvalidOperationException(string.Format(Resources.ExistingOverload, index));
-        }
-
-        var temp = new Tuple<bool, T>(true, item);
-        for (int i = index; i < _backing.Count; i++) {
-          if (_backing[i] == null || !_backing[i].Item1) {
-            var temp2 = _backing[i];
-            _backing[i] = temp;
-            temp = temp2;
-
-            // If this is null, then we found a spot for the temp.
-            if (temp == null) {
-              return;
-            }
-          }
-        }
-
-        // If temp is fixed, then index was larger than the list so add nulls until the index.
-        if (temp.Item1) {
-          while (_backing.Count < index) {
-            _backing.Add(null);
-          }
-        }
-        _backing.Add(temp);
-      }
-
-      /// <summary>
-      /// Adds all the given items to the collection.
-      /// </summary>
-      /// <param name="items">The collection of items to add.</param>
-      /// <param name="indicies">A function that gets the indices for each item.</param>
-      /// <exception cref="System.ArgumentNullException">If items or indices is null.</exception>
-      public void AddRange(IEnumerable<T> items, Func<T, int?> indicies) {
-        foreach (var item in items) {
-          int? ind = indicies(item);
-          if (ind != null) {
-            Add(item, ind.Value);
-          } else {
-            Add(item);
-          }
-        }
-      }
-
-      /// <summary>
-      /// Attempts to get the item at the given index and returns whether it was successful.
-      /// </summary>
-      /// <param name="index">The zero-based index of the item.</param>
-      /// <param name="item">Where the item is placed if found.</param>
-      /// <returns>True if successful, otherwise false.</returns>
-      public bool TryGetIndex(int index, out T item) {
-        if (index < 0 || index >= _backing.Count || _backing[index] == null) {
-          item = default;
-          return false;
-        } else {
-          item = _backing[index].Item2;
-          return true;
-        }
-      }
-
-      public IEnumerator<T> GetEnumerator() {
-        foreach (var item in _backing) {
-          if (item != null) {
-            yield return item.Item2;
-          }
-        }
-      }
-      IEnumerator IEnumerable.GetEnumerator() {
-        return GetEnumerator();
-      }
-    }
-
-    readonly OverloadList<Tuple<MethodInfo, object>> _methods;
+    readonly List<Tuple<MethodInfo, object>> _methods;
     // TODO: Add a constructor that accepts Delegate[].
 
     /// <summary>
@@ -155,49 +38,34 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <exception cref="System.ArgumentException">If the length of methods
     /// is not equal to that of targets.</exception>
     public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods,
-                               IEnumerable<object> targets)
-        : base(name) {
-      _methods = new OverloadList<Tuple<MethodInfo, object>>();
-      _methods.AddRange(methods.Zip(targets, (a, b) => Tuple.Create(a, b)), m => {
-        var temp = m.Item1.GetCustomAttribute<OverloadAttribute>(false);
-        if (temp != null) {
-          return temp.Index;
-        } else {
-          return null;
-        }
-      });
+                               IEnumerable<object> targets) : base(name) {
+      _methods = methods.Zip(targets, (a, b) => Tuple.Create(a, b)).ToList();
     }
 
     public override void AddOverload(Delegate d) {
-      var temp = d.Method.GetCustomAttributes(typeof(OverloadAttribute), false);
-      if (temp != null && temp.Length > 0) {
-        OverloadAttribute attr = temp[0] as OverloadAttribute;
-        _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target), attr.Index);
-      } else {
-        _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target));
-      }
+      _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target));
     }
 
-    protected override ILuaMultiValue _invokeInternal(ILuaValue self, bool methodCall, int overload,
+    /// <summary>
+    /// Creates a new LuaOverloadFunction that uses the given overload only.
+    /// </summary>
+    /// <param name="index">The index of the overload to use.</param>
+    /// <returns>A new overload function.</returns>
+    public LuaOverloadFunction GetOverload(int index) {
+      if (index < 0 || index >= _methods.Count)
+        throw new ArgumentException("Overload index outside range");
+
+      return new LuaOverloadFunction(Name, new[] { _methods[index].Item1 },
+                                     new[] { _methods[index].Item2 });
+    }
+
+    protected override ILuaMultiValue _invokeInternal(ILuaValue self, bool methodCall,
                                                       ILuaMultiValue args) {
       MethodInfo method;
       object target;
-      if (overload < 0) {
-        if (!Helpers.GetCompatibleMethod(_methods, args, out method, out target)) {
-          throw new ArgumentException(
-              $"No overload of method '{Name}' could be found with specified parameters.");
-        }
-      } else {
-        Tuple<MethodInfo, object> temp;
-        if (!_methods.TryGetIndex(overload, out temp)) {
-          throw new InvalidOperationException(
-              $"There is not an overload for '{Name}' with the index of '{overload}'.");
-        }
-
-        if (!Helpers.GetCompatibleMethod(new[] { temp }, args, out method, out target)) {
-          throw new ArgumentException(
-              $"No overload of method '{Name}' could be found with specified parameters.");
-        }
+      if (!Helpers.GetCompatibleMethod(_methods, args, out method, out target)) {
+        throw new ArgumentException(
+            $"No overload of method '{Name}' could be found with specified parameters.");
       }
 
       // Invoke the selected method

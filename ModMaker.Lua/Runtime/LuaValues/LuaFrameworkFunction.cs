@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     protected abstract ILuaMultiValue _invokeInternal(ILuaMultiValue args);
 
     protected override ILuaMultiValue _invokeInternal(ILuaValue target, bool methodCall,
-                                                     int overload, ILuaMultiValue args) {
+                                                     ILuaMultiValue args) {
       if (methodCall) {
         args = new LuaMultiValue(new[] { target }.Concat(args).ToArray());
       }

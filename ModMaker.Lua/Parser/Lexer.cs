@@ -381,17 +381,6 @@ namespace ModMaker.Lua.Parser {
         ret.Type = TokenType.Identifier;
       }
 
-      if (_input.Peek(1) == "`") {
-        if (ret.Type != TokenType.Identifier) {
-          throw SyntaxError("Cannot use overload with reserved keyword.");
-        }
-        ret.Value += _input.Read(1);
-        string temp = _input.ReadWhile(_isDigit);
-        if (temp == "") {
-          throw SyntaxError("Must have at least one number in overload.");
-        }
-        ret.Value += temp;
-      }
       return ret;
     }
 

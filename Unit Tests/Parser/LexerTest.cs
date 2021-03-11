@@ -99,9 +99,6 @@ end"
     public void StringErrorTest() {
       Assert.Throws<SyntaxException>(() => _createLexer("'foo\nbar'").Read());
       Assert.Throws<SyntaxException>(() => _createLexer("\"foo\nbar\"").Read());
-
-      Assert.Throws<SyntaxException>(() => _createLexer("foo`").Read());
-      Assert.Throws<SyntaxException>(() => _createLexer("foo`e").Read());
     }
 
     [Test]

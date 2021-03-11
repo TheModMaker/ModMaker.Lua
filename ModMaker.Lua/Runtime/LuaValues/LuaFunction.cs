@@ -65,10 +65,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <exception cref="System.NotSupportedException">If this object does
     /// not support overloads.</exception>
     protected abstract ILuaMultiValue _invokeInternal(ILuaValue target, bool methodCall,
-                                                      int overload, ILuaMultiValue args);
-    public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload,
-                                         ILuaMultiValue args) {
-      return _invokeInternal(self, memberCall, overload, args);
+                                                      ILuaMultiValue args);
+    public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+      return _invokeInternal(self, memberCall, args);
     }
     /// <summary>
     /// Adds an overload to the current method object.  This is used by the environment to register
@@ -265,8 +264,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     #region DynamicObject overrides
 
     public override bool TryInvoke(InvokeBinder binder, object[] args, out object result) {
-      var ret = _invokeInternal(LuaNil.Nil, false, -1,
-                                LuaMultiValue.CreateMultiValueFromObj(args));
+      var ret = _invokeInternal(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args));
       result = ret.GetValue();
       return true;
     }

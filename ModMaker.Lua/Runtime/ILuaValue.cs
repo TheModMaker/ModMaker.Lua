@@ -75,11 +75,8 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="self">The object being called on.</param>
     /// <param name="memberCall">Whether the call was using member call notation (:).</param>
     /// <param name="args">The arguments for the call.</param>
-    /// <param name="overload">
-    /// Specifies the overload to call; -1 to use overload-resolution.
-    /// </param>
     /// <returns>The return values from the invocation.</returns>
-    ILuaMultiValue Invoke(ILuaValue self, bool memberCall, int overload, ILuaMultiValue args);
+    ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args);
 
     /// <summary>
     /// Performs a binary arithmetic operation and returns the result.

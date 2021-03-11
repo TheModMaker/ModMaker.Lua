@@ -164,7 +164,7 @@ namespace ModMaker.Lua {
         List<object> ret = new List<object>();
         foreach (var item in _chunks) {
           ret.AddRange(
-            item.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+            item.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
                 .Select(v => v.GetValue()));
         }
         return ret.ToArray();
@@ -184,7 +184,7 @@ namespace ModMaker.Lua {
           throw new IndexOutOfRangeException(Resources.ChunkOutOfRange);
         }
 
-        return _chunks[index].Invoke(LuaNil.Nil, false, -1,
+        return _chunks[index].Invoke(LuaNil.Nil, false,
                                      Environment.Runtime.CreateMultiValueFromObj(args))
             .Select(v => v.GetValue())
             .ToArray();
@@ -203,7 +203,7 @@ namespace ModMaker.Lua {
     /// syntax errors in the given file.</exception>
     public object[] DoFile(string path, params object[] args) {
       var ret = Load(path);
-      return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }
@@ -219,7 +219,7 @@ namespace ModMaker.Lua {
     /// syntax errors in the given file.</exception>
     public object[] DoFile(Stream stream, params object[] args) {
       var ret = Load(stream);
-      return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }
@@ -235,7 +235,7 @@ namespace ModMaker.Lua {
     /// syntax errors in the given file.</exception>
     public object[] DoText(string chunk, params object[] args) {
       var ret = LoadText(chunk);
-      return ret.Invoke(LuaNil.Nil, false, -1, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }
@@ -551,7 +551,7 @@ namespace ModMaker.Lua {
       var parsed = PlainParser.Parse(
           env.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
       var ret = env.CodeCompiler.Compile(env, parsed, Path.GetFileNameWithoutExtension(path));
-      ret.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
+      ret.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
       return names.Select(s => env[s].GetValue()).ToArray();
     }
     /// <summary>
@@ -692,7 +692,7 @@ namespace ModMaker.Lua {
       var parsed = PlainParser.Parse(
           env.Parser, File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
       var ret = env.CodeCompiler.Compile(env, parsed, Path.GetFileNameWithoutExtension(path));
-      ret.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
+      ret.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
       return names.Select(s => env[s].As<T>()).ToArray();
     }
 

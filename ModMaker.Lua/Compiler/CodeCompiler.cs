@@ -142,7 +142,7 @@ namespace ModMaker.Lua.Compiler {
                typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValueFromObj)));
       gen.Emit(OpCodes.Stloc, methodArgs);
 
-      // ret = this.meth.Invoke(LuaNil.Nil, false, -1, methodArgs)
+      // ret = this.meth.Invoke(LuaNil.Nil, false, methodArgs)
       LocalBuilder ret = gen.DeclareLocal(typeof(ILuaMultiValue));
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, meth);
@@ -151,7 +151,6 @@ namespace ModMaker.Lua.Compiler {
           OpCodes.Ldfld,
           typeof(LuaNil).GetField(nameof(LuaNil.Nil), BindingFlags.Static | BindingFlags.Public));
       gen.Emit(OpCodes.Ldc_I4_0);
-      gen.Emit(OpCodes.Ldc_I4_M1);
       gen.Emit(OpCodes.Ldloc, methodArgs);
       gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
       gen.Emit(OpCodes.Stloc, ret);

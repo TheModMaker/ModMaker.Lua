@@ -488,11 +488,10 @@ namespace ModMaker.Lua.Compiler {
       gen.Emit(OpCodes.Stloc, rargs);
       _compiler.RemoveTemporary(args);
 
-      //! push f.Invoke(self, {!!InstanceName}, {Overload}, rargs);
+      //! push f.Invoke(self, {!!InstanceName}, rargs);
       gen.Emit(OpCodes.Ldloc, f);
       gen.Emit(OpCodes.Ldloc, self);
       gen.Emit(target.InstanceName != null ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-      gen.Emit(OpCodes.Ldc_I4, target.Overload);
       gen.Emit(OpCodes.Ldloc, rargs);
       if (target.IsTailCall) {
         gen.Emit(OpCodes.Tailcall);

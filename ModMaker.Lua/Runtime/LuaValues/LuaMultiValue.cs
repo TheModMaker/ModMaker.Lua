@@ -114,12 +114,18 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override ILuaValue Length() {
       return _values[0].Length();
     }
+    public override ILuaValue RawLength() {
+      return _values[0].RawLength();
+    }
     public override ILuaValue Single() {
       return _values[0];
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _values[0].Arithmetic(type, other);
+    }
+    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+      return _values[0].Invoke(self, memberCall, args);
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaBoolean self) {
@@ -140,7 +146,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self) {
       return self.Arithmetic(type, _values[0]);
     }
-    public override ILuaValue Arithmetic(BinaryOperationType type, LuaValues.LuaTable self) {
+    public override ILuaValue Arithmetic(BinaryOperationType type, LuaTable self) {
       return self.Arithmetic(type, _values[0]);
     }
     public override ILuaValue Arithmetic<T>(BinaryOperationType type, LuaUserData<T> self) {

@@ -149,7 +149,7 @@ namespace ModMaker.Lua.Runtime {
         public int Compare(ILuaValue x, ILuaValue y) {
           if (_method != null) {
             ILuaMultiValue ret = _method.Invoke(
-                LuaNil.Nil, false, -1, _env.Runtime.CreateMultiValueFromObj(x, y));
+                LuaNil.Nil, false, _env.Runtime.CreateMultiValueFromObj(x, y));
             return ret.IsTrue ? -1 : 1;
           }
 

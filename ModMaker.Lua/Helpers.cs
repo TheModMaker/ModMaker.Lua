@@ -361,17 +361,7 @@ namespace ModMaker.Lua {
 
         return _getSetIndex(targetType, target, args, value);
       } else if (index.ValueType == LuaValueType.String) {
-        // Allow for specifying an overload to methods
         string name = index.As<string>();
-        int over = -1;
-        if (name.Contains("`")) {
-          if (!int.TryParse(name.Substring(name.IndexOf('`') + 1), out over)) {
-            throw new InvalidOperationException(
-                "Only numbers are allowed after the grave(`) when specifying an overload.");
-          }
-
-          name = name.Substring(0, name.IndexOf('`'));
-        }
 
         // Find all visible members with the given name
         MemberInfo[] members = targetType.GetMember(name)
@@ -384,15 +374,14 @@ namespace ModMaker.Lua {
         //  throw new InvalidOperationException(
         //      "'" + name + "' is not a visible member of type '" + type + "'.");
 
-        return _getSetValue(members, over, target, value);
+        return _getSetValue(members, target, value);
       } else {
         throw new InvalidOperationException(
             "Indices of a User-Defined type must be a string, number, or table.");
       }
     }
 
-    static ILuaValue _getSetValue(MemberInfo[] members, int over, object target,
-                                  ILuaValue value = null) {
+    static ILuaValue _getSetValue(MemberInfo[] members, object target, ILuaValue value = null) {
       // Perform the action on the given member.  Although this only checks the first member, the
       // only type that can return more than one with the same name is a method and can only be
       // other methods.
@@ -404,9 +393,6 @@ namespace ModMaker.Lua {
       PropertyInfo property = members[0] as PropertyInfo;
       MethodInfo method = members[0] as MethodInfo;
       if (field != null) {
-        if (over != -1) {
-          throw new InvalidOperationException("Cannot specify an overload when accessing a field.");
-        }
 
         if (value == null) {
           return LuaValueBase.CreateValue(field.GetValue(target));
@@ -421,9 +407,6 @@ namespace ModMaker.Lua {
           return null;
         }
       } else if (property != null) {
-        if (over != -1) {
-          throw new InvalidOperationException("Cannot specify an overload when accessing a field.");
-        }
 
         if (value == null) {
           MethodInfo meth = property.GetGetMethod();

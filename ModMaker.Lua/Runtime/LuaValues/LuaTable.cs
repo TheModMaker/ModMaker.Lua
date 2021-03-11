@@ -50,7 +50,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         var method = MetaTable.GetItemRaw(_index);
         if (method != null) {
           if (method.ValueType == LuaValueType.Function) {
-            return method.Invoke(this, true, -1, new LuaMultiValue(index)).Single();
+            return method.Invoke(this, true, new LuaMultiValue(index)).Single();
           } else {
             return method.GetIndex(index);
           }
@@ -73,7 +73,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         var method = MetaTable.GetItemRaw(_newindex);
         if (method != null && method != LuaNil.Nil) {
           if (method.ValueType == LuaValueType.Function) {
-            method.Invoke(this, true, -1, new LuaMultiValue(index, value));
+            method.Invoke(this, true, new LuaMultiValue(index, value));
           } else {
             method.SetIndex(index, value);
           }
@@ -89,7 +89,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (MetaTable != null) {
         ILuaValue meth = MetaTable.GetItemRaw(_len);
         if (meth != null) {
-          var ret = meth.Invoke(this, true, -1, LuaMultiValue.Empty);
+          var ret = meth.Invoke(this, true, LuaMultiValue.Empty);
           return ret[0];
         }
       }

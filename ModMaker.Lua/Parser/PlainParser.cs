@@ -443,24 +443,8 @@ namespace ModMaker.Lua.Parser {
           ret = new IndexerItem(ret, name) { Debug = debug };
         } else {
           string instName = null;
-          int overload = -1;
           if (input.ReadIfType(TokenType.Colon)) {
             instName = input.Expect(TokenType.Identifier).Value;
-            int idx = instName.IndexOf('`');
-            if (idx >= 0) {
-              if (!int.TryParse(instName.Substring(idx + 1), out overload)) {
-                throw input.SyntaxError(Resources.OnlyNumbersInOverload);
-              }
-              instName = instName.Substring(0, idx);
-            }
-          } else if (ret is NameItem name) {
-            int idx = name.Name.IndexOf('`');
-            if (idx >= 0) {
-              if (!int.TryParse(name.Name.Substring(idx + 1), out overload)) {
-                throw input.SyntaxError(Resources.OnlyNumbersInOverload);
-              }
-              name.Name = name.Name.Substring(0, idx);
-            }
           }
 
           bool isLastSingle = false;
@@ -496,7 +480,6 @@ namespace ModMaker.Lua.Parser {
           ret = new FuncCallItem(ret, args.ToArray()) {
             Debug = debug,
             InstanceName = instName,
-            Overload = overload,
             IsLastArgSingle = isLastSingle,
           };
         }

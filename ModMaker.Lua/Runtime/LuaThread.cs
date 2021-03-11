@@ -151,7 +151,7 @@ namespace ModMaker.Lua.Runtime {
         }
 
         ILuaMultiValue args = Interlocked.Exchange(ref _args, null);
-        ILuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, -1, args);
+        ILuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, args);
 
         lock (_handle) {
           _args = ret;

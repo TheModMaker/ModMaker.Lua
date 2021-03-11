@@ -45,7 +45,8 @@ namespace UnitTests.Runtime {
       int Ambiguous();
     }
 
-    public LuaClassTest() {
+    public override void SetUp() {
+      base.SetUp();
       _lua.Register(typeof(BaseClass));
       _lua.Register(typeof(IInterface));
       _lua.Register(typeof(IInterface2));

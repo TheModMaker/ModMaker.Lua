@@ -579,7 +579,7 @@ namespace ModMaker.Lua.Runtime {
           var parsed = PlainParser.Parse(_environment.Parser, chunk,
                                          Path.GetFileNameWithoutExtension(file));
           var r = _environment.CodeCompiler.Compile(_environment, parsed, null);
-          return r.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty);
+          return r.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
         }
       }
       sealed class load : LuaFrameworkFunction {
@@ -596,7 +596,7 @@ namespace ModMaker.Lua.Runtime {
           if (ld.ValueType == LuaValueType.Function) {
             chunk = "";
             while (true) {
-              var ret = ld.Invoke(LuaNil.Nil, false, -1, _environment.Runtime.CreateMultiValue());
+              var ret = ld.Invoke(LuaNil.Nil, false, _environment.Runtime.CreateMultiValue());
               if (ret[0].ValueType == LuaValueType.String) {
                 if (string.IsNullOrEmpty(ret[0].GetValue() as string)) {
                   break;

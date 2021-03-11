@@ -440,16 +440,6 @@ end";
     }
 
     [Test]
-    public void Call_Overload() {
-      ParseItemEquals.CheckEquals(
-          new FuncCallItem(new NameItem("foo")) { Overload = 123 },
-          _parseExpression("foo`123()"));
-      ParseItemEquals.CheckEquals(
-          new FuncCallItem(new NameItem("foo")) { InstanceName = "bar", Overload = 123 },
-          _parseExpression("foo:bar`123()"));
-    }
-
-    [Test]
     public void Call_WithString() {
       ParseItemEquals.CheckEquals(
           new FuncCallItem(

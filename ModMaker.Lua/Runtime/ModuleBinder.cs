@@ -130,7 +130,7 @@ namespace ModMaker.Lua.Runtime {
         var item = PlainParser.Parse(
             env.Parser, File.ReadAllText(path), System.IO.Path.GetFileNameWithoutExtension(path));
         var chunk = env.CodeCompiler.Compile(env, item, null);
-        return chunk.Invoke(LuaNil.Nil, false, -1, LuaMultiValue.Empty).Single();
+        return chunk.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty).Single();
       } else if (path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)) {
         var aname = AssemblyName.GetAssemblyName(path);
 
@@ -206,12 +206,12 @@ namespace ModMaker.Lua.Runtime {
         ci = t.GetConstructor(new Type[] { typeof(ILuaEnvironment) });
         if (ci != null) {
           ILuaValue mod = (ILuaValue)ci.Invoke(new[] { env });
-          return mod.Invoke(LuaNil.Nil, false, -1, env.Runtime.CreateMultiValue()).Single();
+          return mod.Invoke(LuaNil.Nil, false, env.Runtime.CreateMultiValue()).Single();
         }
         return null;
       } else {
         ILuaValue mod = (ILuaValue)ci.Invoke(null);
-        return mod.Invoke(LuaNil.Nil, false, -1, env.Runtime.CreateMultiValue()).Single();
+        return mod.Invoke(LuaNil.Nil, false, env.Runtime.CreateMultiValue()).Single();
       }
     }
   }

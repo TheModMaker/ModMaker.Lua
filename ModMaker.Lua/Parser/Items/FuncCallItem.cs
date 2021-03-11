@@ -92,10 +92,6 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the instance name of the call or null if not an instance call.
     /// </summary>
     public string InstanceName { get; set; } = null;
-    /// <summary>
-    /// Gets or sets the overload of the function, use a negative number to use overload resolution.
-    /// </summary>
-    public int Overload { get; set; } = -1;
 
     public Token Debug { get; set; }
     public object UserData { get; set; }
