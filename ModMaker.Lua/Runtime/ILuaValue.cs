@@ -48,28 +48,6 @@ namespace ModMaker.Lua.Runtime {
     double? AsDouble();
 
     /// <summary>
-    /// Determines if the current object can be cast to the given value.
-    /// </summary>
-    /// <typeparam name="T">The type to cast to.</typeparam>
-    /// <returns>Whether this object can be cast to the given type.</returns>
-    bool TypesCompatible<T>();
-    /// <summary>
-    /// Gets information about the cast between the current type and the given type.  This value is
-    /// used in overload resolution. If this is not implemented; the default values will be used.
-    /// </summary>
-    /// <typeparam name="T">The type to cast to.</typeparam>
-    /// <param name="type">The type of cast used.</param>
-    /// <param name="distance">The type distance for the given cast.</param>
-    /// <exception cref="System.NotSupportedException">If custom
-    /// type distance is not implemented.</exception>
-    /// <remarks>
-    /// The distance must be a non-negative number.  The same value means an equivalent cast.  A
-    /// larger number means that it is further away.  When determining overload resolution, a
-    /// smaller value is attempted.  They are only used for comparison; their value is never used
-    /// directly.
-    /// </remarks>
-    void GetCastInfo<T>(out LuaCastType type, out int distance);
-    /// <summary>
     /// Gets the value of the object cast to the given type. Throws an exception if the cast is
     /// invalid.
     /// </summary>

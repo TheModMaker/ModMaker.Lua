@@ -50,35 +50,4 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     UserData,
   }
-
-  /// <summary>
-  /// Defines different cast types.  When an object is cast to a different type, one of the
-  /// following casts is performed.  This is used in overload resolution.
-  /// </summary>
-  public enum LuaCastType {
-    /// <summary>
-    /// There is no cast from the object to the destination type.
-    /// </summary>
-    NoCast,
-    /// <summary>
-    /// The object has the same type as the destination type.
-    /// </summary>
-    SameType,
-    /// <summary>
-    /// The destination type is an interface.
-    /// </summary>
-    Interface,
-    /// <summary>
-    /// The destination type is a base class of this object.
-    /// </summary>
-    BaseClass,
-    /// <summary>
-    /// There exists a user-defined implicit cast to the destination type.
-    /// </summary>
-    UserDefined,
-    /// <summary>
-    /// There exists a user-defined implicit cast to the destination type.
-    /// </summary>
-    ExplicitUserDefined,
-  }
 }

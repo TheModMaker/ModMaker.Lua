@@ -57,440 +57,6 @@ namespace ModMaker.Lua {
     }
 
     /// <summary>
-    /// Defines information about a method overload.
-    /// </summary>
-    /// <typeparam name="T">Either MethodInfo or ConstructorInfo</typeparam>
-    /// <remarks>
-    /// When checking if an argument is compatible with the formal parameter, a number is given to
-    /// represent how it needs to be converted so it can be passed.  This value is stored in the
-    /// respective index of ConversionAmounts.  The indices refer to the formal parameters and do
-    /// not include optional parameters or params arrays.
-    ///
-    /// There is a similar array called ConversionTypes that contains the types of conversions that
-    /// happen for each formal parameter.
-    ///
-    /// For the following comments, I will use 'parameter' to refer to the formal parameter (i.e.
-    /// the type in the method definition) and 'argument' to refer to the object that is passed to
-    /// the method. I will also use the following type hierarchy:
-    /// <![CDATA[I <- A <- B <- C]]>
-    /// Where I is an interface and A, B, and C are classes.
-    ///
-    /// If the argument is of type C and the parameter is of type B, then the amount is 1.  If the
-    /// parameter is of type A, then the amount is 2.  All other casts have an amount of 0 and a
-    /// different type in ConversionTypes.
-    ///
-    /// When determining which overload to chose, each overload gets its own OverloadInfo and then
-    /// they are all compared with each other using Compare until one remains.  If the only
-    /// remaining OverloadInfo are always equal (Compare returns 0), then an AmbiguousMatchException
-    /// is thrown.
-    ///
-    /// This assumes that when comparing, both overloads are valid with the given arguments and they
-    /// both had originally the same arguments.
-    ///
-    /// An overload that has fewer arguments added/removed through optional parameters or params
-    /// arrays (stored in ParamsOrOptional) is considered better than one with more.
-    ///
-    /// Foo(int, int=12, int=12)
-    /// Foo(int, int)
-    ///
-    /// When called, Foo(12, 23) will chose the second one because it has fewer arguments added due
-    /// to optional parameters.
-    ///
-    /// Foo(int, int, int)
-    /// Foo(params int[])
-    ///
-    /// When called Foo(42, 42, 42) will chose the first one because it has more explicit
-    /// parameters.
-    ///
-    /// When choosing between optional parameters and a params array, this will choose the optional
-    /// parameters one.
-    ///
-    /// Otherwise the ConversionAmount is iterated over.  If for both overloads the arguments are
-    /// implicitly cast to the parameter type, then the difference of the two methods is added to a
-    /// counter value. If this counter is positive, then the first overload is better because the
-    /// argument types more closely resemble the parameter types.  If the number is zero, then they
-    /// are the same.
-    ///
-    /// User-defined explicit casts operate the same way, except that there is a separate counter of
-    /// the number of times it occurs in each overload and if the two overloads are the same, the
-    /// one with fewer explicit casts is chosen.
-    ///
-    /// If one overload has an interface in it's definition, then its behavior is different. If both
-    /// define interfaces at different position than the other, then the result is ambiguous and
-    /// returns 0.  If only one defines an interface, then the other method must be chosen by the
-    /// first counter, otherwise the result is ambiguous. The first counter is not affected by this
-    /// parameter.
-    ///
-    /// Consider the call to Foo(C, C), the following definitions are:
-    ///
-    /// Foo(I, A) and Foo(A, A), the second one is chosen because A is more specific than I.
-    ///
-    /// Foo(I, A) and Foo(A, B), the second one is chosen because B is more specific than A.
-    ///
-    /// Foo(I, B) and Foo(A, A), ambiguous because the method with the interface is more specific.
-    ///
-    /// Foo(I, B) and Foo(A, I), ambiguous because they both define interfaces.
-    ///
-    /// Foo(I, A) and Foo(I, I), the first one is chosen because A is more specific than I.  Note
-    /// that because they both define the interface then that parameter is ignored.
-    /// </remarks>
-    sealed class OverloadInfo<T> where T : MethodBase {
-      /// <summary>
-      /// Creates a new OverloadInfo object from the given method.
-      /// </summary>
-      /// <param name="method">The method that this is representing.</param>
-      /// M<param name="target">The 'this' argument of the method.</param>
-      /// <param name="args">The arguments being passed to the method.</param>
-      OverloadInfo(T method, object target, ILuaMultiValue args, int[] amounts,
-                   LuaCastType[] types, int paramsOrOptional, int luaValueCount, bool isParams) {
-        Method = method;
-        Target = target;
-        Arguments = args;
-
-        ConversionAmounts = amounts;
-        ConversionTypes = types;
-        ParamsOrOptional = paramsOrOptional;
-        LuaValueCount = luaValueCount;
-        IsParams = isParams;
-      }
-
-      /// <summary>
-      /// Contains the arguments that are passed to the method.
-      /// </summary>
-      public readonly ILuaMultiValue Arguments;
-      /// <summary>
-      /// Contains the method info for this overload.
-      /// </summary>
-      public readonly T Method;
-      /// <summary>
-      /// Contains the target of this overload.
-      /// </summary>
-      public readonly object Target;
-
-      /// <summary>
-      /// Describes how each argument is converted to work as an argument. See class remarks.
-      /// </summary>
-      public readonly int[] ConversionAmounts;
-      /// <summary>
-      /// Describes the cast type for each argument.  See class remarks.
-      /// </summary>
-      public readonly LuaCastType[] ConversionTypes;
-      /// <summary>
-      /// Contains the number of arguments added due to a params array or optional parameters.  This
-      /// is always positive and greater than 1 if it is a params array.
-      /// </summary>
-      public readonly int ParamsOrOptional;
-      /// <summary>
-      /// Contains the number of parameters that are of type ILuaValue, an overload that has a
-      /// larger number is more desirable.
-      /// </summary>
-      public readonly int LuaValueCount;
-      /// <summary>
-      /// If ParamsOrOptional is non-zero, then this represents whether the number represents a
-      /// params array or optional arguments. True for params array; false for optional arguments.
-      /// </summary>
-      public readonly bool IsParams;
-
-      /// <summary>
-      /// Creates a new OverloadInfo object from the given method.
-      /// </summary>
-      /// <param name="method">The method that this is representing.</param>
-      /// <param name="target">The 'this' argument of the method.</param>
-      /// <param name="args">The arguments being passed to the method.</param>
-      /// <returns>A new OverloadInfo object; or null if the overload is not valid.</returns>
-      public static OverloadInfo<T> Create(T method, object target, ILuaMultiValue args) {
-        // Ignore any methods marked with LuaIgnore.
-        if (method.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length > 0) {
-          return null;
-        }
-        // If the backing method is marked with LuaIgnore, ignore it
-        if (method is MethodInfo && target != null) {
-          MethodInfo methodBase = ((MethodInfo)(object)method).GetBaseDefinition();
-          if (target.GetType().GetMethods()
-                  .Where(m => m.GetBaseDefinition() == methodBase)
-                  .Any(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length > 0)) {
-            return null;
-          }
-        }
-
-        var param = method.GetParameters();
-        bool isParams = false;
-        int paramsOrOptional = 0;
-
-        int luaValueCount = 0;
-        var max = Math.Min(param.Length, args.Count);
-        var conversionAmounts = new int[max];
-        var conversionTypes = new LuaCastType[max];
-
-        if (param.Length == 1 && param[0].ParameterType == typeof(ILuaMultiValue)) {
-          return new OverloadInfo<T>(method, target, args, conversionAmounts, conversionTypes,
-                                     paramsOrOptional, luaValueCount, isParams);
-        }
-
-        // Provide support for a params array.
-        if (param.Length > 0 &&
-            param[^1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0) {
-          isParams = true;
-          paramsOrOptional = args.Count - param.Length;
-
-          // If there are extra arguments, handle them here.
-          if (args.Count >= param.Length) {
-            max--;
-            conversionAmounts[max] = 0;
-            conversionTypes[max] = LuaCastType.SameType;
-          } else {
-            paramsOrOptional = 0;
-          }
-
-          // Check that each extra argument can be cast to the array type.
-          Type arrayType = param[^1].ParameterType.GetElementType();
-          MethodInfo getCastInfo =
-              typeof(ILuaValue).GetMethod("GetCastInfo").MakeGenericMethod(arrayType);
-          bool check = args
-              .Skip(param.Length - 1)
-              .All(luaValue => {
-                _getCastInfo(getCastInfo, luaValue, arrayType, out LuaCastType cast, out int i);
-                conversionAmounts[max] = Math.Max(conversionAmounts[max], i);
-                conversionTypes[max] = _combineType(conversionTypes[max], cast);
-                return cast != LuaCastType.NoCast;
-              });
-          if (!check || args.Count < param.Length - 1) {
-            return null;
-          }
-        } else {
-          // Provide support for optional arguments.
-          isParams = false;
-          paramsOrOptional = param.Length - args.Count;
-
-          // Check that any missing parameters are all optional.
-          bool check = param.Skip(args.Count).All(p => p.IsOptional);
-          bool ignoreExtra = method.GetCustomAttribute<IgnoreExtraArgumentsAttribute>() != null;
-          if (!check || (paramsOrOptional < 0 && !ignoreExtra)) {
-            return null;
-          }
-
-          paramsOrOptional = Math.Max(0, paramsOrOptional);
-        }
-
-        // Check each parameter.
-        for (int i = 0; i < max; i++) {
-          bool nullable = false;
-          Type destType = param[i].ParameterType;
-          if (param[i].ParameterType.IsByRef) {
-            destType = destType.GetElementType();
-          }
-
-          if (destType.IsGenericType && destType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
-            nullable = true;
-            destType = destType.GetGenericArguments()[0];
-          }
-
-          var value = args[i].GetValue();
-          if (value == null) {
-            // Cannot pass null to value type
-            if (!nullable && destType.IsValueType) {
-              return null;
-            }
-            // If the argument is ILuaValue, make sure it is compatible with LuaNil.
-            if (typeof(ILuaValue).IsAssignableFrom(destType) &&
-                !destType.IsAssignableFrom(typeof(LuaNil))) {
-              return null;
-            }
-
-            conversionAmounts[i] = 0;
-            conversionTypes[i] = LuaCastType.SameType;
-          } else {
-            Type argType = value.GetType();
-
-            // If the parameter is a ILuaValue type, use the container type.
-            if (typeof(ILuaValue).IsAssignableFrom(destType)) {
-              luaValueCount++;
-              argType = args[i].GetType();
-            }
-
-            conversionTypes[i] = TypesCompatible(argType, destType, out _,
-                                                 out conversionAmounts[i]);
-            if (conversionTypes[i] == LuaCastType.NoCast) {
-              return null;
-            }
-          }
-        }
-
-        return new OverloadInfo<T>(method, target, args, conversionAmounts, conversionTypes,
-                                   paramsOrOptional, luaValueCount, isParams);
-      }
-
-      /// <summary>
-      /// Compares the current overload and the given one.  This assumes the same arguments are
-      /// given to both overloads.  This is the same semantics as IComparable.  The return value is
-      /// given by the following table:
-      ///
-      /// 0     | They are equivalent.
-      /// &gt;0 | This object is the better overload.
-      /// &lt;0 | The other one is the better overload.
-      /// </summary>
-      /// <param name="other">The other overload to compare to.</param>
-      /// <returns>A value that defines which overload is better.</returns>
-      public int Compare(OverloadInfo<T> other) {
-        if (_compareFormalParameters(other, out int ret)) {
-          return ret;
-        }
-
-        // Favor optional arguments over params arrays.
-        if (ParamsOrOptional != 0 && IsParams != other.IsParams) {
-          if (!IsParams) {
-            return 1;
-          } else {
-            return -1;
-          }
-        } else if (ParamsOrOptional != other.ParamsOrOptional) {
-          // Favor one with more explicit parameters.
-          return other.ParamsOrOptional - ParamsOrOptional;
-        }
-
-        return 0;
-      }
-
-      /// <summary>
-      /// Compares the given overload info based on its formal parameters.
-      /// </summary>
-      /// <param name="other">The other object to compare.</param>
-      /// <param name="result">How this and the given value compare.</param>
-      /// <returns>
-      /// True if this resolves the overload; otherwise Compare needs to do more comparison.
-      /// </returns>
-      bool _compareFormalParameters(OverloadInfo<T> other, out int result) {
-        result = 0;
-        int explicits = 0;
-        int dif = 0;
-        int force = 0;
-
-        int max = Math.Min(ConversionAmounts.Length, other.ConversionAmounts.Length);
-        for (int i = 0; i < max; i++) {
-          if (ConversionTypes[i] == LuaCastType.Interface &&
-              other.ConversionTypes[i] == LuaCastType.Interface) {
-            // Both interfaces, this has no effect
-          } else if (ConversionTypes[i] == LuaCastType.Interface) {
-            dif--;
-
-            // If it's an interface, we need to force it.
-            if (force >= 0) {
-              force = 1;
-            } else {
-              return true;  // Both define interfaces, ambiguous.
-            }
-          } else if (other.ConversionTypes[i] == LuaCastType.Interface) {
-            dif++;
-
-            if (force <= 0) {
-              force = -1;
-            } else {
-              return true;  // Both define interfaces, ambiguous.
-            }
-          } else if (ConversionTypes[i] == LuaCastType.ExplicitUserDefined &&
-                     other.ConversionTypes[i] == LuaCastType.ExplicitUserDefined) {
-            // Both define explicit casts, this has no effect.
-          } else if (ConversionTypes[i] == LuaCastType.ExplicitUserDefined) {
-            explicits++;
-            dif += other.ConversionAmounts[i] - 1;
-          } else if (other.ConversionTypes[i] == LuaCastType.ExplicitUserDefined) {
-            explicits--;
-            dif += 1 - ConversionAmounts[i];
-          } else {
-            dif += other.ConversionAmounts[i] - ConversionAmounts[i];
-          }
-        }
-
-        if (force > 0) {
-          // First defines an interface so only the second one can be chosen or it's ambiguous.
-          result = Math.Min(dif, 0);
-          return true;
-        } else if (force < 0) {
-          // Second defines an interface so only the first one can be chosen or it's ambiguous.
-          result = Math.Max(dif, 0);
-          return true;
-        } else if (dif != 0) {
-          result = dif;
-          return true;
-        } else if (explicits != 0) {
-          result = -explicits;
-          return true;
-        }
-
-        return false;
-      }
-
-      /// <summary>
-      /// Combines two cast types.  This is used in params arrays to determine the total cast type.
-      /// </summary>
-      /// <param name="typeA">The first cast type.</param>
-      /// <param name="typeB">The second cast type.</param>
-      /// <returns>The combined cast type.</returns>
-      static LuaCastType _combineType(LuaCastType typeA, LuaCastType typeB) {
-        if (typeB == LuaCastType.NoCast) {
-          return LuaCastType.NoCast;
-        }
-
-        switch (typeA) {
-          case LuaCastType.NoCast:
-            return LuaCastType.NoCast;
-          case LuaCastType.SameType:
-            return typeB;
-          case LuaCastType.Interface:
-            return typeB;
-          case LuaCastType.BaseClass:
-            if (typeB == LuaCastType.UserDefined || typeB == LuaCastType.ExplicitUserDefined) {
-              return typeB;
-            } else {
-              return typeA;
-            }
-
-          case LuaCastType.UserDefined:
-            return typeA;
-          case LuaCastType.ExplicitUserDefined:
-            if (typeB == LuaCastType.UserDefined) {
-              return typeB;
-            } else {
-              return typeA;
-            }
-
-          default:
-            throw new NotImplementedException();
-        }
-      }
-      /// <summary>
-      /// Gets the cast info for the given object.  This will try to use the delegate; if that
-      /// fails, it will use the Helpers method.
-      /// </summary>
-      /// <param name="getCastInfo">The delegate to get the cast info.</param>
-      /// <param name="target">The object to get the cast info for.</param>
-      /// <param name="destType">The destination type to cast to.</param>
-      /// <param name="castType">Will contain the cast type used.</param>
-      /// <param name="amount">Will contain the amount of the cast.</param>
-      static void _getCastInfo(MethodInfo getCastInfo, ILuaValue target, Type destType,
-                               out LuaCastType castType, out int amount) {
-        try {
-          // These are out args, so the initial value can be null.
-          object[] args = new object[2];
-          getCastInfo.Invoke(target, args);
-
-          // Out arguments modify the args array.
-          castType = (LuaCastType)args[0];
-          amount = (int)args[1];
-        } catch (NotSupportedException) {
-          // If not supported, simply forward to TypesCompatible.
-          object value = target.GetValue();
-          if (value == null) {
-            amount = 0;
-            castType = destType.IsValueType ? LuaCastType.NoCast : LuaCastType.SameType;
-          } else {
-            castType = TypesCompatible(value.GetType(), destType, out _, out amount);
-          }
-        }
-      }
-    }
-
-    /// <summary>
     /// Creates an IDisposable object that calls the given function when Dispose is called.
     /// </summary>
     /// <param name="act">The function to call on Dispose.</param>
@@ -572,32 +138,6 @@ namespace ModMaker.Lua {
     }
 
     /// <summary>
-    /// Converts the values in the multi-value to the given type.
-    /// </summary>
-    /// <typeparam name="T">The type to convert to.</typeparam>
-    /// <param name="args">The arguments to convert.</param>
-    /// <param name="start">The index to start at.</param>
-    /// <returns>An array of the arguments.</returns>
-    public static T[] As<T>(this ILuaMultiValue args, int start) {
-      return args.Skip(start).Select(a => a.As<T>()).ToArray();
-    }
-    /// <summary>
-    /// Converts the values in the multi-value to the given type.
-    /// </summary>
-    /// <param name="type">The type to convert to.</param>
-    /// <param name="args">The arguments to convert.</param>
-    /// <param name="start">The index to start at.</param>
-    /// <returns>An array of the arguments.</returns>
-    public static object As(this ILuaMultiValue args, int start, Type type) {
-      MethodInfo as_ = typeof(Helpers).GetMethod(nameof(Helpers.As),
-                                                 new[] { typeof(ILuaMultiValue), typeof(int) });
-      MethodInfo asGeneric = as_.MakeGenericMethod(type);
-      var convert = (Func<ILuaMultiValue, int, object>)Delegate.CreateDelegate(
-          typeof(Func<ILuaMultiValue, int, object>), asGeneric);
-      return convert(args, start);
-    }
-
-    /// <summary>
     /// Checks whether two types are compatible and gets a conversion method if it can be.
     /// </summary>
     /// <param name="sourceType">The type of the original object.</param>
@@ -605,15 +145,12 @@ namespace ModMaker.Lua {
     /// <param name="method">
     /// Will contains the resulting conversion method. This method will be static
     /// </param>
-    /// <param name="amount">Will contain the conversion amount, see OverloadInfo.</param>
-    /// <returns>The cast type that is used.</returns>
-    public static LuaCastType TypesCompatible(Type sourceType, Type destType, out MethodInfo method,
-                                              out int amount) {
+    /// <returns>Whether the types are compatible.</returns>
+    public static bool TypesCompatible(Type sourceType, Type destType, out MethodInfo method) {
       method = null;
-      amount = 0;
 
       if (sourceType == destType) {
-        return LuaCastType.SameType;
+        return true;
       }
 
       if (destType.IsGenericType &&
@@ -625,18 +162,8 @@ namespace ModMaker.Lua {
       // NOTE: This only checks for derived classes and interfaces, this will not work for
       // implicit/explicit casts.
       if (destType.IsAssignableFrom(sourceType)) {
-        if (destType.IsInterface) {
-          return LuaCastType.Interface;
-        } else {
-          while (destType != sourceType) {
-            amount++;
-            sourceType = sourceType.BaseType;
-          }
-          return LuaCastType.BaseClass;
-        }
+        return true;
       }
-
-      amount = 1;
 
       // All numeric types are explicitly compatible but do not define a cast in their type.
       if (destType != typeof(bool) && destType != typeof(IntPtr) && destType != typeof(UIntPtr) &&
@@ -645,43 +172,39 @@ namespace ModMaker.Lua {
         // Although they are compatible, they need to be converted, get the
         // Convert.ToXX method.
         method = typeof(Convert).GetMethod("To" + destType.Name, new Type[] { sourceType });
-        return LuaCastType.BaseClass;
+        return true;
       }
 
       // Get any methods from source type that is not marked with LuaIgnoreAttribute and has
       // the name 'op_Explicit' or 'op_Implicit' and has a return type of the destination
       // type and a sole argument that is implicitly compatible with the source type.
-      LuaIgnoreAttribute attr = sourceType.GetCustomAttributes(typeof(LuaIgnoreAttribute), true)
-          .Select(o => (LuaIgnoreAttribute)o).FirstOrDefault();
-      var possible = sourceType.GetMethods()
-          .Where(m => {
-            return m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0 &&
-                (attr == null || attr.IsMemberVisible(sourceType, m.Name)) &&
-                (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
-                m.ReturnType == destType && m.GetParameters().Length == 1 &&
-                m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType);
-          });
+      var attr = sourceType.GetCustomAttribute<LuaIgnoreAttribute>(true);
+      var flags = BindingFlags.Static | BindingFlags.Public;
+      bool isValidMethod(MethodInfo m) {
+        return m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0 &&
+            (attr == null || attr.IsMemberVisible(sourceType, m.Name)) &&
+            (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
+            m.ReturnType == destType && m.GetParameters().Length == 1 &&
+            m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType);
+      }
+      // Static methods aren't inherited, but we can use static methods in parent classes.
+      IEnumerable<MethodInfo> possible = Enumerable.Empty<MethodInfo>();
+      for (Type cur = sourceType; cur != null; cur = cur.BaseType) {
+        possible = possible.Concat(cur.GetMethods(flags).Where(isValidMethod));
+      }
 
-      // Check for a cast in the destination type
-      attr = destType.GetCustomAttributes(typeof(LuaIgnoreAttribute), true)
-          .Select(o => (LuaIgnoreAttribute)o).FirstOrDefault();
-      possible = possible
-          .Union(destType.GetMethods().Where(m => {
-            return m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0 &&
-                (attr == null || attr.IsMemberVisible(destType, m.Name)) &&
-                (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
-                m.ReturnType == destType && m.GetParameters().Length == 1 &&
-                m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType);
-          }));
+      // Check for a cast in the destination type.  Don't inherit since the return type needs to
+      // match destType, and inherited versions would return the base type.
+      attr = destType.GetCustomAttribute<LuaIgnoreAttribute>(true);
+      possible = possible.Concat(destType.GetMethods(flags).Where(isValidMethod));
 
-      // check the possible choices
       foreach (var choice in possible) {
         method = choice;
         if (choice.Name == "op_implicit") {
-          return LuaCastType.UserDefined;
+          return true;
         }
       }
-      return method == null ? LuaCastType.NoCast : LuaCastType.ExplicitUserDefined;
+      return method != null;
     }
     /// <summary>
     /// Searches the given methods for an overload that will work with the given arguments.
@@ -697,36 +220,22 @@ namespace ModMaker.Lua {
     public static bool GetCompatibleMethod<T>(
         IEnumerable<Tuple<T, object>> methods, ILuaMultiValue args, out T resultMethod,
         out object resultTarget) where T : MethodBase {
-      resultMethod = null;
-      resultTarget = null;
-
-      OverloadInfo<T> min = null;
-      bool ambiguous = false;
-
-      foreach (var method in methods) {
-        var cur = OverloadInfo<T>.Create(method.Item1, method.Item2, args);
-        if (min == null) {
-          min = cur;
-        } else if (cur != null) {
-          int diff = cur.Compare(min);
-          if (diff > 0) {
-            ambiguous = false;
-            min = cur;
-          } else if (diff == 0) {
-            ambiguous = true;
-          }
-        }
-      }
-
-      if (ambiguous) {
-        throw new AmbiguousMatchException();
-      } else if (min != null) {
-        resultMethod = min.Method;
-        resultTarget = min.Target;
-        return true;
-      } else {
+      Tuple<T, object>[] methodsArray = methods.ToArray();
+      OverloadSelector.Choice[] choices =
+          methodsArray.Select((t) => new OverloadSelector.Choice(t.Item1)).ToArray();
+      Tuple<Type, Type>[] values = args
+          .Select((v) => v == null || v == LuaNil.Nil
+                             ? null : new Tuple<Type, Type>(v.GetType(), v.GetValue()?.GetType()))
+          .ToArray();
+      int choice = OverloadSelector.FindOverload(choices, values);
+      if (choice == -1) {
+        resultMethod = null;
+        resultTarget = null;
         return false;
       }
+      resultMethod = methodsArray[choice].Item1;
+      resultTarget = methodsArray[choice].Item2;
+      return true;
     }
     /// <summary>
     /// Converts the given arguments so they can be passed to the given method.  It assumes the
@@ -761,12 +270,8 @@ namespace ModMaker.Lua {
           paramType = paramType.GetElementType();
         }
 
-        if (typeof(ILuaValue).IsAssignableFrom(paramType)) {
-          ret[i] = args[i];
-        } else {
-          var asMethod = rootMethod.MakeGenericMethod(paramType);
-          ret[i] = asMethod.Invoke(args[i], null);
-        }
+        var asMethod = rootMethod.MakeGenericMethod(paramType);
+        ret[i] = asMethod.Invoke(args[i], null);
       }
 
       // Get optional parameters.
@@ -777,8 +282,13 @@ namespace ModMaker.Lua {
       // Get params array.
       if (hasParams) {
         Type arrayType = param[^1].ParameterType.GetElementType();
+        var asMethod = rootMethod.MakeGenericMethod(arrayType);
         int start = param.Length - 1;
-        ret[^1] = As(args, start, arrayType);
+
+        Array array = Array.CreateInstance(arrayType, Math.Max(args.Count - start, 0));
+        for (int i = 0; i < array.Length; i++)
+          array.SetValue(asMethod.Invoke(args[start + i], null), i);
+        ret[^1] = array;
       }
 
       return ret;

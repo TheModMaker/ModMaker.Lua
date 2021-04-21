@@ -93,33 +93,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return null;
     }
 
-    public virtual bool TypesCompatible<T>() {
-      // Sometimes this will return this; assume this is intended behavior.
-      var value = GetValue();
-      if (value == null) {
-        return !typeof(T).IsValueType;
-      }
-
-      return Helpers.TypesCompatible(value.GetType(), typeof(T), out _, out _) !=
-             LuaCastType.NoCast;
-    }
-    public virtual void GetCastInfo<T>(out LuaCastType type, out int distance) {
-      if (typeof(T).IsAssignableFrom(GetType())) {
-        distance = 0;
-        type = LuaCastType.BaseClass;
-        return;
-      }
-
-      // Sometimes this will return |this|; assume this is intended behavior.
-      var value = GetValue();
-      if (value == null) {
-        type = typeof(T).IsValueType ? LuaCastType.NoCast : LuaCastType.SameType;
-        distance = 0;
-        return;
-      }
-
-      type = Helpers.TypesCompatible(value.GetType(), typeof(T), out _, out distance);
-    }
     public virtual T As<T>() {
       if (typeof(T).IsAssignableFrom(GetType())) {
         return (T)(object)this;
@@ -136,8 +109,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
       }
 
-      if (Helpers.TypesCompatible(value.GetType(), typeof(T), out MethodInfo m, out _) !=
-          LuaCastType.NoCast) {
+      if (Helpers.TypesCompatible(value.GetType(), typeof(T), out MethodInfo m)) {
         // Cast the object if needed.
         if (m != null) {
           value = m.Invoke(null, new[] { value });

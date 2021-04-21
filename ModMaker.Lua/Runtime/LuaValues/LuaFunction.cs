@@ -147,21 +147,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       throw new InvalidCastException(string.Format(Resources.BadCast, GetType(), typeof(T)));
     }
-    bool ILuaValue.TypesCompatible<T>() {
-      if (typeof(T).IsAssignableFrom(GetType())) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    void ILuaValue.GetCastInfo<T>(out LuaCastType type, out int distance) {
-      distance = 0;
-      if (typeof(T).IsAssignableFrom(GetType())) {
-        type = LuaCastType.SameType;
-      } else {
-        type = LuaCastType.NoCast;
-      }
-    }
 
     ILuaValue ILuaValue.Minus() {
       throw new InvalidOperationException(Errors.CannotArithmetic(LuaValueType.Function));
