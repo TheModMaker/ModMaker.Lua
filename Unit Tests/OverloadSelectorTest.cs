@@ -17,6 +17,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using ModMaker.Lua;
+using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 using NUnit.Framework;
 
@@ -63,8 +64,9 @@ namespace UnitTests {
     delegate void TestDelegate(ref int x);
     static void _withNotNull([NotNull] object _) { }
     static void _withParams(params string[] _) { }
-    static void _withParamsPrimative(params int[] _) { }
-    static void _withParamsNullablePrimative(params int?[] _) { }
+    static void _withParamsPrimitive(params int[] _) { }
+    static void _withParamsNullablePrimitive(params int?[] _) { }
+    static void _withOptional(string a, int b = 1, long c = 2) { }
 
     [Test]
     public void Choice_MethodInfo_Empty() {
@@ -72,7 +74,7 @@ namespace UnitTests {
       var choice = new Choice(func.GetMethodInfo()!);
       Assert.AreEqual(choice.FormalArguments, new Type[0]);
       Assert.AreEqual(choice.Nullable, new bool[0]);
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -83,7 +85,7 @@ namespace UnitTests {
       var choice = new Choice(func.GetMethodInfo()!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int), typeof(bool), typeof(Base) });
       Assert.AreEqual(choice.Nullable, new[] { false, false, true });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -94,7 +96,7 @@ namespace UnitTests {
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withNotNull), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(object) });
       Assert.AreEqual(choice.Nullable, new[] { false });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -105,31 +107,31 @@ namespace UnitTests {
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withParams), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(string[]) });
       Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsTrue(choice.HasParams);
       Assert.IsTrue(choice.ParamsNullable);
     }
 
     [Test]
-    public void Choice_MethodInfo_ParamsPrimative() {
+    public void Choice_MethodInfo_ParamsPrimitive() {
       var flags = BindingFlags.Static | BindingFlags.NonPublic;
       var choice =
-          new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withParamsPrimative), flags)!);
+          new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withParamsPrimitive), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int[]) });
       Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsTrue(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
 
     [Test]
-    public void Choice_MethodInfo_ParamsNullablePrimative() {
+    public void Choice_MethodInfo_ParamsNullablePrimitive() {
       var flags = BindingFlags.Static | BindingFlags.NonPublic;
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(
-          nameof(_withParamsNullablePrimative), flags)!);
+          nameof(_withParamsNullablePrimitive), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int?[]) });
       Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsTrue(choice.HasParams);
       Assert.IsTrue(choice.ParamsNullable);
     }
@@ -140,10 +142,23 @@ namespace UnitTests {
       var choice = new Choice(func.GetMethodInfo()!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int) });
       Assert.AreEqual(choice.Nullable, new[] { false });
-      Assert.AreEqual(choice.OptionalCount, 0);
+      Assert.AreEqual(choice.OptionalValues, new object[0]);
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
+
+    [Test]
+    public void Choice_MethodInfo_Optional() {
+      var flags = BindingFlags.Static | BindingFlags.NonPublic;
+      var choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withOptional), flags)!);
+      Assert.AreEqual(choice.FormalArguments, new[] { typeof(string), typeof(int), typeof(long) });
+      Assert.AreEqual(choice.Nullable, new[] { true, false, false});
+      Assert.AreEqual(choice.OptionalValues, new object[] { (int)1, (long)2 });
+      Assert.IsFalse(choice.HasParams);
+      Assert.IsFalse(choice.ParamsNullable);
+    }
+
 
     [Test]
     public void Compare_BasicFlow() {
@@ -299,21 +314,21 @@ namespace UnitTests {
 
     [Test]
     public void Compare_Optional_Basic() {
-      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optCount: 1);
+      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optionals: new object[] { 1 });
       var b = new Choice(new[] { typeof(Other) });
       _runTest(a, b, new[] { typeof(Derived) }, bValid: false);
     }
 
     [Test]
     public void Compare_Optional_NotEnough() {
-      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optCount: 1);
+      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optionals: new object[] { 1 });
       var b = new Choice(new[] { typeof(Other) });
       _runNeither(a, b, new Type[0]);
     }
 
     [Test]
     public void Compare_Optional_MoreParamsWins() {
-      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optCount: 1);
+      var a = new Choice(new[] { typeof(Base), typeof(Base) }, optionals: new object[] { 1 });
       var b = new Choice(new[] { typeof(Base) });
       _runTest(a, b, new[] { typeof(Base) });
     }
@@ -443,6 +458,237 @@ namespace UnitTests {
       };
       var values = new[] { typeof(Other), typeof(Other) };
       Assert.AreEqual(2, OverloadSelector.FindOverload(choices, _mapValues(values)));
+    }
+
+
+    class CastableFrom {
+      public static explicit operator Base?(CastableFrom _) { return null; }
+    }
+    class CastableFromDerived : CastableFrom { }
+    class CastableTo {
+      public static implicit operator CastableTo?(Base _) { return null; }
+    }
+    class CastableToDerived : CastableTo { }
+    class OtherCastable {
+      public static implicit operator Other?(OtherCastable _) { return null; }
+    }
+    [LuaIgnore]
+    class NonVisibleCastable {
+      public static explicit operator Base?(NonVisibleCastable _) { return null; }
+    }
+    class NonVisibleCastable2 {
+      [LuaIgnore]
+      public static explicit operator Base?(NonVisibleCastable2 _) { return null; }
+    }
+    class NonVisibleCastableTo {
+      [LuaIgnore]
+      public static explicit operator NonVisibleCastableTo?(Base _) { return null; }
+    }
+
+    [Test]
+    public void TypesCompatible_SameType() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(Derived), typeof(Derived), out info));
+      Assert.IsNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_BaseType() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(Derived), typeof(Base), out info));
+      Assert.IsNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_DerivedTypeError() {
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(Base), typeof(Derived), out _));
+    }
+
+    [Test]
+    public void TypesCompatible_NullableSource() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(int?), typeof(int), out info));
+      Assert.IsNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_NullableDest() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(int), typeof(int?), out info));
+      Assert.IsNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_CompatiblePrimitives() {
+      Type[] types = new[] {
+          // Note that bool and (U)IntPtr aren't considered the compatible.
+          // Also, don't include char since there are cases where it won't work.
+          typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int),
+          typeof(uint), typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(decimal),
+      };
+      foreach (Type a in types) {
+        foreach (Type b in types) {
+          if (a == b)
+            continue;
+          MethodInfo? info;
+          Assert.IsTrue(OverloadSelector.TypesCompatible(a, b, out info));
+          Assert.IsNotNull(info);
+
+          object? obj = info!.Invoke(null, new[] { Activator.CreateInstance(a) });
+          Assert.IsInstanceOf(b, obj);
+        }
+      }
+    }
+
+    [Test]
+    public void TypesCompatible_Char() {
+      Type[] badTypes = new[] {
+          typeof(float), typeof(double), typeof(decimal),
+      };
+      foreach (Type a in badTypes) {
+        Assert.IsFalse(OverloadSelector.TypesCompatible(a, typeof(char), out _));
+        Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(char), a, out _));
+      }
+
+      Type[] goodTypes = new[] {
+          typeof(byte), typeof(sbyte), typeof(short), typeof(ushort), typeof(int),
+          typeof(uint), typeof(long), typeof(ulong),
+      };
+      foreach (Type a in goodTypes) {
+        MethodInfo? info;
+        Assert.IsTrue(OverloadSelector.TypesCompatible(a, typeof(char), out info));
+        Assert.IsNotNull(info);
+        object? obj = info!.Invoke(null, new[] { Activator.CreateInstance(a) });
+        Assert.IsInstanceOf<char>(obj);
+
+        Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(char), a, out info));
+        Assert.IsNotNull(info);
+        obj = info!.Invoke(null, new[] { (object)'\0' });
+        Assert.IsInstanceOf(a, obj);
+      }
+    }
+
+    [Test]
+    public void TypesCompatible_OtherPrimitives() {
+      Type[] types = new[] { typeof(int), typeof(bool), typeof(IntPtr), typeof(UIntPtr) };
+      foreach (Type a in types) {
+        foreach (Type b in types) {
+          if (a == b)
+            continue;
+          Assert.IsFalse(OverloadSelector.TypesCompatible(a, b, out _));
+        }
+      }
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastFrom() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(CastableFrom), typeof(Base), out info));
+      Assert.IsNotNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastFromInBaseClass() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(CastableFromDerived), typeof(Base),
+                                                     out info));
+      Assert.IsNotNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastFromDerivedObject() {
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(CastableFromDerived), typeof(Derived),
+                                                     out _));
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastOther() {
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(OtherCastable), typeof(Base), out _));
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastTo() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(Base), typeof(CastableTo), out info));
+      Assert.IsNotNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastToInBaseClass() {
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(Base), typeof(CastableToDerived),
+                                                      out _));
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastToDerivedObject() {
+      MethodInfo? info;
+      Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(Derived), typeof(CastableTo),
+                                                     out info));
+      Assert.IsNotNull(info);
+    }
+
+    [Test]
+    public void TypesCompatible_UserCastNotVisible() {
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(NonVisibleCastable), typeof(Base),
+                                                      out _));
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(NonVisibleCastable2), typeof(Base),
+                                                      out _));
+      Assert.IsFalse(OverloadSelector.TypesCompatible(typeof(Base), typeof(NonVisibleCastableTo),
+                                                      out _));
+    }
+
+
+    [Test]
+    public void ConvertArguments_MultiValueArg() {
+      var choice = new Choice(new[] { typeof(ILuaMultiValue) });
+      var args = new LuaMultiValue();
+
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new[] { args }, converted);
+    }
+
+    [Test]
+    public void ConvertArguments_FormalArgs() {
+      var choice = new Choice(new[] { typeof(int), typeof(string) });
+      var args = new LuaMultiValue(LuaNumber.Create(0), new LuaString("foo"));
+
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { 0, "foo" }, converted);
+    }
+
+    [Test]
+    public void ConvertArguments_AddsOptionals() {
+      var choice = new Choice(new[] { typeof(string), typeof(int), typeof(int) },
+                              optionals: new object[] { 1, 2 });
+
+      var args = new LuaMultiValue(new LuaString("a"));
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", 1, 2 }, converted);
+
+      args = new LuaMultiValue(new LuaString("a"), LuaNumber.Create(9));
+      converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", 9, 2 }, converted);
+
+      args = new LuaMultiValue(new LuaString("a"), LuaNumber.Create(9), LuaNumber.Create(10));
+      converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", 9, 10 }, converted);
+    }
+
+    [Test]
+    public void ConvertArguments_AddsParams() {
+      var choice = new Choice(new[] { typeof(string), typeof(int[]) }, hasParams: true);
+
+      var args = new LuaMultiValue(new LuaString("a"), LuaNumber.Create(1), LuaNumber.Create(2));
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", new int[] { 1, 2 } }, converted);
+
+      args = new LuaMultiValue(new LuaString("a"), LuaNumber.Create(1));
+      converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", new int[] { 1 } }, converted);
+
+      args = new LuaMultiValue(new LuaString("a"));
+      converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { "a", new int[0] }, converted);
     }
   }
 }

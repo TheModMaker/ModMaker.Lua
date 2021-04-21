@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -135,163 +134,6 @@ namespace ModMaker.Lua {
     /// </returns>
     public static T GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute {
       return (T)Attribute.GetCustomAttribute(element, typeof(T), inherit);
-    }
-
-    /// <summary>
-    /// Checks whether two types are compatible and gets a conversion method if it can be.
-    /// </summary>
-    /// <param name="sourceType">The type of the original object.</param>
-    /// <param name="destType">The type trying to convert to.</param>
-    /// <param name="method">
-    /// Will contains the resulting conversion method. This method will be static
-    /// </param>
-    /// <returns>Whether the types are compatible.</returns>
-    public static bool TypesCompatible(Type sourceType, Type destType, out MethodInfo method) {
-      method = null;
-
-      if (sourceType == destType) {
-        return true;
-      }
-
-      if (destType.IsGenericType &&
-          destType.GetGenericTypeDefinition() == typeof(Nullable<>)) {
-        // If the destination is nullable, simply convert as the underlying type.
-        destType = destType.GetGenericArguments()[0];
-      }
-
-      // NOTE: This only checks for derived classes and interfaces, this will not work for
-      // implicit/explicit casts.
-      if (destType.IsAssignableFrom(sourceType)) {
-        return true;
-      }
-
-      // All numeric types are explicitly compatible but do not define a cast in their type.
-      if (destType != typeof(bool) && destType != typeof(IntPtr) && destType != typeof(UIntPtr) &&
-          destType.IsPrimitive && sourceType != typeof(bool) && sourceType != typeof(IntPtr) &&
-          sourceType != typeof(UIntPtr) && sourceType.IsPrimitive) {
-        // Although they are compatible, they need to be converted, get the
-        // Convert.ToXX method.
-        method = typeof(Convert).GetMethod("To" + destType.Name, new Type[] { sourceType });
-        return true;
-      }
-
-      // Get any methods from source type that is not marked with LuaIgnoreAttribute and has
-      // the name 'op_Explicit' or 'op_Implicit' and has a return type of the destination
-      // type and a sole argument that is implicitly compatible with the source type.
-      var attr = sourceType.GetCustomAttribute<LuaIgnoreAttribute>(true);
-      var flags = BindingFlags.Static | BindingFlags.Public;
-      bool isValidMethod(MethodInfo m) {
-        return m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0 &&
-            (attr == null || attr.IsMemberVisible(sourceType, m.Name)) &&
-            (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
-            m.ReturnType == destType && m.GetParameters().Length == 1 &&
-            m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType);
-      }
-      // Static methods aren't inherited, but we can use static methods in parent classes.
-      IEnumerable<MethodInfo> possible = Enumerable.Empty<MethodInfo>();
-      for (Type cur = sourceType; cur != null; cur = cur.BaseType) {
-        possible = possible.Concat(cur.GetMethods(flags).Where(isValidMethod));
-      }
-
-      // Check for a cast in the destination type.  Don't inherit since the return type needs to
-      // match destType, and inherited versions would return the base type.
-      attr = destType.GetCustomAttribute<LuaIgnoreAttribute>(true);
-      possible = possible.Concat(destType.GetMethods(flags).Where(isValidMethod));
-
-      foreach (var choice in possible) {
-        method = choice;
-        if (choice.Name == "op_implicit") {
-          return true;
-        }
-      }
-      return method != null;
-    }
-    /// <summary>
-    /// Searches the given methods for an overload that will work with the given arguments.
-    /// </summary>
-    /// <typeparam name="T">
-    /// The type of the method base (e.g. MethodInfo or ConstructorInfo).
-    /// </typeparam>
-    /// <param name="methods">The possible method choices.</param>
-    /// <param name="args">The arguments to check.</param>
-    /// <param name="resultMethod">Where the resulting method will be placed.</param>
-    /// <param name="resultTarget">Where the respective target will be placed.</param>
-    /// <returns>True if a compatible method was found, otherwise false.</returns>
-    public static bool GetCompatibleMethod<T>(
-        IEnumerable<Tuple<T, object>> methods, ILuaMultiValue args, out T resultMethod,
-        out object resultTarget) where T : MethodBase {
-      Tuple<T, object>[] methodsArray = methods.ToArray();
-      OverloadSelector.Choice[] choices =
-          methodsArray.Select((t) => new OverloadSelector.Choice(t.Item1)).ToArray();
-      Tuple<Type, Type>[] values = args
-          .Select((v) => v == null || v == LuaNil.Nil
-                             ? null : new Tuple<Type, Type>(v.GetType(), v.GetValue()?.GetType()))
-          .ToArray();
-      int choice = OverloadSelector.FindOverload(choices, values);
-      if (choice == -1) {
-        resultMethod = null;
-        resultTarget = null;
-        return false;
-      }
-      resultMethod = methodsArray[choice].Item1;
-      resultTarget = methodsArray[choice].Item2;
-      return true;
-    }
-    /// <summary>
-    /// Converts the given arguments so they can be passed to the given method.  It assumes the
-    /// arguments are valid.
-    /// </summary>
-    /// <param name="args">The arguments to convert.</param>
-    /// <param name="method">The method to call.</param>
-    /// <returns>The arguments as they can be passed to the given method.</returns>
-    public static object[] ConvertForArgs(ILuaMultiValue args, MethodBase method) {
-      var param = method.GetParameters();
-
-      var ret = new object[param.Length];
-      var min = Math.Min(param.Length, args.Count);
-      var rootMethod = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As));
-
-      bool hasParams = param.Length > 0 &&
-          param[^1].GetCustomAttributes(typeof(ParamArrayAttribute), false).Length > 0;
-
-      if (param.Length == 1 && param[0].ParameterType == typeof(ILuaMultiValue)) {
-        return new object[] { args };
-      }
-
-      // Convert formal parameters.
-      for (int i = 0; i < min; i++) {
-        // Skip params array since it's handled below.
-        if (i == param.Length - 1 && hasParams) {
-          continue;
-        }
-
-        var paramType = param[i].ParameterType;
-        if (paramType.IsByRef) {
-          paramType = paramType.GetElementType();
-        }
-
-        var asMethod = rootMethod.MakeGenericMethod(paramType);
-        ret[i] = asMethod.Invoke(args[i], null);
-      }
-
-      // Get optional parameters.
-      for (int i = min; i < param.Length; i++) {
-        ret[i] = param[i].DefaultValue;
-      }
-
-      // Get params array.
-      if (hasParams) {
-        Type arrayType = param[^1].ParameterType.GetElementType();
-        var asMethod = rootMethod.MakeGenericMethod(arrayType);
-        int start = param.Length - 1;
-
-        Array array = Array.CreateInstance(arrayType, Math.Max(args.Count - start, 0));
-        for (int i = 0; i < array.Length; i++)
-          array.SetValue(asMethod.Invoke(args[start + i], null), i);
-        ret[^1] = array;
-      }
-
-      return ret;
     }
 
     /// <summary>
@@ -493,27 +335,26 @@ namespace ModMaker.Lua {
         indicies[^1] = value;
       }
 
-      // find the valid method
+      // Find the valid method
       string name = targetType == typeof(string) ? "Chars" : "Item";
-      GetCompatibleMethod(
-          targetType.GetMethods()
-              .Where(m => m.Name == (value == null ? "get_" + name : "set_" + name))
-              .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
-              .Select(m => Tuple.Create(m, target)),
-          indicies, out MethodInfo method, out _);
+      var methods = targetType.GetMethods()
+          .Where(m => m.Name == (value == null ? "get_" + name : "set_" + name) &&
+                      !m.IsDefined(typeof(LuaIgnoreAttribute), true))
+          .ToArray();
+      var choices = methods.Select(m => new OverloadSelector.Choice(m)).ToArray();
+      int index = OverloadSelector.FindOverload(choices, indicies);
 
-      if (method == null) {
-        // TODO: Move to resources.
+      if (index < 0) {
         throw new InvalidOperationException(
-            "Unable to find a visible indexer that  matches the provided arguments for type '" +
+            "Unable to find a visible indexer that matches the provided arguments for type '" +
             target.GetType() + "'.");
       }
 
+      object[] values = OverloadSelector.ConvertArguments(indicies, choices[index]);
       if (value == null) {
-        return LuaValueBase.CreateValue(
-            method.Invoke(target, indicies.Select(v => v.GetValue()).ToArray()));
+        return LuaValueBase.CreateValue(methods[index].Invoke(target, values));
       } else {
-        method.Invoke(target, indicies.Select(v => v.GetValue()).ToArray());
+        methods[index].Invoke(target, values);
         return value;
       }
     }

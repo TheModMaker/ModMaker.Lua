@@ -46,17 +46,16 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         args = new LuaMultiValue();
       }
 
-      Type t = Type;
-      if (Helpers.GetCompatibleMethod(
-          t.GetConstructors()
-              .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
-              .Select(c => Tuple.Create(c, (object)null)),
-          args, out ConstructorInfo method, out _)) {
-        object value = method.Invoke(Helpers.ConvertForArgs(args, method));
-        return LuaMultiValue.CreateMultiValueFromObj(value);
+      ConstructorInfo[] ctors = Type.GetConstructors()
+          .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
+          .ToArray();
+      var choices = ctors.Select(c => new OverloadSelector.Choice(c)).ToArray();
+      int index = OverloadSelector.FindOverload(choices, args);
+      if (index < 0) {
+        throw new InvalidOperationException(string.Format(Resources.CannotCall, "LuaType"));
       }
-
-      throw new InvalidOperationException(string.Format(Resources.CannotCall, "LuaType"));
+      object value = ctors[index].Invoke(OverloadSelector.ConvertArguments(args, choices[index]));
+      return LuaMultiValue.CreateMultiValueFromObj(value);
     }
 
     public override bool Equals(ILuaValue other) {

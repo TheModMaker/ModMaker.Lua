@@ -13,9 +13,12 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using ModMaker.Lua.Runtime;
+using ModMaker.Lua.Runtime.LuaValues;
 
 #nullable enable
 
@@ -73,17 +76,17 @@ namespace ModMaker.Lua {
 
         FormalArguments = param.Select((p) => underlyingType(p.ParameterType)).ToArray();
         Nullable = param.Select(isNullableParam).ToArray();
-        OptionalCount = param.Count((p) => p.IsOptional);
+        OptionalValues = param.Where(p => p.IsOptional).Select(p => p.DefaultValue!).ToArray();
         HasParams = param.Length > 0 && param[^1].IsDefined(typeof(ParamArrayAttribute));
         Type? paramType = !HasParams ? null : param[^1].ParameterType.GetElementType();
         ParamsNullable = HasParams && (nullableStruct(paramType!) || nullableRef(paramType!));
       }
 
-      public Choice(Type[] args, bool[]? nullable = null, int optCount = 0,
+      public Choice(Type[] args, bool[]? nullable = null, object[]? optionals = null,
                     bool hasParams = false, bool paramsNullable = false) {
         FormalArguments = args;
         Nullable = nullable ?? new bool[args.Length];
-        OptionalCount = optCount;
+        OptionalValues = optionals ?? new object[0];
         HasParams = hasParams;
         ParamsNullable = paramsNullable;
       }
@@ -98,9 +101,9 @@ namespace ModMaker.Lua {
       /// </summary>
       public readonly bool[] Nullable;
       /// <summary>
-      /// The number of arguments that are optional.
+      /// The optional values for the choice.
       /// </summary>
-      public readonly int OptionalCount;
+      public readonly object[] OptionalValues;
       /// <summary>
       /// True if the last argument is a "params" array.
       /// </summary>
@@ -131,9 +134,9 @@ namespace ModMaker.Lua {
         if (value == null) {
           return nullable;
         } else {
-          bool ret = Helpers.TypesCompatible(value.Item1, argType, out _);
+          bool ret = TypesCompatible(value.Item1, argType, out _);
           if (!ret && value.Item2 != null) {
-            return Helpers.TypesCompatible(value.Item2, argType, out _);
+            return TypesCompatible(value.Item2, argType, out _);
           }
           return ret;
         }
@@ -143,10 +146,10 @@ namespace ModMaker.Lua {
       CompareResult result = CompareResult.Both;
 
       // Extra arguments are ignored; check the minimum arguments are given.
-      int minArgsA = a.FormalArguments.Length - (a.HasParams ? 1 : a.OptionalCount);
+      int minArgsA = a.FormalArguments.Length - (a.HasParams ? 1 : a.OptionalValues.Length);
       if (values.Length < minArgsA)
         result = CompareResult.B;
-      int minArgsB = b.FormalArguments.Length - (b.HasParams ? 1 : b.OptionalCount);
+      int minArgsB = b.FormalArguments.Length - (b.HasParams ? 1 : b.OptionalValues.Length);
       if (values.Length < minArgsB) {
         if (result == CompareResult.Both)
           result = CompareResult.A;
@@ -245,9 +248,9 @@ namespace ModMaker.Lua {
         return CompareResult.A;
       if (a.FormalArguments.Length < b.FormalArguments.Length)
         return CompareResult.B;
-      if (a.OptionalCount < b.OptionalCount)
+      if (a.OptionalValues.Length < b.OptionalValues.Length)
         return CompareResult.A;
-      if (a.OptionalCount > b.OptionalCount)
+      if (a.OptionalValues.Length > b.OptionalValues.Length)
         return CompareResult.B;
 
       return CompareResult.Both;
@@ -297,6 +300,148 @@ namespace ModMaker.Lua {
       return ret;
     }
 
+    public static int FindOverload(Choice[] choices, ILuaMultiValue args) {
+      Tuple<Type, Type?>? mapValue(ILuaValue? value) {
+        if (value == null || value == LuaNil.Nil)
+          return null;
+        else
+          return new Tuple<Type, Type?>(value.GetType(), value.GetValue()?.GetType());
+      }
+      return FindOverload(choices, args.Select(mapValue).ToArray());
+    }
+
+    /// <summary>
+    /// Checks whether two types are compatible and gets a conversion method if it can be.
+    /// </summary>
+    /// <param name="sourceType">The type of the original object.</param>
+    /// <param name="destType">The type trying to convert to.</param>
+    /// <param name="method">
+    /// Will contains the resulting conversion method. This method will be static
+    /// </param>
+    /// <returns>Whether the types are compatible.</returns>
+    public static bool TypesCompatible(Type sourceType, Type destType, out MethodInfo? method) {
+      method = null;
+
+      // If the destination is nullable, simply convert as the underlying type.
+      sourceType = Nullable.GetUnderlyingType(sourceType) ?? sourceType;
+      destType = Nullable.GetUnderlyingType(destType) ?? destType;
+
+      // NOTE: This only checks for derived classes and interfaces, this will not work for
+      // implicit/explicit casts.
+      if (destType.IsAssignableFrom(sourceType)) {
+        return true;
+      }
+
+      // All numeric types are explicitly compatible but do not define a cast in their type.
+      if ((sourceType.IsPrimitive || sourceType == typeof(decimal)) &&
+          (destType.IsPrimitive || destType == typeof(decimal))) {
+        // Don't allow conversions for these special primitive types.
+        // TODO: Add a flag for allowing implicit bool conversions.
+        static bool isSpecial(Type t) {
+          return t == typeof(bool) || t == typeof(IntPtr) || t == typeof(UIntPtr);
+        }
+        static bool isFloat(Type t) {
+          return t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+        }
+        if (isSpecial(destType) || isSpecial(sourceType)) {
+          return false;
+        } else if ((sourceType == typeof(char) && isFloat(destType)) ||
+                   (destType == typeof(char) && isFloat(sourceType))) {
+          // https://docs.microsoft.com/en-us/dotnet/api/system.convert?view=net-5.0#conversions-to-and-from-base-types
+          return false;
+        } else {
+          // Although they are compatible, they need to be converted, get the
+          // Convert.ToXX method.
+          method = typeof(Convert).GetMethod("To" + destType.Name, new Type[] { sourceType });
+          return true;
+        }
+      }
+
+      // Get any methods from source type that is not marked with LuaIgnoreAttribute and has
+      // the name 'op_Explicit' or 'op_Implicit' and has a return type of the destination
+      // type and a sole argument that is implicitly compatible with the source type.
+      var srcAttr = sourceType.GetCustomAttribute<LuaIgnoreAttribute>(true);
+      var flags = BindingFlags.Static | BindingFlags.Public;
+      bool isValidMethod(LuaIgnoreAttribute? attr, MethodInfo m) {
+        return m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0 &&
+            (attr == null || attr.IsMemberVisible(sourceType, m.Name)) &&
+            (m.Name == "op_Explicit" || m.Name == "op_Implicit") &&
+            m.ReturnType == destType && m.GetParameters().Length == 1 &&
+            m.GetParameters()[0].ParameterType.IsAssignableFrom(sourceType);
+      }
+      // Static methods aren't inherited, but we can use static methods in parent classes.
+      IEnumerable<MethodInfo> possible = Enumerable.Empty<MethodInfo>();
+      for (Type? cur = sourceType; cur != null; cur = cur.BaseType) {
+        possible = possible.Concat(cur.GetMethods(flags).Where(m => isValidMethod(srcAttr, m)));
+      }
+
+      // Check for a cast in the destination type.  Don't inherit since the return type needs to
+      // match destType, and inherited versions would return the base type.
+      var destAttr = destType.GetCustomAttribute<LuaIgnoreAttribute>(true);
+      possible = possible.Concat(destType.GetMethods(flags).Where(m => isValidMethod(destAttr, m)));
+
+      foreach (MethodInfo choice in possible) {
+        method = choice;
+        if (choice.Name == "op_implicit") {
+          return true;
+        }
+      }
+      return method != null;
+    }
+
+    /// <summary>
+    /// Converts the given arguments so they can be passed to the given method.  It assumes the
+    /// arguments are valid.
+    /// </summary>
+    /// <param name="args">The arguments to convert.</param>
+    /// <param name="choice">The choice to call.</param>
+    /// <returns>The arguments as they can be passed to the given method.</returns>
+    public static object?[] ConvertArguments(ILuaMultiValue args, Choice choice) {
+      object?[] ret = new object[choice.FormalArguments.Length];
+      int min = Math.Min(ret.Length, args.Count);
+      MethodInfo asMethodGeneric = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))!;
+
+      if (choice.FormalArguments.Length == 1 &&
+          choice.FormalArguments[0] == typeof(ILuaMultiValue)) {
+        return new object[] { args };
+      }
+
+      // Convert formal parameters.
+      for (int i = 0; i < min; i++) {
+        if (i == ret.Length - 1 && choice.HasParams) {
+          continue;
+        }
+
+        Type paramType = choice.FormalArguments[i];
+        if (paramType.IsByRef) {
+          paramType = paramType.GetElementType()!;
+        }
+
+        MethodInfo asMethod = asMethodGeneric.MakeGenericMethod(paramType);
+        ret[i] = asMethod.Invoke(args[i], null);
+      }
+
+      // Add params array.
+      if (choice.HasParams) {
+        Type arrayType = choice.FormalArguments[^1].GetElementType()!;
+        MethodInfo asMethod = asMethodGeneric.MakeGenericMethod(arrayType);
+        int start = choice.FormalArguments.Length - 1;
+
+        Array array = Array.CreateInstance(arrayType, Math.Max(args.Count - start, 0));
+        for (int i = 0; i < array.Length; i++)
+          array.SetValue(asMethod.Invoke(args[start + i], null), i);
+        ret[^1] = array;
+      } else {
+        // Add optional parameters.
+        int optStart = choice.FormalArguments.Length - choice.OptionalValues.Length;
+        for (int i = min; i < choice.FormalArguments.Length; i++) {
+          ret[i] = choice.OptionalValues[i - optStart];
+        }
+      }
+
+      return ret;
+    }
+
     static bool _isBetterConversionTarget(Type a, bool aNullable, Type b, bool bNullable,
                                           Tuple<Type, Type?>? value) {
       // https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/expressions#better-conversion-target
@@ -309,11 +454,11 @@ namespace ModMaker.Lua {
       bool bMatches = value != null && (value.Item1 == b || value.Item2 == b);
       if (aMatches && !bMatches)
         return true;
-      if (Helpers.TypesCompatible(b, a, out _) && nullCast(bNullable, aNullable))
+      if (TypesCompatible(b, a, out _) && nullCast(bNullable, aNullable))
         return false;
 
       // Note this also checks for number casts.  We don't care about Delegate/Task conversions.
-      return Helpers.TypesCompatible(a, b, out _) && nullCast(aNullable, bNullable);
+      return TypesCompatible(a, b, out _) && nullCast(aNullable, bNullable);
     }
   }
 }

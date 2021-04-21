@@ -25,6 +25,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// </summary>
   public class LuaOverloadFunction : LuaFunction {
     readonly List<Tuple<MethodInfo, object>> _methods;
+    readonly List<OverloadSelector.Choice> _choices;
     // TODO: Add a constructor that accepts Delegate[].
 
     /// <summary>
@@ -39,7 +40,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// is not equal to that of targets.</exception>
     public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods,
                                IEnumerable<object> targets) : base(name) {
-      _methods = methods.Zip(targets, (a, b) => Tuple.Create(a, b)).ToList();
+      _methods = methods.Zip(targets, Tuple.Create).ToList();
+      _choices = _methods.Select(p => new OverloadSelector.Choice(p.Item1)).ToList();
     }
 
     /// <summary>
@@ -48,6 +50,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="d">The delegate to add.</param>
     public void AddOverload(Delegate d) {
       _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target));
+      _choices.Add(new OverloadSelector.Choice(d.Method));
     }
 
     /// <summary>
@@ -64,20 +67,19 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override ILuaMultiValue Invoke(ILuaValue self, bool methodCall, ILuaMultiValue args) {
-      MethodInfo method;
-      object target;
-      if (!Helpers.GetCompatibleMethod(_methods, args, out method, out target)) {
+      int index = OverloadSelector.FindOverload(_choices.ToArray(), args);
+      if (index < 0) {
         throw new ArgumentException(
             $"No overload of method '{Name}' could be found with specified parameters.");
       }
 
       // Invoke the selected method
       object retObj;
-      object[] r_args = Helpers.ConvertForArgs(args, method);
-      retObj = Helpers.DynamicInvoke(method, target, r_args);
+      object[] r_args = OverloadSelector.ConvertArguments(args, _choices[index]);
+      retObj = Helpers.DynamicInvoke(_methods[index].Item1, _methods[index].Item2, r_args);
 
       // Restore by-reference variables.
-      var min = Math.Min(method.GetParameters().Length, args.Count);
+      int min = Math.Min(r_args.Length, args.Count);
       for (int i = 0; i < min; i++) {
         args[i] = LuaValueBase.CreateValue(r_args[i]);
       }
@@ -87,8 +89,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
 
       // Convert the return type and return
-      Type returnType = method.ReturnType;
-      if (method.GetCustomAttributes(typeof(MultipleReturnAttribute), true).Length > 0) {
+      Type returnType = _methods[index].Item1.ReturnType;
+      if (_methods[index].Item1.IsDefined(typeof(MultipleReturnAttribute), true)) {
         if (typeof(IEnumerable).IsAssignableFrom(returnType)) {
           // TODO: Support restricted variables.
           IEnumerable tempE = (IEnumerable)retObj;
