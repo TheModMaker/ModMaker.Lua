@@ -389,11 +389,7 @@ namespace ModMaker.Lua {
         return LuaNil.Nil;
       }
 
-      FieldInfo field = members[0] as FieldInfo;
-      PropertyInfo property = members[0] as PropertyInfo;
-      MethodInfo method = members[0] as MethodInfo;
-      if (field != null) {
-
+      if (members[0] is FieldInfo field) {
         if (value == null) {
           return LuaValueBase.CreateValue(field.GetValue(target));
         } else {
@@ -406,8 +402,7 @@ namespace ModMaker.Lua {
           field.SetValue(target, convert.Invoke(value, null));
           return null;
         }
-      } else if (property != null) {
-
+      } else if (members[0] is PropertyInfo property) {
         if (value == null) {
           MethodInfo meth = property.GetGetMethod();
           if (meth == null) {
@@ -420,7 +415,7 @@ namespace ModMaker.Lua {
             throw new InvalidOperationException(
                 "The get method for property '" + name + "' is inaccessible to Lua.");*/
 
-          return LuaValueBase.CreateValue(method.Invoke(target, null));
+          return LuaValueBase.CreateValue(meth.Invoke(target, null));
         } else {
           MethodInfo meth = property.GetSetMethod();
           if (meth == null) {
@@ -433,20 +428,21 @@ namespace ModMaker.Lua {
             throw new InvalidOperationException(
                 "The set method for property '" + name + "' is inaccessible to Lua.");*/
 
-          var convert = typeof(ILuaValue).GetMethod("As").MakeGenericMethod(property.PropertyType);
+          var convert = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
+              .MakeGenericMethod(property.PropertyType);
           property.SetValue(target, convert.Invoke(value, null), null);
           return null;
         }
-      } else if (method != null) {
+      } else if (members[0] is MethodInfo method) {
         if (value != null) {
           throw new InvalidOperationException("Cannot set the value of a method.");
         }
-
         if (method.IsSpecialName) {
           throw new InvalidOperationException($"Cannot call special method '{method.Name}'.");
         }
 
-        return new LuaOverloadFunction(method.Name, new[] { method }, new[] { target });
+        return new LuaOverloadFunction(method.Name, members.Cast<MethodInfo>(),
+                                       Enumerable.Repeat(target, members.Length));
       } else {
         throw new InvalidOperationException("Unrecognized member type " + members[0]);
       }

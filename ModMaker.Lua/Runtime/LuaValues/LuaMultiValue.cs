@@ -97,6 +97,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override object GetValue() {
       return _values[0].GetValue();
     }
+    public override double? AsDouble() {
+      return _values[0].AsDouble();
+    }
 
     public IEnumerator<ILuaValue> GetEnumerator() {
       if (Count == 0) {
@@ -126,6 +129,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
     public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
       return _values[0].Invoke(self, memberCall, args);
+    }
+    public override ILuaValue GetIndex(ILuaValue index) {
+      return _values[0].GetIndex(index);
+    }
+    public override void SetIndex(ILuaValue index, ILuaValue value) {
+      _values[0].SetIndex(index, value);
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaBoolean self) {
