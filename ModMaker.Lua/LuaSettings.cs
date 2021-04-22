@@ -16,6 +16,8 @@ using System;
 using System.IO;
 using System.Text;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   /// <summary>
   /// Defines which libraries the Lua code will have access to. Use Bitwise-Or to use multiple.
@@ -113,20 +115,18 @@ namespace ModMaker.Lua {
   /// Defines the settings for a Lua object.
   /// </summary>
   public sealed class LuaSettings {
-    EventHandler<ExitEventArgs> _onquit;
+    EventHandler<ExitEventArgs>? _onquit;
     LuaClassAccess _access;
     LuaLibraries _libs;
-    Encoding _enc;
-    Stream _in;
-    Stream _out;
-    string _name;
-    bool _nonSeek;
-    bool _reflect;
-    bool _ensureReturn;
+    Encoding? _enc;
+    Stream? _in;
+    Stream? _out;
     readonly bool _readonly;
 
     /// <summary>
-    /// Creates a new instance of LuaSettings with the default values.
+    /// Creates a new instance of LuaSettings with the default values.  Note this doesn't set
+    /// standard in/out, this may cause problems with print and io libraries.  See
+    /// Console.OpenStandard*.
     /// </summary>
     public LuaSettings() : this(null, null) { }
     /// <summary>
@@ -135,16 +135,11 @@ namespace ModMaker.Lua {
     /// </summary>
     /// <param name="stdin">The standard input stream.</param>
     /// <param name="stdout">The standard output stream.</param>
-    public LuaSettings(Stream stdin, Stream stdout) {
+    public LuaSettings(Stream? stdin, Stream? stdout) {
       _readonly = false;
       _onquit = null;
-      _name = null;
       _libs = LuaLibraries.All;
       _access = LuaClassAccess.Registered;
-      _enc = null;
-      _nonSeek = false;
-      _reflect = false;
-      _ensureReturn = false;
       _in = stdin;
       _out = stdout;
     }
@@ -155,36 +150,21 @@ namespace ModMaker.Lua {
     LuaSettings(LuaSettings copy) {
       _readonly = true;
       _onquit = copy._onquit;
-      _name = copy._name;
       _libs = copy._libs;
       _access = _checkAccess(copy._access);
-      _enc = copy._enc ?? Encoding.UTF8;
-      _nonSeek = copy._nonSeek;
-      _reflect = copy._reflect;
-      _ensureReturn = copy._ensureReturn;
+      _enc = copy._enc;
       _in = copy._in;
       _out = copy._out;
     }
 
     /// <summary>
-    /// Creates a new copy of the current settings as a read-only version. This also sets the
-    /// default values of Encoding, ModuleBinder, StdIn, and StdOut.
+    /// Creates a new copy of the current settings as a read-only version.
     /// </summary>
     /// <returns>A new copy of the current LuaSettings.</returns>
     public LuaSettings AsReadOnly() {
       return new LuaSettings(this);
     }
 
-    /// <summary>
-    /// Gets or sets the name of the Lua object, for use with debugging, can be null.
-    /// </summary>
-    public string Name {
-      get { return _name; }
-      set {
-        _checkReadonly();
-        _name = value;
-      }
-    }
     /// <summary>
     /// Gets or sets the libraries that the Lua code has access too. The library must have
     /// Permission to access these and will throw PermissionExceptions if it does not, when the code
@@ -211,45 +191,11 @@ namespace ModMaker.Lua {
     /// Gets or sets the encoding to use for reading/writing to a file.  If null, will use UTF8.
     /// When reading, will try to read using the file encoding.
     /// </summary>
-    public Encoding Encoding {
+    public Encoding? Encoding {
       get { return _enc; }
       set {
         _checkReadonly();
         _enc = value;
-      }
-    }
-    /// <summary>
-    /// Gets or sets whether to allow non-seekable streams.
-    /// Default: false.
-    /// </summary>
-    public bool AllowNonSeekStreams {
-      get { return _nonSeek; }
-      set {
-        _checkReadonly();
-        _nonSeek = value;
-      }
-    }
-    /// <summary>
-    /// Gets or sets whether Lua has access to .NET reflection.
-    /// Default: false.
-    /// </summary>
-    public bool AllowReflection {
-      get { return _reflect; }
-      set {
-        _checkReadonly();
-        _reflect = value;
-      }
-    }
-    /// <summary>
-    /// True to ensure that Lua only has access to the return type of a registered method; otherwise
-    /// it has access to all members of the backing type.
-    /// Default: false.
-    /// </summary>
-    public bool EnsureReturnType {
-      get { return _ensureReturn; }
-      set {
-        _checkReadonly();
-        _ensureReturn = value;
       }
     }
 
@@ -271,7 +217,7 @@ namespace ModMaker.Lua {
     /// <summary>
     /// Gets or sets the stream to get stdin from.
     /// </summary>
-    public Stream Stdin {
+    public Stream? Stdin {
       get { return _in; }
       set {
         _checkReadonly();
@@ -281,7 +227,7 @@ namespace ModMaker.Lua {
     /// <summary>
     /// Gets or sets the stream to send stdout to.
     /// </summary>
-    public Stream Stdout {
+    public Stream? Stdout {
       get { return _out; }
       set {
         _checkReadonly();

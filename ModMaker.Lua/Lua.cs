@@ -153,9 +153,8 @@ namespace ModMaker.Lua {
     /// </param>
     /// <returns>The loaded chunk.</returns>
     public ILuaValue CompileFile(Stream stream, string? name = null, Encoding? encoding = null) {
-      return Environment.CodeCompiler.Compile(Environment,
-                                              Environment.Parser.Parse(stream, encoding, name),
-                                              name);
+      return Environment.CodeCompiler.Compile(
+          Environment, Environment.Parser.Parse(stream, encoding ?? Settings.Encoding, name), name);
     }
     /// <summary>
     /// Compiles the given text into an executable object.
