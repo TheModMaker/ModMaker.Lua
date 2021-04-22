@@ -19,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
@@ -31,7 +32,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       public void Initialize() {
-        ILuaTable os = _env.Runtime.CreateTable();
+        ILuaTable os = new LuaTable();
         Register(_env, os, (Func<double>)clock);
         Register(_env, os, (Func<string, object, object>)date);
         Register(_env, os, (Func<double, double, double>)difftime);
@@ -43,7 +44,7 @@ namespace ModMaker.Lua.Runtime {
         Register(_env, os, (Func<object, double>)time);
         Register(_env, os, (Func<string>)tmpname);
 
-        _env.GlobalsTable.SetItemRaw(_env.Runtime.CreateValue("os"), os);
+        _env.GlobalsTable.SetItemRaw(new LuaString("os"), os);
       }
 
       double clock() {
@@ -66,9 +67,9 @@ namespace ModMaker.Lua.Runtime {
         }
 
         if (format == "*t") {
-          ILuaTable table = _env.Runtime.CreateTable();
+          ILuaTable table = new LuaTable();
           Action<string, int> set = (a, b) => {
-            table.SetItemRaw(_env.Runtime.CreateValue(a), _env.Runtime.CreateValue(b));
+            table.SetItemRaw(new LuaString(a), new LuaNumber(b));
           };
           set("year", time.Year);
           set("month", time.Month);
@@ -255,7 +256,7 @@ namespace ModMaker.Lua.Runtime {
         if (source is ILuaTable table) {
           int year, month, day, hour, min, sec;
           Func<string, bool, int> get = (name, req) => {
-            ILuaValue value = table.GetItemRaw(_env.Runtime.CreateValue(name));
+            ILuaValue value = table.GetItemRaw(new LuaString(name));
             if (value == null || value.ValueType != LuaValueType.Number) {
               if (req) {
                 throw new ArgumentException(

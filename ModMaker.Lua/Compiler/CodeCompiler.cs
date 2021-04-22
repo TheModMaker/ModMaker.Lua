@@ -132,14 +132,11 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Stelem, typeof(object));
       }
 
-      // ILuaMultiValue methodArgs = E.Runtime.CreateMultiValueFromObj(loc);
+      // ILuaMultiValue methodArgs = LuaMultiValue.CreateMultiValueFromObj(loc);
       LocalBuilder methodArgs = gen.DeclareLocal(typeof(ILuaMultiValue));
-      gen.Emit(OpCodes.Ldfld, env);
-      gen.Emit(OpCodes.Callvirt,
-               typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
       gen.Emit(OpCodes.Ldloc, loc);
-      gen.Emit(OpCodes.Callvirt,
-               typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValueFromObj)));
+      gen.Emit(OpCodes.Call,
+               typeof(LuaMultiValue).GetMethod(nameof(LuaMultiValue.CreateMultiValueFromObj)));
       gen.Emit(OpCodes.Stloc, methodArgs);
 
       // ret = this.meth.Invoke(LuaNil.Nil, false, methodArgs)

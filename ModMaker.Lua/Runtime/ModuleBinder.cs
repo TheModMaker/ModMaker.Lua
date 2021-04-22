@@ -206,12 +206,12 @@ namespace ModMaker.Lua.Runtime {
         ci = t.GetConstructor(new Type[] { typeof(ILuaEnvironment) });
         if (ci != null) {
           ILuaValue mod = (ILuaValue)ci.Invoke(new[] { env });
-          return mod.Invoke(LuaNil.Nil, false, env.Runtime.CreateMultiValue()).Single();
+          return mod.Invoke(LuaNil.Nil, false, new LuaMultiValue()).Single();
         }
         return null;
       } else {
         ILuaValue mod = (ILuaValue)ci.Invoke(null);
-        return mod.Invoke(LuaNil.Nil, false, env.Runtime.CreateMultiValue()).Single();
+        return mod.Invoke(LuaNil.Nil, false, new LuaMultiValue()).Single();
       }
     }
   }

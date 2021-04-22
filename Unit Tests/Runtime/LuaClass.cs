@@ -388,7 +388,7 @@ assertEquals(nil, inst.Ambiguous, 'no member when explicit')");
     #endregion
 
     private LuaClass _getLuaClass(string name) {
-      ILuaValue luaName = _lua.Environment.Runtime.CreateValue(name);
+      ILuaValue luaName = new LuaString(name);
       ILuaValue cls = _lua.Environment.GlobalsTable.GetItemRaw(luaName);
 
       Assert.IsInstanceOf<LuaClass>(cls);

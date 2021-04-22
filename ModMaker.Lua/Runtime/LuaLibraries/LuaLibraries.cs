@@ -14,6 +14,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Names match Lua versions")]
@@ -49,8 +50,8 @@ namespace ModMaker.Lua.Runtime {
     }
 
     static void Register(ILuaEnvironment env, ILuaValue table, Delegate func, string name = null) {
-      var funcValue = env.Runtime.CreateValue(func);
-      var nameValue = env.Runtime.CreateValue(name ?? func.Method.Name);
+      var funcValue = LuaValueBase.CreateValue(func);
+      var nameValue = new LuaString(name ?? func.Method.Name);
       table.SetIndex(nameValue, funcValue);
     }
 

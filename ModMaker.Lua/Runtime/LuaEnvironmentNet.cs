@@ -132,10 +132,10 @@ namespace ModMaker.Lua.Runtime {
 
     public virtual ILuaValue this[string name] {
       get {
-        return _globals.GetIndex(_runtime.CreateValue(name));
+        return _globals.GetIndex(new LuaString(name));
       }
       set {
-        _globals.SetIndex(_runtime.CreateValue(name), value);
+        _globals.SetIndex(new LuaString(name), value);
       }
     }
 
@@ -209,7 +209,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       lock (this) {
-        object o = GlobalsTable.GetItemRaw(_runtime.CreateValue(name));
+        object o = GlobalsTable.GetItemRaw(new LuaString(name));
         if (o != LuaNil.Nil) {
           LuaOverloadFunction meth = o as LuaOverloadFunction;
           if (meth == null) {
@@ -219,7 +219,7 @@ namespace ModMaker.Lua.Runtime {
           meth.AddOverload(d);
         } else {
           GlobalsTable.SetItemRaw(
-              _runtime.CreateValue(name),
+              new LuaString(name),
               new LuaOverloadFunction(name, new[] { d.Method }, new[] { d.Target }));
         }
       }
@@ -262,7 +262,7 @@ namespace ModMaker.Lua.Runtime {
       if (indexes != null && indexes.Length == 1) {
         ILuaValue o;
         lock (this) {
-          o = GlobalsTable.GetItemRaw(_runtime.CreateValue(indexes[0]));
+          o = GlobalsTable.GetItemRaw(LuaValueBase.CreateValue(indexes[0]));
         }
 
         MethodInfo asMethod =
@@ -281,7 +281,7 @@ namespace ModMaker.Lua.Runtime {
       if (indexes != null && indexes.Length == 1) {
         lock (this) {
           GlobalsTable.SetItemRaw(
-              _runtime.CreateValue(indexes[0]), _runtime.CreateValue(value));
+              LuaValueBase.CreateValue(indexes[0]), LuaValueBase.CreateValue(value));
         }
         return true;
       } else {
@@ -291,7 +291,7 @@ namespace ModMaker.Lua.Runtime {
     public override bool TryGetMember(GetMemberBinder binder, out object result) {
       ILuaValue o;
       lock (this) {
-        o = GlobalsTable.GetItemRaw(_runtime.CreateValue(binder.Name));
+        o = GlobalsTable.GetItemRaw(new LuaString(binder.Name));
       }
 
       MethodInfo asMethod =
@@ -305,7 +305,7 @@ namespace ModMaker.Lua.Runtime {
     }
     public override bool TrySetMember(SetMemberBinder binder, object value) {
       lock (this) {
-        GlobalsTable.SetItemRaw(Runtime.CreateValue(binder.Name), Runtime.CreateValue(value));
+        GlobalsTable.SetItemRaw(new LuaString(binder.Name), LuaValueBase.CreateValue(value));
       }
 
       return true;

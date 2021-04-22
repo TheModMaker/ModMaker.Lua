@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
@@ -26,7 +27,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       public void Initialize() {
-        ILuaTable coroutine = _env.Runtime.CreateTable();
+        ILuaTable coroutine = new LuaTable();
         Register(_env, coroutine, (Func<ILuaValue, ILuaValue>)create);
         Register(_env, coroutine, (Func<ILuaThread, ILuaValue[], IEnumerable<ILuaValue>>)resume);
         Register(_env, coroutine, (Func<object[]>)running);
@@ -34,7 +35,7 @@ namespace ModMaker.Lua.Runtime {
         Register(_env, coroutine, (Func<ILuaValue, object>)wrap);
         Register(_env, coroutine, (Func<ILuaValue[], ILuaMultiValue>)yield);
 
-        _env.GlobalsTable.SetItemRaw(_env.Runtime.CreateValue("coroutine"), coroutine);
+        _env.GlobalsTable.SetItemRaw(new LuaString("coroutine"), coroutine);
       }
 
       ILuaValue create(ILuaValue method) {
@@ -48,13 +49,13 @@ namespace ModMaker.Lua.Runtime {
       [MultipleReturn]
       IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
         try {
-          ILuaMultiValue ret = thread.Resume(_env.Runtime.CreateMultiValue(args));
-          return new[] { _env.Runtime.CreateValue(true) }.Concat(ret);
+          ILuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
+          return new[] { LuaBoolean.True }.Concat(ret);
         } catch (Exception e) {
           if (e.Message == "Cannot resume a dead thread.") {
-            return _env.Runtime.CreateMultiValueFromObj(false, "cannot resume dead coroutine");
+            return LuaMultiValue.CreateMultiValueFromObj(false, "cannot resume dead coroutine");
           } else {
-            return _env.Runtime.CreateMultiValueFromObj(false, e.Message, e);
+            return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
           }
         }
       }
@@ -82,7 +83,7 @@ namespace ModMaker.Lua.Runtime {
           throw new InvalidOperationException("Cannot yield the main thread.");
         }
 
-        return thread.Yield(_env.Runtime.CreateMultiValue(args));
+        return thread.Yield(new LuaMultiValue(args));
       }
     }
   }

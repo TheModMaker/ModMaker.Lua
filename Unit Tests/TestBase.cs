@@ -64,7 +64,7 @@ namespace UnitTests {
     void _assertThrows(string message, ILuaValue value) {
       bool throws = false;
       try {
-        value.Invoke(LuaNil.Nil, false, _lua.Environment.Runtime.CreateMultiValue());
+        value.Invoke(LuaNil.Nil, false, new LuaMultiValue());
       } catch (Exception) {
         throws = true;
       }

@@ -14,12 +14,13 @@
 
 using System;
 using System.Linq;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class Bit32 {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaValue bit32 = env.Runtime.CreateTable();
+        ILuaValue bit32 = new LuaTable();
         Register(env, bit32, (Func<double, int, uint>)arshift);
         Register(env, bit32, (Func<double[], uint>)band);
         Register(env, bit32, (Func<double, uint>)bnot);
@@ -33,7 +34,7 @@ namespace ModMaker.Lua.Runtime {
         Register(env, bit32, (Func<double, int, uint>)rrotate);
         Register(env, bit32, (Func<double, int, uint>)rshift);
 
-        env.GlobalsTable.SetItemRaw(env.Runtime.CreateValue("bit32"), bit32);
+        env.GlobalsTable.SetItemRaw(new LuaString("bit32"), bit32);
       }
 
       // NOTE: This uses double as an argument since using Convert.ToUint will fail to

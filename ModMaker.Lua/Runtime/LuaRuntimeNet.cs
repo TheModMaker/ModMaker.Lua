@@ -64,14 +64,14 @@ namespace ModMaker.Lua.Runtime {
         }
       } else if (temp is IEnumerable en) {
         foreach (var item in en) {
-          yield return new LuaMultiValue(CreateValue(item));
+          yield return new LuaMultiValue(LuaValueBase.CreateValue(item));
         }
       } else if (target.ValueType == LuaValueType.Function) {
         ILuaValue s = args[1];
         ILuaValue var = args[2];
 
         while (true) {
-          var ret = target.Invoke(LuaNil.Nil, false, CreateMultiValue(s, var));
+          var ret = target.Invoke(LuaNil.Nil, false, new LuaMultiValue(s, var));
           if (ret == null || ret[0] == null || ret[0] == LuaNil.Nil) {
             yield break;
           }
@@ -86,23 +86,8 @@ namespace ModMaker.Lua.Runtime {
       }
     }
 
-    public ILuaValue CreateValue(object value) {
-      return LuaValueBase.CreateValue(value);
-    }
-    public ILuaMultiValue CreateMultiValue(params ILuaValue[] values) {
-      return new LuaMultiValue(values);
-    }
-    public ILuaMultiValue CreateMultiValueFromObj(params object[] values) {
-      return LuaMultiValue.CreateMultiValueFromObj(values);
-    }
     public ILuaThread CreateThread(ILuaValue method) {
       return _threadPool.Create(method);
-    }
-    public ILuaTable CreateTable() {
-      return new LuaTable();
-    }
-    public ILuaValue CreateImplementationFunction(string name, MethodInfo method, object target) {
-      return new LuaDefinedFunction(_env, name, method, target);
     }
     public void CreateClassValue(string[] impl, string name) {
       Type b = null;

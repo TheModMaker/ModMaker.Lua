@@ -99,7 +99,7 @@ namespace ModMaker.Lua {
     /// <returns>The values returned from the file.</returns>
     public object[] DoFile(string path, params object[] args) {
       var ret = CompileFile(path);
-      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }
@@ -111,7 +111,7 @@ namespace ModMaker.Lua {
     /// <returns>The values returned from the file.</returns>
     public object[] DoFile(Stream stream, params object[] args) {
       var ret = CompileFile(stream);
-      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }
@@ -123,7 +123,7 @@ namespace ModMaker.Lua {
     /// <returns>The values returned from the file.</returns>
     public object[] DoText(string chunk, params object[] args) {
       var ret = CompileText(chunk);
-      return ret.Invoke(LuaNil.Nil, false, Environment.Runtime.CreateMultiValueFromObj(args))
+      return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
           .ToArray();
     }

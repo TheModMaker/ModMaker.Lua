@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       public void Initialize() {
-        ILuaValue table = _env.Runtime.CreateTable();
+        ILuaValue table = new LuaTable();
         Register(_env, table, (Func<ILuaTable, string, int, int, string>)concat);
         Register(_env, table, (Action<ILuaTable, ILuaValue, ILuaValue>)insert);
         Register(_env, table, (Func<ILuaValue[], ILuaValue>)pack);
@@ -34,7 +34,7 @@ namespace ModMaker.Lua.Runtime {
         Register(_env, table, (Action<ILuaTable, ILuaValue>)sort);
         Register(_env, table, (Func<ILuaTable, int, int?, IEnumerable<ILuaValue>>)unpack);
 
-        _env.GlobalsTable.SetItemRaw(_env.Runtime.CreateValue("table"), table);
+        _env.GlobalsTable.SetItemRaw(new LuaString("table"), table);
       }
 
       readonly ILuaEnvironment _env;
@@ -51,7 +51,7 @@ namespace ModMaker.Lua.Runtime {
 
         StringBuilder str = new StringBuilder();
         for (; i <= j; i++) {
-          ILuaValue temp = table.GetItemRaw(_env.Runtime.CreateValue(i));
+          ILuaValue temp = table.GetItemRaw(new LuaNumber(i));
           if (temp.ValueType != LuaValueType.String && temp.ValueType != LuaValueType.Number) {
             throw new ArgumentException(
                 $"Invalid '{temp.ValueType}' value for function 'table.concat'.");
@@ -84,17 +84,17 @@ namespace ModMaker.Lua.Runtime {
         }
 
         for (double d = len; d >= i; d--) {
-          var temp = table.GetItemRaw(_env.Runtime.CreateValue(d));
-          table.SetItemRaw(_env.Runtime.CreateValue(d + 1), temp);
+          var temp = table.GetItemRaw(new LuaNumber(d));
+          table.SetItemRaw(new LuaNumber(d + 1), temp);
         }
         table.SetItemRaw(pos, value);
       }
       ILuaValue pack(params ILuaValue[] args) {
-        ILuaTable ret = _env.Runtime.CreateTable();
+        ILuaTable ret = new LuaTable();
         for (int i = 0; i < args.Length; i++) {
-          ret.SetItemRaw(_env.Runtime.CreateValue(i + 1), args[i]);
+          ret.SetItemRaw(new LuaNumber(i + 1), args[i]);
         }
-        ret.SetItemRaw(_env.Runtime.CreateValue("n"), _env.Runtime.CreateValue(args.Length));
+        ret.SetItemRaw(new LuaString("n"), new LuaNumber(args.Length));
         return ret;
       }
       ILuaValue remove(ILuaTable table, int? pos = null) {
@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Runtime {
 
         ILuaValue prev = LuaNil.Nil;
         for (double d = len; d >= pos; d--) {
-          ILuaValue ind = _env.Runtime.CreateValue(d);
+          ILuaValue ind = new LuaNumber(d);
           ILuaValue temp = table.GetItemRaw(ind);
           table.SetItemRaw(ind, prev);
           prev = temp;
@@ -122,7 +122,7 @@ namespace ModMaker.Lua.Runtime {
 
         ILuaValue[] elems = unpack(table).OrderBy(k => k, comparer).ToArray();
         for (int i = 0; i < elems.Length; i++) {
-          ILuaValue ind = _env.Runtime.CreateValue(i + 1);
+          ILuaValue ind = new LuaNumber(i + 1);
           table.SetItemRaw(ind, elems[i]);
         }
       }
@@ -132,7 +132,7 @@ namespace ModMaker.Lua.Runtime {
         int len = (int)(table.Length().AsDouble() ?? 0);
         int j = jOrNull ?? len;
         for (; i <= j; i++) {
-          yield return table.GetItemRaw(_env.Runtime.CreateValue(i));
+          yield return table.GetItemRaw(new LuaNumber(i));
         }
       }
 
@@ -149,7 +149,7 @@ namespace ModMaker.Lua.Runtime {
         public int Compare(ILuaValue x, ILuaValue y) {
           if (_method != null) {
             ILuaMultiValue ret = _method.Invoke(
-                LuaNil.Nil, false, _env.Runtime.CreateMultiValueFromObj(x, y));
+                LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(x, y));
             return ret.IsTrue ? -1 : 1;
           }
 

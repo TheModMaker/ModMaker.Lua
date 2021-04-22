@@ -13,12 +13,13 @@
 // limitations under the License.
 
 using System;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class Math {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaValue math = env.Runtime.CreateTable();
+        ILuaValue math = new LuaTable();
         Register(env, math, (Func<double, double>)System.Math.Abs, "abs");
         Register(env, math, (Func<double, double>)System.Math.Asin, "asin");
         Register(env, math, (Func<double, double>)System.Math.Atan, "atan");
@@ -31,14 +32,13 @@ namespace ModMaker.Lua.Runtime {
         Register(env, math, (Func<double, double>)System.Math.Floor, "floor");
         Register(env, math, (Func<double, double, double>)System.Math.IEEERemainder, "fmod");
         Register(env, math, (Func<double, double[]>)frexp);
-        math.SetIndex(env.Runtime.CreateValue("huge"),
-                      env.Runtime.CreateValue(double.PositiveInfinity));
+        math.SetIndex(new LuaString("huge"), new LuaNumber(double.PositiveInfinity));
         Register(env, math, (Func<double, double, double>)ldexp);
         Register(env, math, (Func<double, double, double>)log);
         Register(env, math, (Func<double, double[], double>)max);
         Register(env, math, (Func<double, double[], double>)min);
         Register(env, math, (Func<double, double[]>)modf);
-        math.SetIndex(env.Runtime.CreateValue("pi"), env.Runtime.CreateValue(System.Math.PI));
+        math.SetIndex(new LuaString("pi"), new LuaNumber(System.Math.PI));
         Register(env, math, (Func<double, double, double>)System.Math.Pow, "pow");
         Register(env, math, (Func<double, double>)rad);
         Register(env, math, (Func<int?, int?, double>)random);
@@ -49,7 +49,7 @@ namespace ModMaker.Lua.Runtime {
         Register(env, math, (Func<double, double>)System.Math.Tan, "tan");
         Register(env, math, (Func<double, double>)System.Math.Tanh, "tanh");
 
-        env.GlobalsTable.SetItemRaw(env.Runtime.CreateValue("math"), math);
+        env.GlobalsTable.SetItemRaw(new LuaString("math"), math);
       }
 
       static double deg(double arg) {

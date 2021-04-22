@@ -220,16 +220,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="env">The field that holds the environment.</param>
     static void _callFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField,
                                     LocalBuilder arguments, FieldBuilder env) {
-      //$PUSH this.{methodField}.Invoke(E.Runtime.CreateValue(this), true, arguments);
+      //$PUSH this.{methodField}.Invoke(LuaValueBase.CreateValue(this), true, arguments);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, methodField);
       gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Ldfld, env);
-      gen.Emit(
-          OpCodes.Callvirt,
-          typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
-      gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
+      gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
       gen.Emit(OpCodes.Ldc_I4_1);
       gen.Emit(OpCodes.Ldloc, arguments);
       gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
@@ -280,27 +275,17 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       ctorgen.Emit(OpCodes.Ldarg, 5);
       ctorgen.Emit(OpCodes.Brfalse, end);
 
-      // ILuaValue target = E.Runtime.CreateValue(this);
+      // ILuaValue target = LuaValueBase.CreateValue(this);
       LocalBuilder target = ctorgen.DeclareLocal(typeof(ILuaValue));
       ctorgen.Emit(OpCodes.Ldarg_0);
-      ctorgen.Emit(OpCodes.Ldfld, env);
-      ctorgen.Emit(
-          OpCodes.Callvirt,
-          typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
-      ctorgen.Emit(OpCodes.Ldarg_0);
-      ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(CreateValue)));
+      ctorgen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
       ctorgen.Emit(OpCodes.Stloc, target);
 
-      // ILuaMultiValue args = this.E.Runtime.CreateMultiValue(ctorArgs);
+      // ILuaMultiValue args = new LuaMultiValue(ctorArgs);
       LocalBuilder args = ctorgen.DeclareLocal(typeof(ILuaMultiValue));
-      ctorgen.Emit(OpCodes.Ldarg_0);
-      ctorgen.Emit(OpCodes.Ldfld, env);
-      ctorgen.Emit(
-          OpCodes.Callvirt,
-          typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
       ctorgen.Emit(OpCodes.Ldarg, 4);
-      ctorgen.Emit(OpCodes.Callvirt,
-                   typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+      ctorgen.Emit(OpCodes.Newobj,
+                   typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
       ctorgen.Emit(OpCodes.Stloc, args);
 
       // ctor.Invoke(target, true, args);
@@ -626,34 +611,23 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length);
 
         for (int ind = 0; ind < param.Length; ind++) {
-          // loc[{ind}] = E.Runtime.CreateValue(arg_{ind});
+          // loc[{ind}] = LuaValueBase.CreateValue(arg_{ind});
           gen.Emit(OpCodes.Ldloc, loc);
           gen.Emit(OpCodes.Ldc_I4, ind);
-          gen.Emit(OpCodes.Ldarg_0);
-          gen.Emit(OpCodes.Ldfld, data.EnvField);
-          gen.Emit(
-              OpCodes.Callvirt,
-              typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
           gen.Emit(OpCodes.Ldarg, ind + 1);
           if (!param[ind].ParameterType.IsClass) {
             gen.Emit(OpCodes.Box, param[ind].ParameterType);
           }
 
-          gen.Emit(OpCodes.Callvirt,
-                   typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
+          gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
           gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
         }
 
-        // ILuaMultiValue args = E.Runtime.CreateMultiValue(loc);
+        // ILuaMultiValue args = new LuaMultiValue(loc);
         var args = gen.DeclareLocal(typeof(ILuaMultiValue));
-        gen.Emit(OpCodes.Ldarg_0);
-        gen.Emit(OpCodes.Ldfld, data.EnvField);
-        gen.Emit(
-            OpCodes.Callvirt,
-            typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
         gen.Emit(OpCodes.Ldloc, loc);
-        gen.Emit(OpCodes.Callvirt,
-                 typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+        gen.Emit(OpCodes.Newobj,
+                 typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
         gen.Emit(OpCodes.Stloc, args);
 
         _callFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.EnvField);
@@ -772,18 +746,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             // Define a getter method that returns a value from a method.
             FieldBuilder field = _addMethodArg(data, Method);
 
-            // ILuaMultiValue loc = E.Runtime.CreateMultiValue(new ILuaValue[0]);
+            // ILuaMultiValue loc = new LuaMultiValue(new ILuaValue[0]);
             LocalBuilder loc = gen.DeclareLocal(typeof(ILuaMultiValue));
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, data.EnvField);
-            gen.Emit(
-                OpCodes.Callvirt,
-                typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime))
-                    .GetGetMethod());
             gen.Emit(OpCodes.Ldc_I4, 0);
             gen.Emit(OpCodes.Newarr, typeof(ILuaValue));
-            gen.Emit(OpCodes.Callvirt,
-                     typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+            gen.Emit(OpCodes.Newobj,
+                     typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
             gen.Emit(OpCodes.Stloc, loc);
 
             _callFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
@@ -820,17 +788,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
             gen.Emit(OpCodes.Stelem, typeof(object));
 
-            // ILuaMultiValue args = E.Runtime.CreateMultiValueFromObj(loc);
+            // ILuaMultiValue args = LuaMultiValue.CreateMultiValueFromObj(loc);
             LocalBuilder args = gen.DeclareLocal(typeof(ILuaMultiValue));
-            gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Ldfld, data.EnvField);
-            gen.Emit(
-                OpCodes.Callvirt,
-                typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime))
-                    .GetGetMethod());
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(OpCodes.Callvirt,
-                     typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+            gen.Emit(
+                OpCodes.Call,
+                typeof(LuaMultiValue).GetMethod(nameof(LuaMultiValue.CreateMultiValueFromObj)));
             gen.Emit(OpCodes.Stloc, args);
 
             _callFieldAndReturn(gen, null, field, args, data.EnvField);

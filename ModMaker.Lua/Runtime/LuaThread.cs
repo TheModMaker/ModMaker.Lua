@@ -82,7 +82,7 @@ namespace ModMaker.Lua.Runtime {
           _backing.Start();
         }
 
-        args ??= _env.Runtime.CreateMultiValue();
+        args ??= new LuaMultiValue();
         _args = args;
         Status = LuaThreadStatus.Running;
 
@@ -96,7 +96,7 @@ namespace ModMaker.Lua.Runtime {
         }
 
         ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
-        return ret ?? _env.Runtime.CreateMultiValue();
+        return ret ?? new LuaMultiValue();
       }
     }
     public override ILuaMultiValue Yield(ILuaMultiValue args) {
@@ -118,7 +118,7 @@ namespace ModMaker.Lua.Runtime {
           return e.ReturnArguments;
         }
 
-        args ??= _env.Runtime.CreateMultiValue();
+        args ??= new LuaMultiValue();
         _args = args;
         Status = LuaThreadStatus.Suspended;
 
@@ -128,7 +128,7 @@ namespace ModMaker.Lua.Runtime {
         }
 
         ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
-        return ret ?? _env.Runtime.CreateMultiValue();
+        return ret ?? new LuaMultiValue();
       }
     }
 

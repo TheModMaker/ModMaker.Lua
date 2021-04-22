@@ -46,8 +46,8 @@ namespace ModMaker.Lua.Runtime {
         table.SetItemRaw(new LuaString("pcall"), new pcall(env));
         table.SetItemRaw(new LuaString("print"), new print(env));
 
-        table.SetItemRaw(new LuaString("_VERSION"), env.Runtime.CreateValue(_version));
-        table.SetItemRaw(new LuaString("_NET"), env.Runtime.CreateValue(_net));
+        table.SetItemRaw(new LuaString("_VERSION"), new LuaString(_version));
+        table.SetItemRaw(new LuaString("_NET"), new LuaString(_net));
         table.SetItemRaw(new LuaString("_G"), table);
       }
 
@@ -244,16 +244,14 @@ namespace ModMaker.Lua.Runtime {
           ILuaValue func = args[0];
           if (func.ValueType == LuaValueType.Function) {
             try {
-              var ret = func.Invoke(LuaNil.Nil, false,
-                                    _environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
-              return _environment.Runtime.CreateMultiValue(
-                  new ILuaValue[] { LuaBoolean.True }.Concat(ret).ToArray());
+              var ret = func.Invoke(LuaNil.Nil, false, new LuaMultiValue(args.Skip(1).ToArray()));
+              return new LuaMultiValue(new ILuaValue[] { LuaBoolean.True }.Concat(ret).ToArray());
             } catch (ThreadAbortException) {
               throw;
             } catch (ThreadInterruptedException) {
               throw;
             } catch (Exception e) {
-              return _environment.Runtime.CreateMultiValueFromObj(false, e.Message, e);
+              return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
             }
           } else {
             throw new ArgumentException("First argument to 'pcall' must be a function.");

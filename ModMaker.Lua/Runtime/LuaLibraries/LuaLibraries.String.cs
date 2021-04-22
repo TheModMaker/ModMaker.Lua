@@ -24,7 +24,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class String {
       public static void Initialize(ILuaEnvironment env) {
-        var str = env.Runtime.CreateTable();
+        var str = new LuaTable();
         Register(env, str, (Func<string, int, int?, IEnumerable<int>>)byte_, "byte");
         Register(env, str, (Func<int[], string>)char_, "char");
         Register(env, str, (Func<string, string, int, bool, object[]>)find);
@@ -39,7 +39,7 @@ namespace ModMaker.Lua.Runtime {
         Register(env, str, (Func<string, int, int, string>)sub);
         Register(env, str, (Func<string, string>)upper);
 
-        env.GlobalsTable.SetItemRaw(env.Runtime.CreateValue("string"), str);
+        env.GlobalsTable.SetItemRaw(new LuaString("string"), str);
       }
 
       [MultipleReturn]

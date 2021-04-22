@@ -453,19 +453,18 @@ namespace ModMaker.Lua.Compiler {
                 "Variable arguments (...) only valid at end of argument list.");
           }
 
-          // {field} = E.Runtime.CreateMultiValue(args.Skip({args.Length - 1});
+          // {field} = new LuaMultiValue(args.Skip({args.Length - 1}).ToArray());
           field.StartSet();
-          gen.Emit(OpCodes.Ldarg_1);
-          gen.Emit(
-              OpCodes.Callvirt,
-              typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
           gen.Emit(OpCodes.Ldarg_2);
           gen.Emit(OpCodes.Ldc_I4, args.Length - 1);
           gen.Emit(OpCodes.Call,
                    typeof(Enumerable).GetMethod(nameof(Enumerable.Skip))
-                       .MakeGenericMethod(typeof(object)));
-          gen.Emit(OpCodes.Callvirt,
-                   typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateMultiValue)));
+                       .MakeGenericMethod(typeof(ILuaValue)));
+          gen.Emit(OpCodes.Call,
+                   typeof(Enumerable).GetMethod(nameof(Enumerable.ToArray))
+                       .MakeGenericMethod(typeof(ILuaValue)));
+          gen.Emit(OpCodes.Newobj,
+                   typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
           field.EndSet();
         } else {
           // {field} = args[{i - 1} + c];
@@ -489,12 +488,9 @@ namespace ModMaker.Lua.Compiler {
       // push a pointer to the new method onto the stack of the previous nest method
       //   the above line restores the nest to the previous state and this code will
       //   push the new method.
-      //! push E.Runtime.CreateFunctionValue({name}, {nest.TypeDef}.GetMethod({name}),
-      //                                     {nest.ThisInst != null ? nest.NestInst : this} );
+      //! push new LuaDefinedFunction({name}, {nest.TypeDef}.GetMethod({name}),
+      //                              {nest.ThisInst != null ? nest.NestInst : this} );
       _curNest.Generator.Emit(OpCodes.Ldarg_1);
-      _curNest.Generator.Emit(
-          OpCodes.Callvirt,
-          typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime)).GetGetMethod());
       _curNest.Generator.Emit(OpCodes.Ldstr, name);
       _curNest.Generator.Emit(OpCodes.Ldtoken, _curNest.TypeDef);
       _curNest.Generator.Emit(
@@ -512,8 +508,9 @@ namespace ModMaker.Lua.Compiler {
       }
 
       _curNest.Generator.Emit(
-          OpCodes.Callvirt,
-          typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateImplementationFunction)));
+          OpCodes.Newobj,
+          typeof(LuaDefinedFunction).GetConstructor(new[] { typeof(ILuaEnvironment), typeof(string),
+                                                            typeof(MethodInfo), typeof(object) }));
     }
     /// <summary>
     /// Searches for a variable with the given name and returns an object used to get/set it's
@@ -639,17 +636,13 @@ namespace ModMaker.Lua.Compiler {
 
       public void StartSet() {
         // part of:
-        // E.GlobalsTable.SetIndex(E.Runtime.CreateValue({name}), value);
+        // E.GlobalsTable.SetIndex(LuaValueBase.CreateValue({name}), value);
         _gen.Emit(OpCodes.Ldarg_1);
         _gen.Emit(OpCodes.Callvirt,
                   typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.GlobalsTable))
                       .GetGetMethod());
-        _gen.Emit(OpCodes.Ldarg_1);
-        _gen.Emit(OpCodes.Callvirt,
-                  typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime))
-                      .GetGetMethod());
         _gen.Emit(OpCodes.Ldstr, _name);
-        _gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
+        _gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
       }
       public void EndSet() {
         // end of:
@@ -657,17 +650,13 @@ namespace ModMaker.Lua.Compiler {
         _gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.SetIndex)));
       }
       public void Get() {
-        //! push E.GlobalsTable.GetIndex({name})
+        //! push E.GlobalsTable.GetIndex(LuaValueBase.CreateValue({name}))
         _gen.Emit(OpCodes.Ldarg_1);
         _gen.Emit(OpCodes.Callvirt,
                   typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.GlobalsTable))
                       .GetGetMethod());
-        _gen.Emit(OpCodes.Ldarg_1);
-        _gen.Emit(OpCodes.Callvirt,
-                  typeof(ILuaEnvironment).GetProperty(nameof(ILuaEnvironment.Runtime))
-                      .GetGetMethod());
         _gen.Emit(OpCodes.Ldstr, _name);
-        _gen.Emit(OpCodes.Callvirt, typeof(ILuaRuntime).GetMethod(nameof(ILuaRuntime.CreateValue)));
+        _gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
         _gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.GetIndex)));
       }
     }
