@@ -169,12 +169,6 @@ namespace UnitTests.Parser {
     }
 
     [Test]
-    public void ParseItem_SkipUserData() {
-      ParseItemEquals.CheckEquals(new LiteralItem(3.0) { UserData = 1 },
-                                  new LiteralItem(3.0) { UserData = 2 });
-    }
-
-    [Test]
     public void Nested_Success() {
       ParseItemEquals.CheckEquals(
         new BinOpItem(

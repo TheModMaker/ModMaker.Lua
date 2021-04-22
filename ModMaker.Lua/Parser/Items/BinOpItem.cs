@@ -149,7 +149,6 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public BinaryOperationType OperationType { get; set; }
 
-    public object UserData { get; set; }
     public Token Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {

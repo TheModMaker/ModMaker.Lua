@@ -28,6 +28,8 @@ namespace ModMaker.Lua.Compiler {
   /// </summary>
   sealed class CompilerVisitor : IParseItemVisitor {
     readonly ChunkBuilder _compiler;
+    readonly Dictionary<LabelItem, Label> _labels =
+        new Dictionary<LabelItem, Label>(new ReferenceEqualsComparer<LabelItem>());
 
     /// <summary>
     /// A Helper used for compiling function call.  This is used to fake the prefix in an indexer
@@ -163,9 +165,10 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
-      target.Break.UserData ??= gen.DefineLabel();
+      if (!_labels.ContainsKey(target.Break))
+        _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
-      Label end = (Label)target.Break.UserData;
+      Label end = _labels[target.Break];
       LocalBuilder ret = _compiler.CreateTemporary(typeof(ILuaMultiValue));
       LocalBuilder enumerable = _compiler.CreateTemporary(typeof(IEnumerable<ILuaMultiValue>));
       LocalBuilder enumerator = _compiler.CreateTemporary(typeof(IEnumerator<ILuaMultiValue>));
@@ -269,9 +272,10 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
-      target.Break.UserData ??= gen.DefineLabel();
+      if (!_labels.ContainsKey(target.Break))
+        _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
-      Label end = (Label)target.Break.UserData;
+      Label end = _labels[target.Break];
       Label sj = gen.DefineLabel();
       Label err = gen.DefineLabel();
       LocalBuilder d = _compiler.CreateTemporary(typeof(double?));
@@ -601,7 +605,7 @@ namespace ModMaker.Lua.Compiler {
         throw new InvalidOperationException(Resources.ErrorResolveLabel);
       }
 
-      _compiler.CurrentGenerator.Emit(OpCodes.Br, (Label)target.Target.UserData);
+      _compiler.CurrentGenerator.Emit(OpCodes.Br, _labels[target.Target]);
 
       return target;
     }
@@ -672,8 +676,9 @@ namespace ModMaker.Lua.Compiler {
         throw new ArgumentNullException(nameof(target));
       }
 
-      target.UserData ??= _compiler.CurrentGenerator.DefineLabel();
-      _compiler.CurrentGenerator.MarkLabel((Label)target.UserData);
+      if (!_labels.ContainsKey(target))
+        _labels.Add(target, _compiler.CurrentGenerator.DefineLabel());
+      _compiler.CurrentGenerator.MarkLabel(_labels[target]);
 
       return target;
     }
@@ -723,9 +728,10 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
-      target.Break.UserData ??= gen.DefineLabel();
+      if (!_labels.ContainsKey(target.Break))
+        _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
-      Label end = (Label)target.Break.UserData;
+      Label end = _labels[target.Break];
 
       // start:
       gen.MarkLabel(start);
@@ -912,9 +918,10 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
-      target.Break.UserData ??= gen.DefineLabel();
+      if (!_labels.ContainsKey(target.Break))
+        _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
-      Label end = (Label)target.Break.UserData;
+      Label end = _labels[target.Break];
 
       // start:
       gen.MarkLabel(start);

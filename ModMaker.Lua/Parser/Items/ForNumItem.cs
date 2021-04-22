@@ -77,7 +77,6 @@ namespace ModMaker.Lua.Parser.Items {
     public LabelItem Break { get; } = new LabelItem("<break>");
 
     public Token Debug { get; set; }
-    public object UserData { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

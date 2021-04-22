@@ -41,7 +41,6 @@ namespace ModMaker.Lua.Parser.Items {
     public bool IsLastExpressionSingle { get; set; } = false;
 
     public Token Debug { get; set; }
-    public object UserData { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

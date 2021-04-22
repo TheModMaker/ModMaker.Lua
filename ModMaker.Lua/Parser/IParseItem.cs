@@ -22,11 +22,6 @@ namespace ModMaker.Lua.Parser {
     /// Gets or sets the debug info for this item.
     /// </summary>
     Token Debug { get; set; }
-    /// <summary>
-    /// Gets or sets the user data for this object. This value is never modified by the default
-    /// framework, but may be modified by other visitors.
-    /// </summary>
-    object UserData { get; set; }
 
     /// <summary>
     /// Dispatches to the specific visit method for this item type.

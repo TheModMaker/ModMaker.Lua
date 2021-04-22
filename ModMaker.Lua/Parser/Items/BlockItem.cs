@@ -40,7 +40,6 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public ReturnItem Return { get; set; } = null;
 
-    public object UserData { get; set; }
     public Token Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
