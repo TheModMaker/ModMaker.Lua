@@ -71,7 +71,7 @@ namespace ModMaker.Lua.Runtime {
     protected LuaEnvironmentNet() {
       _compiler = new CodeCompiler();
       _parser = new PlainParser();
-      _runtime = LuaRuntimeNet.Create(this);
+      _runtime = new LuaRuntimeNet(this);
       Settings = new LuaSettings().AsReadOnly();
       _globals = new LuaValues.LuaTable();
       _modules = new ModuleBinder();
@@ -87,7 +87,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       _globals = new LuaTable();
-      _runtime = LuaRuntimeNet.Create(this);
+      _runtime = new LuaRuntimeNet(this);
       _compiler = new CodeCompiler();
       _parser = new PlainParser();
       _modules = new ModuleBinder();
