@@ -33,26 +33,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="env">The current environment.</param>
     /// <param name="type">The generated type, must implement IMethod.</param>
-    LuaGlobalFunction(ILuaEnvironment env, Type type) : base(type.Name) {
+    public LuaGlobalFunction(ILuaEnvironment env, Type type) : base(type.Name) {
       _type = type;
       _env = env;
     }
 
-    /// <summary>
-    /// Creates a new instance of LuaGlobalFunction using the given type.
-    /// </summary>
-    /// <param name="env">The current environment.</param>
-    /// <param name="type">The type to use, must implement ILuaValue.</param>
-    /// <returns>A new LuaGlobalFunction object.</returns>
-    /// <exception cref="System.ArgumentNullException">If E or type is null.</exception>
-    /// <exception cref="System.ArgumentException">If type does not implement
-    /// ILuaValue.</exception>
-    public static LuaGlobalFunction Create(ILuaEnvironment env, Type type) {
-      return new LuaGlobalFunction(env, type);
-    }
-
-    protected override ILuaMultiValue _invokeInternal(ILuaValue target, bool memberCall,
-                                                      ILuaMultiValue args) {
+    public override ILuaMultiValue Invoke(ILuaValue target, bool memberCall, ILuaMultiValue args) {
       ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, new[] { _env });
       return method.Invoke(LuaNil.Nil, false, args);
     }

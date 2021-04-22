@@ -42,7 +42,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _methods = methods.Zip(targets, (a, b) => Tuple.Create(a, b)).ToList();
     }
 
-    public override void AddOverload(Delegate d) {
+    /// <summary>
+    /// Adds the given overload to the possible set of functions to call.
+    /// </summary>
+    /// <param name="d">The delegate to add.</param>
+    public void AddOverload(Delegate d) {
       _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target));
     }
 
@@ -59,8 +63,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
                                      new[] { _methods[index].Item2 });
     }
 
-    protected override ILuaMultiValue _invokeInternal(ILuaValue self, bool methodCall,
-                                                      ILuaMultiValue args) {
+    public override ILuaMultiValue Invoke(ILuaValue self, bool methodCall, ILuaMultiValue args) {
       MethodInfo method;
       object target;
       if (!Helpers.GetCompatibleMethod(_methods, args, out method, out target)) {

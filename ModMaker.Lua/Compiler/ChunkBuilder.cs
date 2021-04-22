@@ -365,7 +365,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       Type t = _curNest.Parent.TypeDef.CreateType();
-      return LuaGlobalFunction.Create(e, t);
+      return new LuaGlobalFunction(e, t);
     }
     /// <summary>
     /// Starts a local-variable scope block and returns an object that will end the scope when

@@ -26,9 +26,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// implementation of LuaValues.Function.  See LuaOverloadFunction and LuaDefinedFunction for more
   /// info.
   /// </remarks>
-  public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor, IDisposable {
-    bool _disposed = false;
-
+  public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor {
     /// <summary>
     /// Creates a new LuaFunction.
     /// </summary>
@@ -36,52 +34,13 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     protected LuaFunction(string name) {
       Name = name;
     }
-    ~LuaFunction() {
-      if (!_disposed) {
-        _dispose(false);
-      }
-    }
 
     /// <summary>
     /// Gets the name of the function.
     /// </summary>
     public string Name { get; }
 
-    /// <summary>
-    /// Performs that actual invocation of the method.
-    /// </summary>
-    /// <param name="target">The object that this was called on.</param>
-    /// <param name="memberCall">Whether the call used member call syntax (:).</param>
-    /// <param name="args">The current arguments, not null but maybe empty.</param>
-    /// <param name="overload">The overload to chose or negative to do overload resolution.</param>
-    /// <param name="byRef">An array of the indices that are passed by-reference.</param>
-    /// <returns>The values to return to Lua.</returns>
-    /// <exception cref="System.ArgumentException">If the object cannot be
-    /// invoked with the given arguments.</exception>
-    /// <exception cref="System.Reflection.AmbiguousMatchException">If there are two
-    /// valid overloads for the given arguments.</exception>
-    /// <exception cref="System.IndexOutOfRangeException">If overload is
-    /// larger than the number of overloads.</exception>
-    /// <exception cref="System.NotSupportedException">If this object does
-    /// not support overloads.</exception>
-    protected abstract ILuaMultiValue _invokeInternal(ILuaValue target, bool methodCall,
-                                                      ILuaMultiValue args);
-    public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
-      return _invokeInternal(self, memberCall, args);
-    }
-    /// <summary>
-    /// Adds an overload to the current method object.  This is used by the environment to register
-    /// multiple delegates.  The default behavior is to throw a NotSupportedException.
-    /// </summary>
-    /// <param name="d">The delegate to register.</param>
-    /// <exception cref="System.ArgumentNullException">If d is null.</exception>
-    /// <exception cref="System.ArgumentException">If the delegate is not
-    /// compatible with the current object.</exception>
-    /// <exception cref="System.NotSupportedException">If this object does
-    /// not support adding overloads.</exception>
-    public virtual void AddOverload(Delegate d) {
-      throw new NotSupportedException("Cannot add overloads to the current method.");
-    }
+    public abstract ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args);
 
     public bool Equals(ILuaValue other) {
       return ReferenceEquals(this, other);
@@ -108,19 +67,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public T As<T>(ILuaEnvironment env) {
       return (T)(object)env.CodeCompiler.CreateDelegate(env, typeof(T), this);
     }
-
-    public void Dispose() {
-      if (!_disposed) {
-        _disposed = true;
-        GC.SuppressFinalize(this);
-        _dispose(true);
-      }
-    }
-    /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing, or resetting
-    /// unmanaged resources.
-    /// </summary>
-    protected virtual void _dispose(bool disposing) { }
 
     #region LuaValue and LuaValueVisitor Implementation
 
@@ -264,7 +210,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     #region DynamicObject overrides
 
     public override bool TryInvoke(InvokeBinder binder, object[] args, out object result) {
-      var ret = _invokeInternal(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args));
+      var ret = Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args));
       result = ret.GetValue();
       return true;
     }

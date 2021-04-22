@@ -59,8 +59,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _env = env;
     }
 
-    protected override ILuaMultiValue _invokeInternal(ILuaValue target, bool methodCall,
-                                                     ILuaMultiValue args) {
+    public override ILuaMultiValue Invoke(ILuaValue target, bool methodCall, ILuaMultiValue args) {
       return _method(_env, args, target, methodCall);
     }
   }
