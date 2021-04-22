@@ -253,7 +253,7 @@ namespace ModMaker.Lua.Runtime {
               Resources.Whitelist.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
           access = _env.GlobalsTable.Where(k => k.Value is LuaType)
               .Select(k => (k.Value as LuaType).Type);
-          access = access.Union(AppDomain.CurrentDomain.GetAssemblies()
+          access = access.Concat(AppDomain.CurrentDomain.GetAssemblies()
               .Where(a => allowed.Contains(a.GetName().GetPublicKey().ToStringBase16()))
               .SelectMany(a => a.GetTypes()));
         } else {

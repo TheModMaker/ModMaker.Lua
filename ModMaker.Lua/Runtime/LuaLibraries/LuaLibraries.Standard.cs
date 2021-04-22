@@ -247,7 +247,7 @@ namespace ModMaker.Lua.Runtime {
               var ret = func.Invoke(LuaNil.Nil, false,
                                     _environment.Runtime.CreateMultiValue(args.Skip(1).ToArray()));
               return _environment.Runtime.CreateMultiValue(
-                  new ILuaValue[] { LuaBoolean.True }.Union(ret).ToArray());
+                  new ILuaValue[] { LuaBoolean.True }.Concat(ret).ToArray());
             } catch (ThreadAbortException) {
               throw;
             } catch (ThreadInterruptedException) {
