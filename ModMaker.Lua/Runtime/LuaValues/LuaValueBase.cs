@@ -40,13 +40,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         return LuaNil.Nil;
       }
 
-      Type type = value.GetType();
       if (value is ILuaValue luaValue) {
         return luaValue;
       }
-
-      Delegate delegate_ = value as Delegate;
-      if (delegate_ != null) {
+      if (value is Delegate delegate_) {
         return new LuaOverloadFunction(
             delegate_.Method.Name, new[] { delegate_.Method }, new[] { delegate_.Target });
       }
@@ -58,10 +55,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         return LuaBoolean.False;
       }
 
-      string stringValue = value as string;
-      if (stringValue != null) {
+      if (value is Type type) {
+        return new LuaType(type);
+      } else if (value is string stringValue) {
         return new LuaString(stringValue);
-      } else if (type.IsPrimitive) {
+      } else if (value.GetType().IsPrimitive) {
         return new LuaNumber(Convert.ToDouble(value));
       } else {
         return (ILuaValue)typeof(LuaValues.LuaUserData<>)

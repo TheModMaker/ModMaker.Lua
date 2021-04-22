@@ -327,14 +327,6 @@ namespace ModMaker.Lua {
     /// <returns>The value for get or null if setting.</returns>
     public static ILuaValue GetSetMember(Type targetType, object target, ILuaValue index,
                                          ILuaValue value = null) {
-      // TODO: Consider how to get settings here.
-      /*if (!E.Settings.AllowReflection &&
-          typeof(MemberInfo).IsAssignableFrom(targetType)) {
-        // TODO: Move to resources.
-        throw new InvalidOperationException(
-            "Lua does not have access to reflection.  See LuaSettings.AllowReflection.");
-      }*/
-
       if (index.ValueType == LuaValueType.Number || index.ValueType == LuaValueType.Table) {
         if (target == null) {
           throw new InvalidOperationException(
@@ -364,8 +356,10 @@ namespace ModMaker.Lua {
         string name = index.As<string>();
 
         // Find all visible members with the given name
+        var attr = targetType.GetCustomAttribute<LuaIgnoreAttribute>(true);
         MemberInfo[] members = targetType.GetMember(name)
-            .Where(m => m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
+            .Where(m => !m.IsDefined(typeof(LuaIgnoreAttribute), true) &&
+                        (attr == null || attr.IsMemberVisible(targetType, m.Name)))
             .ToArray();
         // TODO: Implement accessibility.
         //if (Base == null || Base.Length == 0 ||
@@ -374,6 +368,17 @@ namespace ModMaker.Lua {
         //  throw new InvalidOperationException(
         //      "'" + name + "' is not a visible member of type '" + type + "'.");
 
+        if (members.Length == 0 || typeof(MemberInfo).IsAssignableFrom(targetType) ||
+            name == "GetType") {
+          // Note that reflection types are always opaque to Lua.
+          // TODO: Consider how to get settings here to make this configurable.
+          if (value != null) {
+            Type t = targetType;
+            throw new InvalidOperationException(
+                $"The property '{name}' on '{t.FullName}' doesn't exist or isn't visible.");
+          }
+          return LuaNil.Nil;
+        }
         return _getSetValue(members, target, value);
       } else {
         throw new InvalidOperationException(
@@ -385,9 +390,6 @@ namespace ModMaker.Lua {
       // Perform the action on the given member.  Although this only checks the first member, the
       // only type that can return more than one with the same name is a method and can only be
       // other methods.
-      if (members.Length == 0) {
-        return LuaNil.Nil;
-      }
 
       if (members[0] is FieldInfo field) {
         if (value == null) {
