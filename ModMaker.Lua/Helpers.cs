@@ -16,6 +16,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
@@ -145,7 +146,6 @@ namespace ModMaker.Lua {
     /// <param name="args">The arguments to pass to the method.</param>
     /// <returns>Any value returned from the method.</returns>
     public static object DynamicInvoke(MethodBase method, object target, object[] args) {
-      // See: http://stackoverflow.com/a/1663549
       try {
         return method.Invoke(target, args);
       } catch (TargetInvocationException e) {
@@ -154,8 +154,8 @@ namespace ModMaker.Lua {
           throw;
         }
 
-        _preserveStackTrace(inner);
-        throw inner;
+        ExceptionDispatchInfo.Throw(inner);
+        throw inner;  // Shouldn't happen.
       }
     }
 
@@ -243,7 +243,7 @@ namespace ModMaker.Lua {
           // implicit numerical conversion
           var convert =
               typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(field.FieldType);
-          field.SetValue(target, convert.Invoke(value, null));
+          field.SetValue(target, DynamicInvoke(convert, value, null));
           return null;
         }
       } else if (members[0] is PropertyInfo property) {
@@ -259,7 +259,7 @@ namespace ModMaker.Lua {
             throw new InvalidOperationException(
                 "The get method for property '" + name + "' is inaccessible to Lua.");*/
 
-          return LuaValueBase.CreateValue(meth.Invoke(target, null));
+          return LuaValueBase.CreateValue(DynamicInvoke(meth, target, null));
         } else {
           MethodInfo meth = property.GetSetMethod();
           if (meth == null) {
@@ -274,7 +274,7 @@ namespace ModMaker.Lua {
 
           var convert = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
               .MakeGenericMethod(property.PropertyType);
-          property.SetValue(target, convert.Invoke(value, null), null);
+          property.SetValue(target, DynamicInvoke(meth, value, null), null);
           return null;
         }
       } else if (members[0] is MethodInfo method) {
@@ -321,8 +321,9 @@ namespace ModMaker.Lua {
         } else {
           // Convert to the array type.
           Type arrayType = targetArray.GetType().GetElementType();
-          object valueObj = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
-              .MakeGenericMethod(arrayType).Invoke(value, null);
+          object valueObj = DynamicInvoke(
+              typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(arrayType),
+              value, null);
 
           targetArray.SetValue(valueObj, args);
           return value;
@@ -352,9 +353,9 @@ namespace ModMaker.Lua {
 
       object[] values = OverloadSelector.ConvertArguments(indicies, choices[index]);
       if (value == null) {
-        return LuaValueBase.CreateValue(methods[index].Invoke(target, values));
+        return LuaValueBase.CreateValue(DynamicInvoke(methods[index], target, values));
       } else {
-        methods[index].Invoke(target, values);
+        DynamicInvoke(methods[index], target, values);
         return value;
       }
     }

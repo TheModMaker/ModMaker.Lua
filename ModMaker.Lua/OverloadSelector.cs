@@ -418,7 +418,7 @@ namespace ModMaker.Lua {
         }
 
         MethodInfo asMethod = asMethodGeneric.MakeGenericMethod(paramType);
-        ret[i] = asMethod.Invoke(args[i], null);
+        ret[i] = Helpers.DynamicInvoke(asMethod, args[i], null);
       }
 
       // Add params array.
@@ -429,7 +429,7 @@ namespace ModMaker.Lua {
 
         Array array = Array.CreateInstance(arrayType, Math.Max(args.Count - start, 0));
         for (int i = 0; i < array.Length; i++)
-          array.SetValue(asMethod.Invoke(args[start + i], null), i);
+          array.SetValue(Helpers.DynamicInvoke(asMethod, args[start + i], null), i);
         ret[^1] = array;
       } else {
         // Add optional parameters.

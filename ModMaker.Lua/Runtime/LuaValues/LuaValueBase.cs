@@ -108,7 +108,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (OverloadSelector.TypesCompatible(value.GetType(), typeof(T), out MethodInfo m)) {
         // Cast the object if needed.
         if (m != null) {
-          value = m.Invoke(null, new[] { value });
+          value = Helpers.DynamicInvoke(m, null, new[] { value });
         }
 
         return (T)value;

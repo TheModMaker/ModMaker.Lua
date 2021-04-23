@@ -534,7 +534,7 @@ namespace UnitTests {
           Assert.IsTrue(OverloadSelector.TypesCompatible(a, b, out info));
           Assert.IsNotNull(info);
 
-          object? obj = info!.Invoke(null, new[] { Activator.CreateInstance(a) });
+          object? obj = Helpers.DynamicInvoke(info!, null, new[] { Activator.CreateInstance(a) });
           Assert.IsInstanceOf(b, obj);
         }
       }
@@ -558,12 +558,12 @@ namespace UnitTests {
         MethodInfo? info;
         Assert.IsTrue(OverloadSelector.TypesCompatible(a, typeof(char), out info));
         Assert.IsNotNull(info);
-        object? obj = info!.Invoke(null, new[] { Activator.CreateInstance(a) });
+        object? obj = Helpers.DynamicInvoke(info!, null, new[] { Activator.CreateInstance(a) });
         Assert.IsInstanceOf<char>(obj);
 
         Assert.IsTrue(OverloadSelector.TypesCompatible(typeof(char), a, out info));
         Assert.IsNotNull(info);
-        obj = info!.Invoke(null, new[] { (object)'\0' });
+        obj = Helpers.DynamicInvoke(info!, null, new[] { (object)'\0' });
         Assert.IsInstanceOf(a, obj);
       }
     }

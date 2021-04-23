@@ -38,8 +38,9 @@ namespace ModMaker.Lua.Runtime {
           t1 == typeof(Int64) || t1 == typeof(Single) || t1 == typeof(Double) ||
           t1 == typeof(UInt16) || t1 == typeof(UInt32) || t1 == typeof(UInt64) ||
           t1 == typeof(Byte) || t1 == typeof(Decimal)) {
-        result = typeof(Convert).GetMethod("To" + t1.Name, new[] { typeof(double) })
-                     .Invoke(null, new object[] { Value });
+        result = Helpers.DynamicInvoke(
+            typeof(Convert).GetMethod("To" + t1.Name, new[] { typeof(double) }),
+            null, new object[] { Value });
         return true;
       }
       return base.TryConvert(binder, out result);
@@ -267,7 +268,7 @@ namespace ModMaker.Lua.Runtime {
 
         MethodInfo asMethod =
             typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
-        result = asMethod.Invoke(o, null);
+        result = Helpers.DynamicInvoke(asMethod, o, null);
         if (result is double d) {
           result = new NumberProxy(d);
         }
@@ -296,7 +297,7 @@ namespace ModMaker.Lua.Runtime {
 
       MethodInfo asMethod =
           typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
-      result = asMethod.Invoke(o, null);
+      result = Helpers.DynamicInvoke(asMethod, o, null);
       if (result is double d) {
         result = new NumberProxy(d);
       }
