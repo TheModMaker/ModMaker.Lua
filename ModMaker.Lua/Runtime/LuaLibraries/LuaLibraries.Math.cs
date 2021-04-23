@@ -32,13 +32,13 @@ namespace ModMaker.Lua.Runtime {
         Register(env, math, (Func<double, double>)System.Math.Floor, "floor");
         Register(env, math, (Func<double, double, double>)System.Math.IEEERemainder, "fmod");
         Register(env, math, (Func<double, double[]>)frexp);
-        math.SetIndex(new LuaString("huge"), new LuaNumber(double.PositiveInfinity));
+        math.SetIndex(new LuaString("huge"), LuaNumber.Create(double.PositiveInfinity));
         Register(env, math, (Func<double, double, double>)ldexp);
         Register(env, math, (Func<double, double, double>)log);
         Register(env, math, (Func<double, double[], double>)max);
         Register(env, math, (Func<double, double[], double>)min);
         Register(env, math, (Func<double, double[]>)modf);
-        math.SetIndex(new LuaString("pi"), new LuaNumber(System.Math.PI));
+        math.SetIndex(new LuaString("pi"), LuaNumber.Create(System.Math.PI));
         Register(env, math, (Func<double, double, double>)System.Math.Pow, "pow");
         Register(env, math, (Func<double, double>)rad);
         Register(env, math, (Func<int?, int?, double>)random);

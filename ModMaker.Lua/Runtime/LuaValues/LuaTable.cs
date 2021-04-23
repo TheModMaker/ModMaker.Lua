@@ -98,11 +98,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
     public override ILuaValue RawLength() {
       double i = 1;
-      while (GetItemRaw(new LuaNumber(i)).ValueType != LuaValueType.Nil) {
+      while (GetItemRaw(LuaNumber.Create(i)).ValueType != LuaValueType.Nil) {
         i++;
       }
 
-      return new LuaNumber(i - 1);
+      return LuaNumber.Create(i - 1);
     }
 
     public override ILuaValue GetIndex(ILuaValue index) {

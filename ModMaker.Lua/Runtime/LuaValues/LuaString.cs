@@ -50,7 +50,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override LuaValueType ValueType { get { return LuaValueType.String; } }
 
     public override ILuaValue Length() {
-      return new LuaNumber(Value.Length);
+      return LuaNumber.Create(Value.Length);
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <returns>The value as a number, or null.</returns>
     public LuaNumber ToNumber() {
       if (double.TryParse(Value, out double d)) {
-        return new LuaNumber(d);
+        return LuaNumber.Create(d);
       } else {
         return null;
       }

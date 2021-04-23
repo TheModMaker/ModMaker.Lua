@@ -51,7 +51,7 @@ namespace ModMaker.Lua.Runtime {
 
         StringBuilder str = new StringBuilder();
         for (; i <= j; i++) {
-          ILuaValue temp = table.GetItemRaw(new LuaNumber(i));
+          ILuaValue temp = table.GetItemRaw(LuaNumber.Create(i));
           if (temp.ValueType != LuaValueType.String && temp.ValueType != LuaValueType.Number) {
             throw new ArgumentException(
                 $"Invalid '{temp.ValueType}' value for function 'table.concat'.");
@@ -84,17 +84,17 @@ namespace ModMaker.Lua.Runtime {
         }
 
         for (double d = len; d >= i; d--) {
-          var temp = table.GetItemRaw(new LuaNumber(d));
-          table.SetItemRaw(new LuaNumber(d + 1), temp);
+          var temp = table.GetItemRaw(LuaNumber.Create(d));
+          table.SetItemRaw(LuaNumber.Create(d + 1), temp);
         }
         table.SetItemRaw(pos, value);
       }
       ILuaValue pack(params ILuaValue[] args) {
         ILuaTable ret = new LuaTable();
         for (int i = 0; i < args.Length; i++) {
-          ret.SetItemRaw(new LuaNumber(i + 1), args[i]);
+          ret.SetItemRaw(LuaNumber.Create(i + 1), args[i]);
         }
-        ret.SetItemRaw(new LuaString("n"), new LuaNumber(args.Length));
+        ret.SetItemRaw(new LuaString("n"), LuaNumber.Create(args.Length));
         return ret;
       }
       ILuaValue remove(ILuaTable table, int? pos = null) {
@@ -109,7 +109,7 @@ namespace ModMaker.Lua.Runtime {
 
         ILuaValue prev = LuaNil.Nil;
         for (double d = len; d >= pos; d--) {
-          ILuaValue ind = new LuaNumber(d);
+          ILuaValue ind = LuaNumber.Create(d);
           ILuaValue temp = table.GetItemRaw(ind);
           table.SetItemRaw(ind, prev);
           prev = temp;
@@ -122,7 +122,7 @@ namespace ModMaker.Lua.Runtime {
 
         ILuaValue[] elems = unpack(table).OrderBy(k => k, comparer).ToArray();
         for (int i = 0; i < elems.Length; i++) {
-          ILuaValue ind = new LuaNumber(i + 1);
+          ILuaValue ind = LuaNumber.Create(i + 1);
           table.SetItemRaw(ind, elems[i]);
         }
       }
@@ -132,7 +132,7 @@ namespace ModMaker.Lua.Runtime {
         int len = (int)(table.Length().AsDouble() ?? 0);
         int j = jOrNull ?? len;
         for (; i <= j; i++) {
-          yield return table.GetItemRaw(new LuaNumber(i));
+          yield return table.GetItemRaw(LuaNumber.Create(i));
         }
       }
 

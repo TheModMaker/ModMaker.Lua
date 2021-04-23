@@ -499,7 +499,7 @@ namespace ModMaker.Lua.Runtime {
               } else {
                 double? d = NetHelpers.ReadNumber(s);
                 if (d.HasValue) {
-                  ret.Add(new LuaNumber(d.Value));
+                  ret.Add(LuaNumber.Create(d.Value));
                 } else {
                   ret.Add(LuaNil.Nil);
                 }

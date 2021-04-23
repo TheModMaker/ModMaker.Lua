@@ -60,12 +60,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       } else if (value is string stringValue) {
         return new LuaString(stringValue);
       } else if (value.GetType().IsPrimitive) {
-        return new LuaNumber(Convert.ToDouble(value));
+        return LuaNumber.Create(Convert.ToDouble(value));
       } else {
-        return (ILuaValue)typeof(LuaValues.LuaUserData<>)
-            .MakeGenericType(value.GetType())
-            .GetConstructor(new[] { value.GetType() })
-            .Invoke(new[] { value });
+        return (ILuaValue)Activator.CreateInstance(
+            typeof(LuaUserData<>).MakeGenericType(value.GetType()), value);
       }
     }
 

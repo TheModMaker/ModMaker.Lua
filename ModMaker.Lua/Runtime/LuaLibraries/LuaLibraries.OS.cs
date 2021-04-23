@@ -69,7 +69,7 @@ namespace ModMaker.Lua.Runtime {
         if (format == "*t") {
           ILuaTable table = new LuaTable();
           Action<string, int> set = (a, b) => {
-            table.SetItemRaw(new LuaString(a), new LuaNumber(b));
+            table.SetItemRaw(new LuaString(a), LuaNumber.Create(b));
           };
           set("year", time.Year);
           set("month", time.Month);

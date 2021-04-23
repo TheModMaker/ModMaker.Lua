@@ -20,11 +20,27 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// Defines a LuaValue that is a number (double).
   /// </summary>
   public sealed class LuaNumber : LuaValueBase<double> {
+    static readonly LuaNumber[] _numbers;
+
+    static LuaNumber() {
+      _numbers = new LuaNumber[50];
+      for (int i = 0; i < _numbers.Length; i++) {
+        _numbers[i] = new LuaNumber(i - 1);
+      }
+    }
+
     /// <summary>
     /// Creates a new LuaNumber that wraps the given number.
     /// </summary>
     /// <param name="num">The number that it wraps.</param>
-    public LuaNumber(double num) : base(num) { }
+    LuaNumber(double num) : base(num) { }
+
+    public static LuaNumber Create(double num) {
+      if (num % 1 == 0 && num >= -1 && num < _numbers.Length - 1)
+        return _numbers[(int)num + 1];
+      else
+        return new LuaNumber(num);
+    }
 
     public override LuaValueType ValueType { get { return LuaValueType.Number; } }
 
@@ -37,24 +53,24 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override ILuaValue Minus() {
-      return new LuaNumber(-Value);
+      return Create(-Value);
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self) {
       // Cannot use DefaultArithmetic since self and this are swapped.
       switch (type) {
         case BinaryOperationType.Add:
-          return new LuaNumber(self.Value + Value);
+          return Create(self.Value + Value);
         case BinaryOperationType.Subtract:
-          return new LuaNumber(self.Value - Value);
+          return Create(self.Value - Value);
         case BinaryOperationType.Multiply:
-          return new LuaNumber(self.Value * Value);
+          return Create(self.Value * Value);
         case BinaryOperationType.Divide:
-          return new LuaNumber(self.Value / Value);
+          return Create(self.Value / Value);
         case BinaryOperationType.Power:
-          return new LuaNumber(Math.Pow(self.Value, Value));
+          return Create(Math.Pow(self.Value, Value));
         case BinaryOperationType.Modulo:
-          return new LuaNumber(self.Value - Math.Floor(self.Value / Value) * Value);
+          return Create(self.Value - Math.Floor(self.Value / Value) * Value);
         case BinaryOperationType.Concat:
           return new LuaString(self.ToString() + ToString());
         case BinaryOperationType.Gt:

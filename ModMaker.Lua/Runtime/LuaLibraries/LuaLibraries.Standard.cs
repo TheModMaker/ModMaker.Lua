@@ -289,7 +289,7 @@ namespace ModMaker.Lua.Runtime {
 
         index++;
 
-        ILuaValue ret = table.GetItemRaw(new LuaNumber(index));
+        ILuaValue ret = table.GetItemRaw(LuaNumber.Create(index));
         if (ret == null || ret == LuaNil.Nil) {
           return new object[0];
         } else {
