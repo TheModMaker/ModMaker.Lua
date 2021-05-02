@@ -40,15 +40,15 @@ namespace UnitTests.Runtime.LuaLibraries {
     [Test]
     public void Overload() {
       _lua.DoText(@"
-assertEquals(1, foo(0),              'overload: normal')
-assertEquals(1, overload(foo, 0)(0), 'overload: first')
-assertEquals(2, overload(foo, 1)(0), 'overload: second')
+        assertEquals(1, foo(0),              'overload: normal')
+        assertEquals(1, overload(foo, 0)(0), 'overload: first')
+        assertEquals(2, overload(foo, 1)(0), 'overload: second')
 
-local obj = Example()
-assertEquals(1, obj.Call(0),              'overload: normal')
-assertEquals(1, overload(obj.Call, 0)(0), 'overload: member first')
-assertEquals(2, overload(obj.Call, 1)(0), 'overload: member second')
-");
+        local obj = Example()
+        assertEquals(1, obj.Call(0),              'overload: normal')
+        assertEquals(1, overload(obj.Call, 0)(0), 'overload: member first')
+        assertEquals(2, overload(obj.Call, 1)(0), 'overload: member second')
+      ");
     }
 
     [Test]

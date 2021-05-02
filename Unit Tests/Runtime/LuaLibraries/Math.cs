@@ -24,28 +24,28 @@ namespace UnitTests.Runtime.LuaLibraries {
     [Test]
     public void General() {
       _lua.DoText(@"
-assertEquals(     251245,            math.abs(-251245),       'abs')
-assertEqualsDelta(0.361416951927645, math.asin(0.3536),       'asin')
-assertEqualsDelta(0.187568907875447, math.atan(0.1898),       'atan')
-assertEqualsDelta(0.161967351986035, math.atan2(25, 153),     'atan2')
-assertEquals(     2455,              math.ceil(2454.5147),    'ceil')
-assertEqualsDelta(0.658878051008508, math.cos(0.85147),       'cos')
-assertEqualsDelta(1.38493787774095,  math.cosh(0.85147),      'cosh')
-assertEqualsDelta(48.7856373820042,  math.deg(0.85147),       'deg')
-assertEqualsDelta(69.6254387609039,  math.exp(4.24313),       'exp')
-assertEquals(     2454,              math.floor(2454.5147),   'floor')
-assertEqualsDelta(-1.195,            math.fmod(24.54, 5.147), 'fmod')
-assertEqualsDelta(70866960384,       math.ldexp(528, 27),     'ldexp')
-assertEqualsDelta(3.20030443928277,  math.log(24.54),         'ln')
-assertEqualsDelta(1.53902111462939,  math.log(24.54, 8),      'log')
-assertEqualsDelta(40872.6120526573,  math.pow(3.678, 8.153),  'pow')
-assertEqualsDelta(4.802797035638,    math.rad(275.18),        'rad')
-assertEqualsDelta(0.608415615200534, math.sin(2.48753),       'sin')
-assertEqualsDelta(5.97420326157982,  math.sinh(2.48753),      'sinh')
-assertEqualsDelta(221.303904168002,  math.sqrt(48975.418),    'sqrt')
-assertEqualsDelta(-0.76663479914779, math.tan(2.48753),       'tan')
-assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
-");
+        assertEquals(     251245,            math.abs(-251245),       'abs')
+        assertEqualsDelta(0.361416951927645, math.asin(0.3536),       'asin')
+        assertEqualsDelta(0.187568907875447, math.atan(0.1898),       'atan')
+        assertEqualsDelta(0.161967351986035, math.atan2(25, 153),     'atan2')
+        assertEquals(     2455,              math.ceil(2454.5147),    'ceil')
+        assertEqualsDelta(0.658878051008508, math.cos(0.85147),       'cos')
+        assertEqualsDelta(1.38493787774095,  math.cosh(0.85147),      'cosh')
+        assertEqualsDelta(48.7856373820042,  math.deg(0.85147),       'deg')
+        assertEqualsDelta(69.6254387609039,  math.exp(4.24313),       'exp')
+        assertEquals(     2454,              math.floor(2454.5147),   'floor')
+        assertEqualsDelta(-1.195,            math.fmod(24.54, 5.147), 'fmod')
+        assertEqualsDelta(70866960384,       math.ldexp(528, 27),     'ldexp')
+        assertEqualsDelta(3.20030443928277,  math.log(24.54),         'ln')
+        assertEqualsDelta(1.53902111462939,  math.log(24.54, 8),      'log')
+        assertEqualsDelta(40872.6120526573,  math.pow(3.678, 8.153),  'pow')
+        assertEqualsDelta(4.802797035638,    math.rad(275.18),        'rad')
+        assertEqualsDelta(0.608415615200534, math.sin(2.48753),       'sin')
+        assertEqualsDelta(5.97420326157982,  math.sinh(2.48753),      'sinh')
+        assertEqualsDelta(221.303904168002,  math.sqrt(48975.418),    'sqrt')
+        assertEqualsDelta(-0.76663479914779, math.tan(2.48753),       'tan')
+        assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
+      ");
     }
 
     [Test]
@@ -70,23 +70,23 @@ assertEqualsDelta(0.986278580120099, math.tanh(2.48753),      'tanh')
     [Test]
     public void frexp() {
       _lua.DoText(@"
-local a, b = math.frexp(245)
-assertEqualsDelta(0.95703125,      a, 'frexp: normal(1)')
-assertEquals(     8,               b, 'frexp: normal(2)')
+        local a, b = math.frexp(245)
+        assertEqualsDelta(0.95703125,      a, 'frexp: normal(1)')
+        assertEquals(     8,               b, 'frexp: normal(2)')
 
-a, b = math.frexp(-24623)
-assertEqualsDelta(-0.751434326171, a, 'frexp: negative(1)')
-assertEquals(     15,              b, 'frexp: negative(2)')
-");
+        a, b = math.frexp(-24623)
+        assertEqualsDelta(-0.751434326171, a, 'frexp: negative(1)')
+        assertEquals(     15,              b, 'frexp: negative(2)')
+      ");
     }
 
     [Test]
     public void max() {
       _lua.DoText(@"
-assertEquals(2672368, math.max(2, -566, 451, 2672368, 1), 'max: normal')
-assertEquals(63,      math.max(63, -566, -47, 0, -7),     'max: return is first argument')
-assertEquals(8,       math.max(8),                        'max: one argument')
-");
+        assertEquals(2672368, math.max(2, -566, 451, 2672368, 1), 'max: normal')
+        assertEquals(63,      math.max(63, -566, -47, 0, -7),     'max: return is first argument')
+        assertEquals(8,       math.max(8),                        'max: one argument')
+      ");
     }
 
     [Test]
@@ -105,10 +105,10 @@ assertEquals(8,       math.max(8),                        'max: one argument')
     [Test]
     public void min() {
       _lua.DoText(@"
-assertEquals(-566, math.min(2, -566, 451, 2672368, 1), 'min: normal')
-assertEquals(-63,  math.min(-63, 566, 47, 0, -7),      'min: return is first argument')
-assertEquals(8,    math.min(8),                        'min: one argument')
-");
+        assertEquals(-566, math.min(2, -566, 451, 2672368, 1), 'min: normal')
+        assertEquals(-63,  math.min(-63, 566, 47, 0, -7),      'min: return is first argument')
+        assertEquals(8,    math.min(8),                        'min: one argument')
+      ");
     }
 
     [Test]
@@ -127,26 +127,26 @@ assertEquals(8,    math.min(8),                        'min: one argument')
     [Test]
     public void modf() {
       _lua.DoText(@"
-local a, b = math.modf(26825.2154672)
-assertEquals(26825,           a, 'modf: normal(1)')
-assertEqualsDelta(0.2154672,  b, 'modf: normal(2)')
+        local a, b = math.modf(26825.2154672)
+        assertEquals(26825,           a, 'modf: normal(1)')
+        assertEqualsDelta(0.2154672,  b, 'modf: normal(2)')
 
-a, b = math.modf(-48675.287548)
-assertEquals(-48675,          a, 'modf: negative(1)')
-assertEqualsDelta(-0.287548,  b, 'modf: negative(2)')
+        a, b = math.modf(-48675.287548)
+        assertEquals(-48675,          a, 'modf: negative(1)')
+        assertEqualsDelta(-0.287548,  b, 'modf: negative(2)')
 
-a, b = math.modf(8458)
-assertEquals(8458,            a, 'modf: integer(1)')
-assertEqualsDelta(0,          b, 'modf: integer(2)')
+        a, b = math.modf(8458)
+        assertEquals(8458,            a, 'modf: integer(1)')
+        assertEqualsDelta(0,          b, 'modf: integer(2)')
 
-a, b = math.modf(0.4856256)
-assertEquals(0,               a, 'modf: fraction(1)')
-assertEqualsDelta(0.4856256,  b, 'modf: fraction(2)')
+        a, b = math.modf(0.4856256)
+        assertEquals(0,               a, 'modf: fraction(1)')
+        assertEqualsDelta(0.4856256,  b, 'modf: fraction(2)')
 
-a, b = math.modf(0)
-assertEquals(0,               a, 'modf: zero(1)')
-assertEqualsDelta(0,          b, 'modf: zero(2)')
-");
+        a, b = math.modf(0)
+        assertEquals(0,               a, 'modf: zero(1)')
+        assertEqualsDelta(0,          b, 'modf: zero(2)')
+      ");
     }
 
     [Test]
@@ -167,29 +167,29 @@ assertEqualsDelta(0,          b, 'modf: zero(2)')
       // the value is undefined; therefore we need to just check for 'randomness' and for
       // consistency, not for specific values.
       _lua.DoText(@"
-math.randomseed(12345)
-local a = math.random()
-local b = math.random(45)
-local c = math.random(24, 68)
+        math.randomseed(12345)
+        local a = math.random()
+        local b = math.random(45)
+        local c = math.random(24, 68)
 
-assertTrue(0 <= a and a <= 1,         'random: no-arg range')
-assertTrue(1 <= b and b <= 45,        'random: one-arg range')
-assertEquals(0, math.fmod(b, 1),      'random: one-arg is an integer')
-assertTrue(24 <= c and c <= 68,       'random: two-arg range')
-assertEquals(0, math.fmod(c, 1),      'random: two-arg is an integer')
+        assertTrue(0 <= a and a <= 1,         'random: no-arg range')
+        assertTrue(1 <= b and b <= 45,        'random: one-arg range')
+        assertEquals(0, math.fmod(b, 1),      'random: one-arg is an integer')
+        assertTrue(24 <= c and c <= 68,       'random: two-arg range')
+        assertEquals(0, math.fmod(c, 1),      'random: two-arg is an integer')
 
--- This is technically possible, but extremely unlikely.
-math.randomseed(54321)
-local x = math.random()
-local y = math.random(45)
-assertTrue(x ~= a and y ~= b,         'random: different seeds make different values')
+        -- This is technically possible, but extremely unlikely.
+        math.randomseed(54321)
+        local x = math.random()
+        local y = math.random(45)
+        assertTrue(x ~= a and y ~= b,         'random: different seeds make different values')
 
-math.randomseed(12345)
+        math.randomseed(12345)
 
-assertEquals(a, math.random(),       'random: zero-arg makes same values')
-assertEquals(b, math.random(45),     'random: one-arg makes same values')
-assertEquals(c, math.random(24, 68), 'random: two-arg makes same values')
-");
+        assertEquals(a, math.random(),       'random: zero-arg makes same values')
+        assertEquals(b, math.random(45),     'random: one-arg makes same values')
+        assertEquals(c, math.random(24, 68), 'random: two-arg makes same values')
+      ");
     }
 
     [Test]

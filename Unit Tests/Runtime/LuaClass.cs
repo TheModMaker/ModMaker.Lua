@@ -57,32 +57,32 @@ namespace UnitTests.Runtime {
     [Test]
     public void NoBaseClass_InstanceInLua() {
       _lua.DoText(@"
-class Foobar
+        class Foobar
 
-function Foobar:method()
-  return 'abc'
-end
+        function Foobar:method()
+          return 'abc'
+        end
 
-Foobar.field = 123
+        Foobar.field = 123
 
 
-local inst = Foobar()
-assertEquals(123, inst.field, 'field should be 123')
-assertEquals('abc', inst.method(), 'member should exist')
-");
+        local inst = Foobar()
+        assertEquals(123, inst.field, 'field should be 123')
+        assertEquals('abc', inst.method(), 'member should exist')
+      ");
     }
 
     [Test]
     public void NoBaseClass_InstanceInCs() {
       _lua.DoText(@"
-class Foobar
+        class Foobar
 
-function Foobar:method()
-  return 'abc'
-end
+        function Foobar:method()
+          return 'abc'
+        end
 
-Foobar.field = 123
-");
+        Foobar.field = 123
+      ");
 
       LuaClass cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -97,37 +97,37 @@ Foobar.field = 123
     [Test]
     public void NoBaseClass_CanCallOtherMembers() {
       _lua.DoText(@"
-class Foobar
+        class Foobar
 
-function Foobar:other()
-  return 123
-end
+        function Foobar:other()
+          return 123
+        end
 
-function Foobar:method()
-  assertNotNull(self, 'must have self')
-  assertEquals(123, self.other(), 'other value')
-end
+        function Foobar:method()
+          assertNotNull(self, 'must have self')
+          assertEquals(123, self.other(), 'other value')
+        end
 
 
-local inst = Foobar()
-inst:method()
-");
+        local inst = Foobar()
+        inst:method()
+      ");
     }
 
     [Test]
     public void NoBaseClass_CanDefineLuaConstructor() {
       _lua.DoText(@"
-class Foobar
+        class Foobar
 
-function Foobar:__ctor()
-  self.field = 123
-end
-Foobar.field = int
+        function Foobar:__ctor()
+          self.field = 123
+        end
+        Foobar.field = int
 
 
-local inst = Foobar()
-assertEquals(123, inst.field, 'constructor set field')
-");
+        local inst = Foobar()
+        assertEquals(123, inst.field, 'constructor set field')
+      ");
     }
     #endregion
 
@@ -135,13 +135,13 @@ assertEquals(123, inst.field, 'constructor set field')
     [Test]
     public void BaseClass_InstanceInLua() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-local inst = Foobar()
+        local inst = Foobar()
 
-assertNotNull(inst, 'create instance')
-assertEquals(15, inst.VirtualMethod(), 'virtual method')
-");
+        assertNotNull(inst, 'create instance')
+        assertEquals(15, inst.VirtualMethod(), 'virtual method')
+      ");
     }
 
     [Test]
@@ -157,12 +157,12 @@ assertEquals(15, inst.VirtualMethod(), 'virtual method')
     [Test]
     public void BaseClass_OverridesMethod() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-function Foobar:VirtualMethod()
-  return 1000
-end
-");
+        function Foobar:VirtualMethod()
+          return 1000
+        end
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -173,31 +173,31 @@ end
     [Test]
     public void BaseClass_CanAddMethods() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-function Foobar:VirtualMethod()
-  return 1000
-end
-function Foobar:NewMethod()
-  return 123
-end
+        function Foobar:VirtualMethod()
+          return 1000
+        end
+        function Foobar:NewMethod()
+          return 123
+        end
 
-local inst = Foobar()
-assertEquals(1000, inst:VirtualMethod(), 'VirtualMethod')
-assertEquals(123, inst:NewMethod(), 'NewMethod')
-");
+        local inst = Foobar()
+        assertEquals(1000, inst:VirtualMethod(), 'VirtualMethod')
+        assertEquals(123, inst:NewMethod(), 'NewMethod')
+      ");
     }
 
     [Test]
     public void BaseClass_OverridesMethodWithArguments() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-function Foobar:MethodIntArg(a)
-  print(self, a)
-  assertEquals(123, a, '')
-end
-");
+        function Foobar:MethodIntArg(a)
+          print(self, a)
+          assertEquals(123, a, '')
+        end
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -208,59 +208,59 @@ end
     [Test]
     public void BaseClass_CanCallOtherMembers() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-function Foobar:VirtualMethod()
-  return 456
-end
-function Foobar:NewMethod()
-  return 123
-end
+        function Foobar:VirtualMethod()
+          return 456
+        end
+        function Foobar:NewMethod()
+          return 123
+        end
 
-function Foobar:AbstractMethod()
-  assertNotNull(self, 'AbstractMethod must have self')
-  assertEquals(123, self:NewMethod(), 'NewMethod inside AbstractMethod')
-  assertEquals(456, self:VirtualMethod(), 'VirtualMethod inside AbstractMethod')
-  return 0
-end
-function Foobar:TestMethod()
-  assertNotNull(self, 'TestMethod must have self')
-  assertEquals(123, self:NewMethod(), 'NewMethod inside TestMethod')
-  assertEquals(456, self:VirtualMethod(), 'VirtualMethod inside TestMethod')
-end
+        function Foobar:AbstractMethod()
+          assertNotNull(self, 'AbstractMethod must have self')
+          assertEquals(123, self:NewMethod(), 'NewMethod inside AbstractMethod')
+          assertEquals(456, self:VirtualMethod(), 'VirtualMethod inside AbstractMethod')
+          return 0
+        end
+        function Foobar:TestMethod()
+          assertNotNull(self, 'TestMethod must have self')
+          assertEquals(123, self:NewMethod(), 'NewMethod inside TestMethod')
+          assertEquals(456, self:VirtualMethod(), 'VirtualMethod inside TestMethod')
+        end
 
 
-local inst = Foobar()
-inst:AbstractMethod()
-inst:TestMethod()
-");
+        local inst = Foobar()
+        inst:AbstractMethod()
+        inst:TestMethod()
+      ");
     }
 
     [Test]
     public void BaseClass_CantReplaceField() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-assertThrows('replace fields with different type', function()
-  Foobar.Field = 'abc'
-end)
+        assertThrows('replace fields with different type', function()
+          Foobar.Field = 'abc'
+        end)
 
-assertThrows('replace fields with same type', function()
-  Foobar.Field = 123
-end)
-");
+        assertThrows('replace fields with same type', function()
+          Foobar.Field = 123
+        end)
+      ");
 
     }
 
     [Test]
     public void BaseClass_CantReplaceMethodWithField() {
       _lua.DoText(@"
-class Foobar : BaseClass
+        class Foobar : BaseClass
 
-assertThrows('can\'t replace method with field', function()
-  Foobar.VirtualMethod = 'abc'
-end)
-");
+        assertThrows('can\'t replace method with field', function()
+          Foobar.VirtualMethod = 'abc'
+        end)
+      ");
 
     }
 
@@ -284,28 +284,28 @@ end)
     [Test]
     public void Interface_InstanceInLua() {
       _lua.DoText(@"
-class Foobar : IInterface
+        class Foobar : IInterface
 
-function Foobar:VirtualMethod()
-  return 1
-end
+        function Foobar:VirtualMethod()
+          return 1
+        end
 
-local inst = Foobar()
+        local inst = Foobar()
 
-assertNotNull(inst, 'create instance')
-assertEquals(1, inst.VirtualMethod(), 'virtual method')
-");
+        assertNotNull(inst, 'create instance')
+        assertEquals(1, inst.VirtualMethod(), 'virtual method')
+      ");
     }
 
     [Test]
     public void Interface_InheritsFromType() {
       _lua.DoText(@"
-class Foobar : IInterface
+        class Foobar : IInterface
 
-function Foobar:VirtualMethod()
-  return 1
-end
-");
+        function Foobar:VirtualMethod()
+          return 1
+        end
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -316,12 +316,12 @@ end
     [Test]
     public void Interface_ImplementsMethod() {
       _lua.DoText(@"
-class Foobar : IInterface
+        class Foobar : IInterface
 
-function Foobar:VirtualMethod()
-  return 1000
-end
-");
+        function Foobar:VirtualMethod()
+          return 1000
+        end
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -346,14 +346,15 @@ end
     [Test]
     public void Interface_MultipleInheritance() {
       _lua.DoText(@"
-class Foobar : IInterface, IInterface2
+        class Foobar : IInterface, IInterface2
 
-function Foobar:VirtualMethod()
-  return 123
-end
-function Foobar:OtherMethod()
-  return 555
-end");
+        function Foobar:VirtualMethod()
+          return 123
+        end
+        function Foobar:OtherMethod()
+          return 555
+        end
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
@@ -365,18 +366,19 @@ end");
     [Test]
     public void Interface_ExplicitImplementation() {
       _lua.DoText(@"
-class Foobar : IInterface, IInterface2
+        class Foobar : IInterface, IInterface2
 
-function Foobar.IInterface:Ambiguous()
-  return 123
-end
-function Foobar.IInterface2:Ambiguous()
-  return 456
-end
+        function Foobar.IInterface:Ambiguous()
+          return 123
+        end
+        function Foobar.IInterface2:Ambiguous()
+          return 456
+        end
 
-local inst = Foobar()
-assertNotNull(inst, 'create instance')
-assertEquals(nil, inst.Ambiguous, 'no member when explicit')");
+        local inst = Foobar()
+        assertNotNull(inst, 'create instance')
+        assertEquals(nil, inst.Ambiguous, 'no member when explicit')
+      ");
 
       var cls = _getLuaClass("Foobar");
       object inst = cls.CreateInstance();
