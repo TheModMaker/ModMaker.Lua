@@ -734,7 +734,7 @@ namespace ModMaker.Lua.Compiler {
         }
       }
       public void EndSet() {
-        _gen.Emit(OpCodes.Stfld, _fields[^1]);
+        _gen.Emit(OpCodes.Stfld, _fields[_fields.Length - 1]);
       }
       public void Get() {
         _gen.Emit(OpCodes.Ldarg_0);

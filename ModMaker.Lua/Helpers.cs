@@ -154,7 +154,7 @@ namespace ModMaker.Lua {
           throw;
         }
 
-        ExceptionDispatchInfo.Throw(inner);
+        ExceptionDispatchInfo.Capture(inner).Throw();
         throw inner;  // Shouldn't happen.
       }
     }
@@ -333,7 +333,7 @@ namespace ModMaker.Lua {
       // Setting also requires the last arg be the 'value'
       if (value != null) {
         indicies = indicies.AdjustResults(indicies.Count + 1);
-        indicies[^1] = value;
+        indicies[indicies.Count - 1] = value;
       }
 
       // Find the valid method

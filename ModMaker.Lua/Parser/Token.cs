@@ -322,7 +322,12 @@ namespace ModMaker.Lua.Parser {
     /// </summary>
     /// <returns>A 32-bit signed integer that is the hash code for this instance.</returns>
     public override int GetHashCode() {
+#if NETFRAMEWORK
+      return Value.GetHashCode() ^ Type.GetHashCode() ^ StartPos.GetHashCode() ^
+             StartLine.GetHashCode();
+#else
       return HashCode.Combine(Value, Type, StartPos, StartLine);
+#endif
     }
 
     public override string ToString() {
@@ -332,7 +337,7 @@ namespace ModMaker.Lua.Parser {
         TokenType.StringLiteral => true,
         _ => false,
       };
-      var value = Value is string str && str.Length > 25 ? str[..25] + "..." : Value;
+      var value = Value is string str && str.Length > 25 ? str.Substring(0, 25) + "..." : Value;
       var type = need_value ? $"{Type}({value})" : Type.ToString();
       return $"Token(Type={type}, Line={StartLine}, Pos={StartPos})";
     }

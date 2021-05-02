@@ -62,7 +62,9 @@ namespace UnitTests {
     }
 
     delegate void TestDelegate(ref int x);
+#if NETCOREAPP3_1
     static void _withNotNull([NotNull] object _) { }
+#endif
     static void _withParams(params string[] _) { }
     static void _withParamsPrimitive(params int[] _) { }
     static void _withParamsNullablePrimitive(params int?[] _) { }
@@ -90,6 +92,7 @@ namespace UnitTests {
       Assert.IsFalse(choice.ParamsNullable);
     }
 
+#if NETCOREAPP3_1_OR_GREATER
     [Test]
     public void Choice_MethodInfo_NonNullAttribute() {
       var flags = BindingFlags.Static | BindingFlags.NonPublic;
@@ -100,6 +103,7 @@ namespace UnitTests {
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
+#endif
 
     [Test]
     public void Choice_MethodInfo_Params() {

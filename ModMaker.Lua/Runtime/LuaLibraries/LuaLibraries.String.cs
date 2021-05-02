@@ -228,7 +228,7 @@ namespace ModMaker.Lua.Runtime {
                 return "%";
               }
 
-              int i = int.Parse(m.Groups[0].Value[1..]);
+              int i = int.Parse(m.Groups[0].Value.Substring(1));
               return i == 0 ? match.Value : (match.Groups.Count > i ? match.Groups[i].Value : "");
             });
           } else if (_table != null) {

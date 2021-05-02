@@ -69,16 +69,20 @@ namespace ModMaker.Lua {
         static bool isNullableParam(ParameterInfo p) {
           // TODO: Parse nullable reference type metadata:
           // https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+#if NETCOREAPP3_1
           if (p.IsDefined(typeof(NotNullAttribute)))
             return false;
+#endif
           return nullableStruct(p.ParameterType) || nullableRef(p.ParameterType);
         }
 
         FormalArguments = param.Select((p) => underlyingType(p.ParameterType)).ToArray();
         Nullable = param.Select(isNullableParam).ToArray();
         OptionalValues = param.Where(p => p.IsOptional).Select(p => p.DefaultValue!).ToArray();
-        HasParams = param.Length > 0 && param[^1].IsDefined(typeof(ParamArrayAttribute));
-        Type? paramType = !HasParams ? null : param[^1].ParameterType.GetElementType();
+        HasParams =
+            param.Length > 0 && param[param.Length - 1].IsDefined(typeof(ParamArrayAttribute));
+        Type? paramType =
+            !HasParams ? null : param[param.Length - 1].ParameterType.GetElementType();
         ParamsNullable = HasParams && (nullableStruct(paramType!) || nullableRef(paramType!));
       }
 
@@ -215,7 +219,7 @@ namespace ModMaker.Lua {
 
       // Check params array for validity.
       bool isParamsValid(Choice choice) {
-        Type elemType = choice.FormalArguments[^1].GetElementType()!;
+        Type elemType = choice.FormalArguments[choice.FormalArguments.Length - 1].GetElementType()!;
         return values.Skip(choice.FormalArguments.Length - 1)
             .All((v) => compatible(v, elemType, choice.ParamsNullable));
       }
@@ -423,14 +427,15 @@ namespace ModMaker.Lua {
 
       // Add params array.
       if (choice.HasParams) {
-        Type arrayType = choice.FormalArguments[^1].GetElementType()!;
+        Type arrayType =
+            choice.FormalArguments[choice.FormalArguments.Length - 1].GetElementType()!;
         MethodInfo asMethod = asMethodGeneric.MakeGenericMethod(arrayType);
         int start = choice.FormalArguments.Length - 1;
 
         Array array = Array.CreateInstance(arrayType, Math.Max(args.Count - start, 0));
         for (int i = 0; i < array.Length; i++)
           array.SetValue(Helpers.DynamicInvoke(asMethod, args[start + i], null), i);
-        ret[^1] = array;
+        ret[ret.Length - 1] = array;
       } else {
         // Add optional parameters.
         int optStart = choice.FormalArguments.Length - choice.OptionalValues.Length;

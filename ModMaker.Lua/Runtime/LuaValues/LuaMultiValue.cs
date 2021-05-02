@@ -47,8 +47,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="args">The arguments of the function.</param>
     public LuaMultiValue(params ILuaValue[] args) {
-      var end = args.Length > 0 && args[^1] is ILuaMultiValue ? (IEnumerable<ILuaValue>)args[^1]
-                                                              : args.Skip(args.Length - 1);
+      var end = args.Length > 0 && args[args.Length - 1] is ILuaMultiValue multi
+          ? multi : args.Skip(args.Length - 1);
       _values = args.Take(args.Length - 1).Select(v => v.Single()).Concat(end).ToArray();
 
       Count = _values.Length;

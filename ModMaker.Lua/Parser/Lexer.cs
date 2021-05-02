@@ -400,14 +400,14 @@ namespace ModMaker.Lua.Parser {
     /// Returns whether the given text element is an ASCII digit.
     /// </summary>
     static bool _isDigit(string str) {
-      return "0123456789".Contains(str[0]);
+      return "0123456789".Contains(str);
     }
 
     /// <summary>
     /// Returns whether the given text element is a hex digit.
     /// </summary>
     static bool _isHexDigit(string str) {
-      return "0123456789abcdefABCDEF".Contains(str[0]);
+      return "0123456789abcdefABCDEF".Contains(str);
     }
   }
 }

@@ -57,7 +57,7 @@ namespace ModMaker.Lua {
     /// <param name="name">The name of the variable.</param>
     public dynamic this[string name] {
       get { return Environment[name]; }
-      set { Environment[name] = value; }
+      set { Environment[name] = LuaValueBase.CreateValue((object)value); }
     }
 
     /// <summary>
