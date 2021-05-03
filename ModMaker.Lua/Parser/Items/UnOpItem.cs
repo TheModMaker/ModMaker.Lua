@@ -60,7 +60,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public UnaryOperationType OperationType { get; set; }
 
-    public Token Debug { get; set; }
+    public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

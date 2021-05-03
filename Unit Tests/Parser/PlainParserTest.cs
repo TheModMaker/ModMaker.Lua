@@ -22,11 +22,11 @@ using NUnit.Framework;
 namespace UnitTests.Parser {
   [TestFixture]
   public class PlainParserTest {
-    IParseItem _parseBlock(string input) {
+    IParseItem _parseBlock(string input, string name = null) {
       PlainParser target = new PlainParser();
       var encoding = Encoding.UTF8;
       var stream = new MemoryStream(encoding.GetBytes(input));
-      return target.Parse(stream, encoding, null);
+      return target.Parse(stream, encoding, name);
     }
 
     IParseItem _parseStatement(string input) {
@@ -45,13 +45,16 @@ namespace UnitTests.Parser {
 
     void _checkSyntaxError(string input, Token token) {
       var err = Assert.Throws<SyntaxException>(() => _parseBlock(input));
-      Assert.AreEqual(token, err.SourceToken);
+      var debug = new DebugInfo(null, token.StartPos, token.StartLine,
+                                token.StartPos + token.Value.Length, token.StartLine);
+      Assert.AreEqual(debug, err.Debug);
     }
 
     #region Expressions
 
     [Test]
     public void GenralParseWithDebug() {
+      string path = "foo.lua";
       string input1 = @"
         local a = 12
         t = { [34]= function() print(i) end }
@@ -62,97 +65,98 @@ namespace UnitTests.Parser {
             end
         end";
 
-      Token d(TokenType t, string value, int line, int col) => new Token(t, value, col, line);
+      DebugInfo d(int line, int col, int lineEnd, int colEnd) =>
+          new DebugInfo(path, col, line, colEnd, lineEnd);
       IParseItem expected = new BlockItem(new IParseStatement[] {
           new AssignmentItem(new[] {
-              new NameItem("a") { Debug = d(TokenType.Identifier, "a", 2, 15) }
+              new NameItem("a") { Debug = d(2, 15, 2, 16) }
           }, new[] {
-              new LiteralItem(12.0) { Debug = d(TokenType.NumberLiteral, "12", 2, 19) },
+              new LiteralItem(12.0) { Debug = d(2, 19, 2, 21) },
           }) {
-              Debug = d(TokenType.Local, "local", 2, 9),
+              Debug = d(2, 9, 2, 21),
               IsLastExpressionSingle = false,
               Local = true,
           },
           new AssignmentItem(new[] {
-              new NameItem("t") { Debug = d(TokenType.Identifier, "t", 3, 9) },
+              new NameItem("t") { Debug = d(3, 9, 3, 10) },
           }, new[] {
               new TableItem(new[] {
                   new KeyValuePair<IParseExp, IParseExp>(
-                      new LiteralItem(34.0) { Debug = d(TokenType.NumberLiteral, "34", 3, 16) },
+                      new LiteralItem(34.0) { Debug = d(3, 16, 3, 18)  },
                       new FuncDefItem(
                           new NameItem[0],
                           new BlockItem(new[] {
                               new FuncCallItem(
                                   new NameItem("print") {
-                                      Debug = d(TokenType.Identifier, "print", 3, 32),
+                                      Debug = d(3, 32, 3, 37),
                                   },
                                   new[] {
                                       new FuncCallItem.ArgumentInfo(
                                           new NameItem("i") {
-                                              Debug = d(TokenType.Identifier, "i", 3, 38),
+                                              Debug = d(3, 38, 3, 39),
                                           },
                                           false)
                                   }) {
-                                      Debug = d(TokenType.Identifier, "print", 3, 32),
+                                      Debug = d(3, 32, 3, 40),
                                       Statement = true,
                                   },
                           }) {
-                             Debug = d(TokenType.Identifier, "print", 3, 32),
+                             Debug = d(3, 32, 3, 44),
                              Return = new ReturnItem(),
                       }) {
-                        Debug = d(TokenType.Function, "function", 3, 21)
+                        Debug = d(3, 21, 3, 44),
                       }),
-              }) { Debug = d(TokenType.BeginTable, "{", 3, 13) },
+              }) { Debug = d(3, 13, 3, 46) },
           }) {
-              Debug = d(TokenType.Identifier, "t", 3, 9),
+              Debug = d(3, 9, 3, 46),
               IsLastExpressionSingle = false,
               Local = false,
           },
           new FuncDefItem(new[] {
-              new NameItem("a") { Debug = d(TokenType.Identifier, "a", 4, 23) },
-              new NameItem("...") { Debug = d(TokenType.Elipsis, "...", 4, 26) },
+              new NameItem("a") { Debug = d(4, 23, 4, 24) },
+              new NameItem("...") { Debug = d(4, 26, 4, 29) },
           }, new BlockItem(new IParseStatement[] {
               new AssignmentItem(new[] {
-                  new NameItem("a") { Debug = d(TokenType.Identifier, "a", 5, 13) },
-                  new NameItem("b") { Debug = d(TokenType.Identifier, "b", 5, 16) },
-                  new NameItem("c") { Debug = d(TokenType.Identifier, "c", 5, 19) },
+                  new NameItem("a") { Debug = d(5, 13, 5, 14) },
+                  new NameItem("b") { Debug = d(5, 16, 5, 17)  },
+                  new NameItem("c") { Debug = d(5, 19, 5, 20)  },
               }, new[] {
-                  new NameItem("...") { Debug = d(TokenType.Elipsis, "...", 5, 23) },
-              }) { Debug = d(TokenType.Identifier, "a", 5, 13) },
+                  new NameItem("...") { Debug = d(5, 23, 5, 26)  },
+              }) { Debug = d(5, 13, 5, 26) },
               new ForNumItem(
-                  new NameItem("i") { Debug = d(TokenType.Identifier, "i", 6, 17) },
-                  new LiteralItem(12.0) { Debug = d(TokenType.NumberLiteral, "12", 6, 20) },
-                  new LiteralItem(23.0) { Debug = d(TokenType.NumberLiteral, "23", 6, 24) },
+                  new NameItem("i") { Debug = d(6, 17, 6, 18)  },
+                  new LiteralItem(12.0) { Debug = d(6, 20, 6, 22)  },
+                  new LiteralItem(23.0) { Debug = d(6, 24, 6, 26)  },
                   null,
                   new BlockItem(new[] {
                       new FuncCallItem(
-                          new NameItem("print") { Debug = d(TokenType.Identifier, "print", 7, 17) },
+                          new NameItem("print") { Debug = d(7, 17, 7, 22)  },
                           new[] {
                               new FuncCallItem.ArgumentInfo(
                                   new NameItem("i") {
-                                      Debug = d(TokenType.Identifier, "i", 7, 23)
+                                      Debug = d(7, 23, 7, 24)
                                   }, false)
                           }) {
-                          Debug = d(TokenType.Identifier, "print", 7, 17),
+                          Debug = d(7, 17, 7, 25),
                           Statement = true,
                       }
                   }) {
-                      Debug = d(TokenType.Identifier, "print", 7, 17)
-                  }) { Debug = d(TokenType.For, "for", 6, 13) },
+                      Debug = d(7, 17, 8, 16),
+                  }) { Debug = d(6, 13, 8, 16) },
           }) {
-              Debug = d(TokenType.Identifier, "a", 5, 13),
+              Debug = d(5, 13, 9, 12),
               Return = new ReturnItem(),
           }) {
-              Debug = d(TokenType.Function, "function", 4, 9),
+              Debug = d(4, 9, 9, 12),
               Local = false,
-              Prefix = new NameItem("Some") { Debug = d(TokenType.Identifier, "Some", 4, 18) },
+              Prefix = new NameItem("Some") { Debug = d(4, 18, 4, 22)  },
           }
       }) {
         Return = new ReturnItem(),
-        Debug = d(TokenType.Local, "local", 2, 9),
+        Debug = d(2, 9, 9, 12),
       };
 
-      ParseItemEquals.CheckEquals(expected, _parseBlock(input1), checkDebug: true);
+      ParseItemEquals.CheckEquals(expected, _parseBlock(input1, path), checkDebug: true);
     }
 
     [Test]

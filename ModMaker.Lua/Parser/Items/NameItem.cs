@@ -34,7 +34,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public string Name { get; set; }
 
-    public Token Debug { get; set; }
+    public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

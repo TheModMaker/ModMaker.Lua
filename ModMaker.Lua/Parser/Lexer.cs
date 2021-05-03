@@ -181,7 +181,10 @@ namespace ModMaker.Lua.Parser {
         token = _peek.Peek();
       }
       token ??= new Token(TokenType.None, _input.Peek(1), _input.Column, _input.Line);
-      return new SyntaxException(message, Name, token.Value);
+      DebugInfo debug = new DebugInfo(Name, token.Value.StartPos, token.Value.StartLine,
+                                      token.Value.StartPos + token.Value.Value.Length,
+                                      token.Value.StartLine);
+      return new SyntaxException(message, debug);
     }
 
     /// <summary>
@@ -273,7 +276,7 @@ namespace ModMaker.Lua.Parser {
       debug.Value += read;
 
       if (endStr != null && !read.EndsWith(endStr)) {
-        throw new SyntaxException(string.Format(Resources.MissingEnd, "long comment"), debug);
+        throw SyntaxError(string.Format(Resources.MissingEnd, "long comment"), debug);
       }
     }
 
@@ -333,7 +336,7 @@ namespace ModMaker.Lua.Parser {
           case "v":
             return "\v";
           default:
-            throw new SyntaxException(string.Format(Resources.InvalidEscape, val), Name, ret);
+            throw SyntaxError(string.Format(Resources.InvalidEscape, val), ret);
         }
       });
       ret.Value = ret.Value.Substring(0, ret.Value.Length - 1);

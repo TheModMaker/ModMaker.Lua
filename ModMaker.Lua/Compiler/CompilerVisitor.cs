@@ -44,8 +44,7 @@ namespace ModMaker.Lua.Compiler {
         _prefix = prefix;
       }
 
-      public Token Debug { get; set; }
-      public object UserData { get; set; }
+      public DebugInfo Debug { get; set; }
 
       public IParseItem Accept(IParseItemVisitor visitor) {
         _gen.Emit(OpCodes.Ldloc, _prefix);

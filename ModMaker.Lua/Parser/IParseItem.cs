@@ -21,7 +21,7 @@ namespace ModMaker.Lua.Parser {
     /// <summary>
     /// Gets or sets the debug info for this item.
     /// </summary>
-    Token Debug { get; set; }
+    DebugInfo Debug { get; set; }
 
     /// <summary>
     /// Dispatches to the specific visit method for this item type.

@@ -53,7 +53,7 @@ namespace UnitTests.Parser {
                          $"{path}.{prop.Name}");
           }
         }
-      } else if (type == typeof(Token)) {
+      } else if (type == typeof(Token) || type == typeof(DebugInfo)) {
         if (checkDebug) {
           foreach (var field in type.GetFields()) {
             _checkEquals(field.GetValue(expected), field.GetValue(actual), checkDebug,
@@ -118,29 +118,35 @@ namespace UnitTests.Parser {
 
     [Test]
     public void ParseItem_DebugFailure() {
-      var tok1 = new Token(TokenType.Add, "abc", 4, 7);
-      var tok2 = new Token(TokenType.Assign, "abc", 4, 7);
-      var tok3 = new Token(TokenType.Add, "def", 4, 7);
-      var tok4 = new Token(TokenType.Add, "abc", 10, 7);
-      var tok5 = new Token(TokenType.Add, "abc", 4, 10);
-      _checkError(".Debug.Type", () => {
-        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = tok1 },
-                                    new LiteralItem(3.0) { Debug = tok2 },
-                                    checkDebug: true);
-      });
-      _checkError(".Debug.Value", () => {
-        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = tok1 },
-                                    new LiteralItem(3.0) { Debug = tok3 },
-                                    checkDebug: true);
-      });
+      var info1 = new DebugInfo("abc", 4, 7, 4, 7);
+      var info2 = new DebugInfo("abc", 10, 7, 4, 7);
+      var info3 = new DebugInfo("abc", 4, 10, 4, 7);
+      var info4 = new DebugInfo("abc", 4, 7, 10, 7);
+      var info5 = new DebugInfo("abc", 4, 7, 4, 10);
+      var info6 = new DebugInfo("def", 4, 7, 4, 10);
       _checkError(".Debug.StartPos", () => {
-        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = tok1 },
-                                    new LiteralItem(3.0) { Debug = tok4 },
+        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                    new LiteralItem(3.0) { Debug = info2 },
                                     checkDebug: true);
       });
       _checkError(".Debug.StartLine", () => {
-        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = tok1 },
-                                    new LiteralItem(3.0) { Debug = tok5 },
+        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                    new LiteralItem(3.0) { Debug = info3 },
+                                    checkDebug: true);
+      });
+      _checkError(".Debug.EndPos", () => {
+        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                    new LiteralItem(3.0) { Debug = info4 },
+                                    checkDebug: true);
+      });
+      _checkError(".Debug.EndLine", () => {
+        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                    new LiteralItem(3.0) { Debug = info5 },
+                                    checkDebug: true);
+      });
+      _checkError(".Debug.Path", () => {
+        ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                    new LiteralItem(3.0) { Debug = info6 },
                                     checkDebug: true);
       });
     }
@@ -162,10 +168,10 @@ namespace UnitTests.Parser {
 
     [Test]
     public void ParseItem_SkipDebug() {
-      var tok1 = new Token(TokenType.Add, "abc", 4, 7);
-      var tok2 = new Token(TokenType.Assign, "def", 8, 12);
-      ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = tok1 },
-                                  new LiteralItem(3.0) { Debug = tok2 });
+      var info1 = new DebugInfo("abc", 4, 7, 5, 2);
+      var info2 = new DebugInfo("def", 8, 12, 9, 14);
+      ParseItemEquals.CheckEquals(new LiteralItem(3.0) { Debug = info1 },
+                                  new LiteralItem(3.0) { Debug = info2 });
     }
 
     [Test]
