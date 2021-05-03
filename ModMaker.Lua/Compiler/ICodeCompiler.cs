@@ -35,18 +35,5 @@ namespace ModMaker.Lua.Compiler {
     /// If there is syntax errors in the item tree.
     /// </exception>
     ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name);
-    /// <summary>
-    /// Creates a delegate that can be called to call the given ILuaValue.
-    /// </summary>
-    /// <param name="env">The current environment.</param>
-    /// <param name="type">The type of the delegate.</param>
-    /// <param name="method">The method to call.</param>
-    /// <returns>A delegate that is used to call the method.</returns>
-    /// <exception cref="System.ArgumentException">If type is not a delegate type.</exception>
-    /// <exception cref="System.ArgumentNullException">If any argument is null.</exception>
-    /// <exception cref="System.NotSupportedException">
-    /// If this implementation does not support created delegates.
-    /// </exception>
-    Delegate CreateDelegate(ILuaEnvironment env, Type type, ILuaValue method);
   }
 }

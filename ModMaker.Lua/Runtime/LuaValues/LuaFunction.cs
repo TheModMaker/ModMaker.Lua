@@ -59,15 +59,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
     }
 
-    /// <summary>
-    /// Converts the current function to a delegate type.
-    /// </summary>
-    /// <typeparam name="T">The delegate to convert to.</typeparam>
-    /// <returns>A delegate that will call this function.</returns>
-    public T As<T>(ILuaEnvironment env) {
-      return (T)(object)env.CodeCompiler.CreateDelegate(env, typeof(T), this);
-    }
-
     #region LuaValue and LuaValueVisitor Implementation
 
     LuaValueType ILuaValue.ValueType { get { return LuaValueType.Function; } }
@@ -83,11 +74,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     T ILuaValue.As<T>() {
       if (typeof(T).IsAssignableFrom(GetType())) {
         return (T)(object)this;
-      }
-
-      if (typeof(Delegate).IsAssignableFrom(typeof(T))) {
-        throw new NotSupportedException(
-            "Must use As(ILuaEnvironment) to cast to Delegate type.");
       }
 
       throw new InvalidCastException(string.Format(Resources.BadCast, GetType(), typeof(T)));
@@ -213,13 +199,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       var ret = Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args));
       result = ret.GetValue();
       return true;
-    }
-    public override bool TryConvert(ConvertBinder binder, out object result) {
-      if (binder.Type.IsAssignableFrom(GetType())) {
-        result = this;
-        return true;
-      }
-      return base.TryConvert(binder, out result);
     }
 
     #endregion
