@@ -142,7 +142,11 @@ namespace UnitTests.Parser {
                       }
                   }) {
                       Debug = d(7, 17, 7, 25),
-                  }) { Debug = d(6, 13, 8, 16) },
+                  }) {
+                  Debug = d(6, 13, 8, 16),
+                  ForDebug = d(6, 13, 6, 29),
+                  EndDebug = d(8, 13, 8, 16),
+              },
           }) {
               Debug = d(5, 13, 8, 16),
               Return = new ReturnItem(),
@@ -184,6 +188,7 @@ namespace UnitTests.Parser {
               Debug = d(2, 9, 8, 12),
               IfDebug = d(2, 9, 2, 23),
               ElseDebug = d(6, 9, 6, 13),
+              EndDebug = d(8, 9, 8, 12),
           },
       }) {
         Return = new ReturnItem(),

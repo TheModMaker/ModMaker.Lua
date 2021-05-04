@@ -40,7 +40,18 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public LabelItem Break { get; } = new LabelItem("<break>");
 
+    /// <summary>
+    /// Contains the DebugInfo for the whole block.
+    /// </summary>
     public DebugInfo Debug { get; set; }
+    /// <summary>
+    /// Contains the DebugInfo for the 'while', 'end', and expression parts.
+    /// </summary>
+    public DebugInfo WhileDebug { get; set; }
+    /// <summary>
+    /// Contains the DebugInfo for the 'end' token.
+    /// </summary>
+    public DebugInfo EndDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

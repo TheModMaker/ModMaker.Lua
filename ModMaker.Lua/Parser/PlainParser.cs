@@ -265,11 +265,13 @@ namespace ModMaker.Lua.Parser {
           step = _readExp(input, out _);
         }
 
-        input.Expect(TokenType.Do);
+        Token do_ = input.Expect(TokenType.Do);
         var block = _readBlock(input);
         Token end = input.Expect(TokenType.End);
         return new ForNumItem(nameItem, start, limit, step, block) {
           Debug = _makeDebug(input, debug, end),
+          ForDebug = _makeDebug(input, debug, do_),
+          EndDebug = _makeDebug(input, end),
         };
       } else {
         // Generic for statement
@@ -289,11 +291,13 @@ namespace ModMaker.Lua.Parser {
           exps.Add(_readExp(input, out _));
         }
 
-        input.Expect(TokenType.Do);
+        Token do_ = input.Expect(TokenType.Do);
         var block = _readBlock(input);
         Token end = input.Expect(TokenType.End);
         return new ForGenItem(names.ToArray(), exps.ToArray(), block) {
           Debug = _makeDebug(input, debug, end),
+          ForDebug = _makeDebug(input, debug, do_),
+          EndDebug = _makeDebug(input, end),
         };
       }
     }
@@ -332,6 +336,7 @@ namespace ModMaker.Lua.Parser {
         IfDebug = _makeDebug(input, debug, firstThen),
         ElseDebug = elseToken.Type == TokenType.Else ? _makeDebug(input, elseToken)
                                                      : new DebugInfo(),
+        EndDebug = _makeDebug(input, end),
       };
     }
     /// <summary>
@@ -342,9 +347,13 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseStatement _readRepeat(Lexer input) {
       Token debug = input.Expect(TokenType.Repeat);
       var block = _readBlock(input);
-      input.Expect(TokenType.Until);
+      Token repeat = input.Expect(TokenType.Until);
       var exp = _readExp(input, out _);
-      return new RepeatItem(exp, block) { Debug = _makeDebug(input, debug, exp.Debug) };
+      return new RepeatItem(exp, block) {
+        Debug = _makeDebug(input, debug, exp.Debug),
+        RepeatDebug = _makeDebug(input, debug),
+        UntilDebug = _makeDebug(input, repeat, exp.Debug),
+      };
     }
     /// <summary>
     /// Reads a label statement from the input.
@@ -395,10 +404,14 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseStatement _readWhile(Lexer input) {
       Token debug = input.Expect(TokenType.While);
       var exp = _readExp(input, out _);
-      input.Expect(TokenType.Do);
+      Token do_ = input.Expect(TokenType.Do);
       var block = _readBlock(input);
       Token end = input.Expect(TokenType.End);
-      return new WhileItem(exp, block) { Debug = _makeDebug(input, debug, end) };
+      return new WhileItem(exp, block) {
+        Debug = _makeDebug(input, debug, end),
+        WhileDebug = _makeDebug(input, debug, do_),
+        EndDebug = _makeDebug(input, end),
+      };
     }
 
     #endregion

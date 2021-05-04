@@ -87,6 +87,10 @@ namespace ModMaker.Lua.Parser.Items {
     /// Contains the DebugInfo for just the 'else' token.
     /// </summary>
     public DebugInfo ElseDebug { get; set; }
+    /// <summary>
+    /// Contains the DebugInfo for just the 'end' token.
+    /// </summary>
+    public DebugInfo EndDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {
