@@ -810,9 +810,8 @@ namespace ModMaker.Lua.Parser {
     /// <param name="end">The end token to use; if not given, just uses start token.</param>
     /// <returns>The new DebugInfo instance.</returns>
     protected static DebugInfo _makeDebug(Lexer lexer, Token token, Token? end = null) {
-      long endPos = end == null ? token.StartPos + token.Value.Length
-                                : end.Value.StartPos + end.Value.Value.Length;
-      long endLine = end == null ? token.StartLine : end.Value.StartLine;
+      long endPos = end == null ? token.EndPos : end.Value.EndPos;
+      long endLine = end == null ? token.EndLine : end.Value.EndLine;
       return new DebugInfo(lexer.Name, token.StartPos, token.StartLine, endPos, endLine);
     }
     /// <summary>

@@ -164,6 +164,47 @@ namespace UnitTests.Parser {
     }
 
     [Test]
+    public void String_Debug() {
+      string path = "foo.lua";
+      string input1 = @"
+        x = 'foobar'
+        y = [[foobar]]
+        z = [==[foo
+          bar]==]";
+
+      DebugInfo d(int line, int col, int lineEnd, int colEnd) =>
+          new DebugInfo(path, col, line, colEnd, lineEnd);
+      IParseItem expected = new BlockItem(new IParseStatement[] {
+          new AssignmentItem(
+              new[] { new IgnoreItem() },
+              new[] {
+                  new LiteralItem("foobar") { Debug = d(2, 13, 2, 21) },
+              }) {
+              Debug = d(2, 9, 2, 21),
+          },
+          new AssignmentItem(
+              new[] { new IgnoreItem() },
+              new[] {
+                  new LiteralItem("foobar") { Debug = d(3, 13, 3, 23) },
+              }) {
+              Debug = d(3, 9, 3, 23),
+          },
+          new AssignmentItem(
+              new[] { new IgnoreItem() },
+              new[] {
+                  new LiteralItem("foo\n          bar") { Debug = d(4, 13, 5, 18) },
+              }) {
+              Debug = d(4, 9, 5, 18),
+          },
+      }) {
+        Return = new ReturnItem(),
+        Debug = d(2, 9, 5, 18),
+      };
+
+      ParseItemEquals.CheckEquals(expected, _parseBlock(input1, path), checkDebug: true);
+    }
+
+    [Test]
     public void If_Debug() {
       string path = "foo.lua";
       string input1 = @"

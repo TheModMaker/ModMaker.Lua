@@ -216,17 +216,18 @@ namespace ModMaker.Lua.Parser {
           if (!retStr.Value.EndsWith(end)) {
             throw SyntaxError(string.Format(Resources.UnexpectedEOF, "long string"));
           }
-          // TODO: Remove once token type is set.  This ensures the calling code knows it's a
-          // string.
-          retStr.Value = "\"" + retStr.Value.Substring(
-              0, retStr.Value.Length - end.Length).Replace("\r\n", "\n");
+          retStr.Value = retStr.Value.Substring(0, retStr.Value.Length - end.Length)
+              .Replace("\r\n", "\n");
+          retStr.EndPos = _input.Column;
+          retStr.EndLine = _input.Line;
           return retStr;
         }
       }
 
       string first = _input.Peek(1);
       if (first == "") {
-        return new Token(TokenType.None, "", _input.Column, _input.Line);
+        return new Token(TokenType.None, "", _input.Column, _input.Line, _input.Column,
+                         _input.Line);
       } else if (first == "_" || char.IsLetter(first, 0)) {
         return _readIdentifier();
       } else if (_tokens.ContainsKey(_input.Peek(3))) {
@@ -340,6 +341,8 @@ namespace ModMaker.Lua.Parser {
         }
       });
       ret.Value = ret.Value.Substring(0, ret.Value.Length - 1);
+      ret.EndPos = _input.Column;
+      ret.EndLine = _input.Line;
       return ret;
     }
 
@@ -369,6 +372,8 @@ namespace ModMaker.Lua.Parser {
         }
         ret.Value += _input.ReadWhile(_isDigit);
       }
+      ret.EndPos = _input.Column;
+      ret.EndLine = _input.Line;
       return ret;
     }
 
@@ -384,6 +389,8 @@ namespace ModMaker.Lua.Parser {
         ret.Type = TokenType.Identifier;
       }
 
+      ret.EndPos = _input.Column;
+      ret.EndLine = _input.Line;
       return ret;
     }
 
@@ -396,6 +403,8 @@ namespace ModMaker.Lua.Parser {
       var ret = new Token(TokenType.Identifier, "", _input.Column, _input.Line);
       ret.Value = _input.Read(length);
       ret.Type = _tokens[ret.Value];
+      ret.EndPos = _input.Column;
+      ret.EndLine = _input.Line;
       return ret;
     }
 

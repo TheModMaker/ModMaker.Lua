@@ -269,6 +269,14 @@ namespace ModMaker.Lua.Parser {
     /// The starting line of the token.
     /// </summary>
     public long StartLine;
+    /// <summary>
+    /// The ending position of the token.
+    /// </summary>
+    public long EndPos;
+    /// <summary>
+    /// The ending line of the token.
+    /// </summary>
+    public long EndLine;
 
     /// <summary>
     /// Creates a new token with the given values.
@@ -276,11 +284,14 @@ namespace ModMaker.Lua.Parser {
     /// <param name="value">The string value of the token.</param>
     /// <param name="startPos">The starting position of the token.</param>
     /// <param name="startLine">The starting line of the token.</param>
-    public Token(TokenType type, string value, long startPos, long startLine) {
+    public Token(TokenType type, string value, long startPos, long startLine, long endPos = 0,
+                 long endLine = 0) {
       Type = type;
       Value = value;
       StartPos = startPos;
       StartLine = startLine;
+      EndPos = endPos;
+      EndLine = endLine;
     }
 
     /// <summary>
@@ -291,7 +302,7 @@ namespace ModMaker.Lua.Parser {
     /// <returns>True if the two token are equal, otherwise false.</returns>
     public static bool operator ==(Token lhs, Token rhs) {
       return lhs.Type == rhs.Type && lhs.Value == rhs.Value && lhs.StartPos == rhs.StartPos &&
-          lhs.StartLine == rhs.StartLine;
+          lhs.StartLine == rhs.StartLine && lhs.EndPos == rhs.EndPos && lhs.EndLine == rhs.EndLine;
     }
 
     /// <summary>
@@ -324,9 +335,9 @@ namespace ModMaker.Lua.Parser {
     public override int GetHashCode() {
 #if NETFRAMEWORK
       return Value.GetHashCode() ^ Type.GetHashCode() ^ StartPos.GetHashCode() ^
-             StartLine.GetHashCode();
+             StartLine.GetHashCode() ^ EndPos.GetHashCode() ^ EndLine.GetHashCode();
 #else
-      return HashCode.Combine(Value, Type, StartPos, StartLine);
+      return HashCode.Combine(Value, Type, StartPos, StartLine, EndPos, EndLine);
 #endif
     }
 
@@ -339,7 +350,8 @@ namespace ModMaker.Lua.Parser {
       };
       var value = Value is string str && str.Length > 25 ? str.Substring(0, 25) + "..." : Value;
       var type = need_value ? $"{Type}({value})" : Type.ToString();
-      return $"Token(Type={type}, Line={StartLine}, Pos={StartPos})";
+      return $"Token(Type={type}, Line={StartLine}, Pos={StartPos}, EndLine={EndLine}, " +
+             $"EndPos={EndPos})";
     }
   }
 }

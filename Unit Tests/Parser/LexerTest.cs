@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.IO;
 using System.Text;
 using ModMaker.Lua.Parser;
@@ -36,40 +35,41 @@ namespace UnitTests.Parser {
     str = ""this is a test string with \""escapes\""\n""
     ::potato::
 end");
-      Action<TokenType, int, int, string> check = (type, line, pos, str) => {
+      void check(TokenType type, int line, int pos, int endLine, int endPos, string str) {
         Token read = lexer.Read();
-        Assert.AreEqual(new Token(type, str, pos, line), read);
+        Assert.AreEqual(new Token(type, str, pos, line, endPos, endLine), read);
       };
-      check(TokenType.Function, 1, 1, "function");
-      check(TokenType.Identifier, 1, 10, "test");
-      check(TokenType.BeginParen, 1, 14, "(");
-      check(TokenType.EndParen, 1, 15, ")");
-      check(TokenType.Local, 2, 5, "local");
-      check(TokenType.Identifier, 2, 11, "v");
-      check(TokenType.Assign, 2, 13, "=");
-      check(TokenType.NumberLiteral, 2, 15, "12");
-      check(TokenType.Identifier, 3, 5, "t");
-      check(TokenType.Assign, 3, 7, "=");
-      check(TokenType.BeginTable, 3, 8, "{");
-      check(TokenType.BeginBracket, 3, 10, "[");
-      check(TokenType.NumberLiteral, 3, 11, "12");
-      check(TokenType.EndBracket, 3, 13, "]");
-      check(TokenType.Assign, 3, 15, "=");
-      check(TokenType.Identifier, 3, 17, "v");
-      check(TokenType.Comma, 3, 18, ",");
-      check(TokenType.Identifier, 3, 20, "cat");
-      check(TokenType.Assign, 3, 23, "=");
-      check(TokenType.NumberLiteral, 3, 24, "12.345456");
-      check(TokenType.EndTable, 3, 34, "}");
-      check(TokenType.Identifier, 4, 5, "str");
-      check(TokenType.Assign, 4, 9, "=");
-      check(TokenType.StringLiteral, 4, 11, "this is a test string with \"escapes\"\n");
-      check(TokenType.Label, 5, 5, "::");
-      check(TokenType.Identifier, 5, 7, "potato");
-      check(TokenType.Label, 5, 13, "::");
-      check(TokenType.End, 6, 1, "end");
+      check(TokenType.Function, 1, 1, 1, 9, "function");
+      check(TokenType.Identifier, 1, 10, 1, 14, "test");
+      check(TokenType.BeginParen, 1, 14, 1, 15, "(");
+      check(TokenType.EndParen, 1, 15, 1, 16, ")");
+      check(TokenType.Local, 2, 5, 2, 10, "local");
+      check(TokenType.Identifier, 2, 11, 2, 12, "v");
+      check(TokenType.Assign, 2, 13, 2, 14, "=");
+      check(TokenType.NumberLiteral, 2, 15, 2, 17, "12");
+      check(TokenType.Identifier, 3, 5, 3, 6, "t");
+      check(TokenType.Assign, 3, 7, 3, 8, "=");
+      check(TokenType.BeginTable, 3, 8, 3, 9, "{");
+      check(TokenType.BeginBracket, 3, 10, 3, 11, "[");
+      check(TokenType.NumberLiteral, 3, 11, 3, 13, "12");
+      check(TokenType.EndBracket, 3, 13, 3, 14, "]");
+      check(TokenType.Assign, 3, 15, 3, 16, "=");
+      check(TokenType.Identifier, 3, 17, 3, 18, "v");
+      check(TokenType.Comma, 3, 18, 3, 19, ",");
+      check(TokenType.Identifier, 3, 20, 3, 23, "cat");
+      check(TokenType.Assign, 3, 23, 3, 24, "=");
+      check(TokenType.NumberLiteral, 3, 24, 3, 33, "12.345456");
+      check(TokenType.EndTable, 3, 34, 3, 35, "}");
+      check(TokenType.Identifier, 4, 5, 4, 8, "str");
+      check(TokenType.Assign, 4, 9, 4, 10, "=");
+      // Note there are C# escapes in the string that don't appear in Lua.
+      check(TokenType.StringLiteral, 4, 11, 4, 53, "this is a test string with \"escapes\"\n");
+      check(TokenType.Label, 5, 5, 5, 7, "::");
+      check(TokenType.Identifier, 5, 7, 5, 13, "potato");
+      check(TokenType.Label, 5, 13, 5, 15, "::");
+      check(TokenType.End, 6, 1, 6, 4, "end");
 
-      check(TokenType.None, 6, 4, "");
+      check(TokenType.None, 6, 4, 6, 4, "");
     }
 
     [Test]
@@ -83,16 +83,16 @@ not an escape \n]==]
 end"
       );
 
-      Action<TokenType, int, int, string> check = (type, line, pos, str) => {
+      void check(TokenType type, int line, int pos, int endLine, int endPos, string str) {
         Token read = lexer.Read();
-        Assert.AreEqual(new Token(type, str, pos, line), read);
-      };
-      check(TokenType.Identifier, 1, 1, "v");
-      check(TokenType.Assign, 1, 3, "=");
-      check(TokenType.StringLiteral, 1, 5,
-            "\"\nthis is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n");
-      check(TokenType.End, 6, 1, "end");
-      check(TokenType.None, 6, 4, "");
+        Assert.AreEqual(new Token(type, str, pos, line, endPos, endLine), read);
+      }
+      check(TokenType.Identifier, 1, 1, 1, 2, "v");
+      check(TokenType.Assign, 1, 3, 1, 4, "=");
+      check(TokenType.StringLiteral, 1, 5, 5, 21,
+            "\nthis is a test of a\nlong string ]]\nthis is still a string\nnot an escape \\n");
+      check(TokenType.End, 6, 1, 6, 4, "end");
+      check(TokenType.None, 6, 4, 6, 4, "");
     }
 
     [Test]
