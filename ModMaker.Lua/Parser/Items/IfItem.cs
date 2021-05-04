@@ -29,9 +29,10 @@ namespace ModMaker.Lua.Parser.Items {
       /// </summary>
       /// <param name="exp">The expression for the else if statement.</param>
       /// <param name="block">The block of the else if statement.</param>
-      public ElseInfo(IParseExp exp, BlockItem block) {
+      public ElseInfo(IParseExp exp, BlockItem block, DebugInfo debug) {
         Expression = exp;
         Block = block;
+        Debug = debug;
       }
 
       /// <summary>
@@ -42,6 +43,10 @@ namespace ModMaker.Lua.Parser.Items {
       /// Contains the block of the else if statement.
       /// </summary>
       public BlockItem Block { get; }
+      /// <summary>
+      /// Contains the debug info for the else if part (the expression, 'elseif' and 'then').
+      /// </summary>
+      public DebugInfo Debug { get; }
     }
 
     public IfItem(IParseExp exp, BlockItem block) : this(exp, block, new ElseInfo[0], null) { }
@@ -70,7 +75,18 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public BlockItem ElseBlock { get; set; }
 
+    /// <summary>
+    /// Contains the DebugInfo for the whole block.
+    /// </summary>
     public DebugInfo Debug { get; set; }
+    /// <summary>
+    /// Contains the DebugInfo for just the first 'if' part.
+    /// </summary>
+    public DebugInfo IfDebug { get; set; }
+    /// <summary>
+    /// Contains the DebugInfo for just the 'else' token.
+    /// </summary>
+    public DebugInfo ElseDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
       if (visitor == null) {

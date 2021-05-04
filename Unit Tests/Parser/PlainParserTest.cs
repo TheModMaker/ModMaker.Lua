@@ -50,7 +50,7 @@ namespace UnitTests.Parser {
       Assert.AreEqual(debug, err.Debug);
     }
 
-    #region Expressions
+    #region DebugInfo
 
     [Test]
     public void GenralParseWithDebug() {
@@ -101,7 +101,7 @@ namespace UnitTests.Parser {
                                       Statement = true,
                                   },
                           }) {
-                             Debug = d(3, 32, 3, 44),
+                             Debug = d(3, 32, 3, 40),
                              Return = new ReturnItem(),
                       }) {
                         Debug = d(3, 21, 3, 44),
@@ -141,10 +141,10 @@ namespace UnitTests.Parser {
                           Statement = true,
                       }
                   }) {
-                      Debug = d(7, 17, 8, 16),
+                      Debug = d(7, 17, 7, 25),
                   }) { Debug = d(6, 13, 8, 16) },
           }) {
-              Debug = d(5, 13, 9, 12),
+              Debug = d(5, 13, 8, 16),
               Return = new ReturnItem(),
           }) {
               Debug = d(4, 9, 9, 12),
@@ -158,6 +158,84 @@ namespace UnitTests.Parser {
 
       ParseItemEquals.CheckEquals(expected, _parseBlock(input1, path), checkDebug: true);
     }
+
+    [Test]
+    public void If_Debug() {
+      string path = "foo.lua";
+      string input1 = @"
+        if a == 1 then
+          b = 2
+        elseif c == 3 then
+          d = 4
+        else
+          e = 5
+        end";
+
+      DebugInfo d(int line, int col, int lineEnd, int colEnd) =>
+          new DebugInfo(path, col, line, colEnd, lineEnd);
+      IParseItem expected = new BlockItem(new IParseStatement[] {
+          new IfItem(
+              new BinOpItem(
+                  new NameItem("a") { Debug = d(2, 12, 2, 13) },
+                  BinaryOperationType.Equals,
+                  new LiteralItem(1.0) { Debug = d(2, 17, 2, 18) }) { Debug = d(2, 12, 2, 18) },
+              new BlockItem(new[] {
+                  new AssignmentItem(new[] {
+                      new NameItem("b") { Debug = d(3, 11, 3, 12) }
+                  }, new[] {
+                      new LiteralItem(2.0) { Debug = d(3, 15, 3, 16) },
+                  }) {
+                      Debug = d(3, 11, 3, 16),
+                      IsLastExpressionSingle = false,
+                      Local = false,
+                  },
+              }) { Debug = d(3, 11, 3, 16) },
+              new[] {
+                  new IfItem.ElseInfo(
+                      new BinOpItem(
+                          new NameItem("c") { Debug = d(4, 16, 4, 17) },
+                          BinaryOperationType.Equals,
+                          new LiteralItem(3.0) { Debug = d(4, 21, 4, 22) }) {
+                          Debug = d(4, 16, 4, 22)
+                      },
+                      new BlockItem(new[] {
+                          new AssignmentItem(new[] {
+                              new NameItem("d") { Debug = d(5, 11, 5, 12) }
+                          }, new[] {
+                              new LiteralItem(4.0) { Debug = d(5, 15, 5, 16) },
+                          }) {
+                              Debug = d(5, 11, 5, 16),
+                              IsLastExpressionSingle = false,
+                              Local = false,
+                          },
+                      }) { Debug = d(5, 11, 5, 16) },
+                      d(4, 9, 4, 27))
+              }, new BlockItem(new[] {
+                  new AssignmentItem(new[] {
+                      new NameItem("e") { Debug = d(7, 11, 7, 12) }
+                  }, new[] {
+                      new LiteralItem(5.0) { Debug = d(7, 15, 7, 16) },
+                  }) {
+                      Debug = d(7, 11, 7, 16),
+                      IsLastExpressionSingle = false,
+                      Local = false,
+                  },
+              }) { Debug = d(7, 11, 7, 16) }) {
+              Debug = d(2, 9, 8, 12),
+              IfDebug = d(2, 9, 2, 23),
+              ElseDebug = d(6, 9, 6, 13),
+          },
+      }) {
+        Return = new ReturnItem(),
+        Debug = d(2, 9, 8, 12),
+      };
+
+      ParseItemEquals.CheckEquals(expected, _parseBlock(input1, path), checkDebug: true);
+    }
+
+    #endregion
+
+    #region Expressions
 
     [Test]
     public void UnaryExpression_Nested() {
@@ -778,7 +856,7 @@ namespace UnitTests.Parser {
           new[] {
               new IfItem.ElseInfo(new NameItem("y"), new BlockItem(new[] {
                   new AssignmentItem(new[] { new NameItem("z") }, new[] { new LiteralItem(1.0) }),
-              }))
+              }), new DebugInfo())
           }),
           _parseStatement("if i then x = 0 elseif y then z = 1 end"));
     }

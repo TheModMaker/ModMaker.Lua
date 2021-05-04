@@ -107,6 +107,7 @@ namespace ModMaker.Lua.Parser {
       IList<IParseStatement> statements = new List<IParseStatement>();
 
       Token cur;
+      bool includeReturn = true;
       while ((cur = input.Peek()).Type != TokenType.None) {
         if (_functions.ContainsKey(cur.Type)) {
           statements.Add(_functions[cur.Type](input));
@@ -122,7 +123,8 @@ namespace ModMaker.Lua.Parser {
                    cur.Type == TokenType.ElseIf || cur.Type == TokenType.Until) {
           // Don't read as it will be handled by the parent or the current block, this end belongs
           // to the parent.
-          return new BlockItem(statements.ToArray()) { Debug = _makeDebug(input, debug, cur) };
+          includeReturn = false;
+          break;
         } else {
           IParseExp exp = _readExp(input, out _);
           if (exp is FuncCallItem funcCall) {
@@ -142,7 +144,10 @@ namespace ModMaker.Lua.Parser {
       DebugInfo debugInfo = statements.Count == 0
           ? _makeDebug(input, debug)
           : _makeDebug(input, debug, statements[statements.Count - 1].Debug);
-      return new BlockItem(statements.ToArray()) { Return = new ReturnItem(), Debug = debugInfo };
+      return new BlockItem(statements.ToArray()) {
+        Return = includeReturn ? new ReturnItem() : null,
+        Debug = debugInfo,
+      };
     }
 
     /// <summary>
@@ -301,24 +306,32 @@ namespace ModMaker.Lua.Parser {
       Token debug = input.Expect(TokenType.If);
 
       var exp = _readExp(input, out _);
-      input.Expect(TokenType.Then);
+      Token firstThen = input.Expect(TokenType.Then);
       var block = _readBlock(input);
 
       var elseIfs = new List<IfItem.ElseInfo>();
-      while (input.ReadIfType(TokenType.ElseIf)) {
+      while (true) {
+        Token elseIf = input.Peek();
+        if (!input.ReadIfType(TokenType.ElseIf))
+          break;
+
         IParseExp elseExp = _readExp(input, out _);
-        input.Expect(TokenType.Then);
+        Token then = input.Expect(TokenType.Then);
         BlockItem elseIfBlock = _readBlock(input);
-        elseIfs.Add(new IfItem.ElseInfo(elseExp, elseIfBlock));
+        elseIfs.Add(new IfItem.ElseInfo(elseExp, elseIfBlock, _makeDebug(input, elseIf, then)));
       }
 
       BlockItem elseBlock = null;
+      Token elseToken = input.Peek();
       if (input.ReadIfType(TokenType.Else)) {
         elseBlock = _readBlock(input);
       }
       Token end = input.Expect(TokenType.End);
       return new IfItem(exp, block, elseIfs.ToArray(), elseBlock) {
         Debug = _makeDebug(input, debug, end),
+        IfDebug = _makeDebug(input, debug, firstThen),
+        ElseDebug = elseToken.Type == TokenType.Else ? _makeDebug(input, elseToken)
+                                                     : new DebugInfo(),
       };
     }
     /// <summary>
