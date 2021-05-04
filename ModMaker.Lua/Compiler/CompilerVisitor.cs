@@ -132,6 +132,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
+      _compiler.MarkSequencePoint(target.Debug);
 
       // string[] loc = new string[{implements.Count}];
       LocalBuilder loc = _compiler.CreateArray(typeof(string), target.Implements.Count);
@@ -164,6 +165,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
+
       if (!_labels.ContainsKey(target.Break))
         _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
@@ -174,6 +176,7 @@ namespace ModMaker.Lua.Compiler {
 
       using (_compiler.LocalBlock()) {
         // temp = new ILuaValue[...];
+        _compiler.MarkSequencePoint(target.ForDebug);
         var temp = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Length);
 
         for (int i = 0; i < target.Expressions.Length; i++) {
@@ -240,6 +243,7 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Br, start);
 
         // end:
+        _compiler.MarkSequencePoint(target.EndDebug);
         gen.MarkLabel(end);
 
         // } finally {
@@ -267,6 +271,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
+
       if (!_labels.ContainsKey(target.Break))
         _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
@@ -279,6 +284,7 @@ namespace ModMaker.Lua.Compiler {
       LocalBuilder limit = _compiler.CreateTemporary(typeof(double));
 
       using (_compiler.LocalBlock()) {
+        _compiler.MarkSequencePoint(target.ForDebug);
         // d = {Start}.AsDouble();
         target.Start.Accept(this);
         gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.AsDouble)));
@@ -400,7 +406,9 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Br, start);
 
         // end:
-        gen.MarkLabel(end);
+        _compiler.MarkSequencePoint(target.EndDebug);
+        gen.MarkLabel(end);  // Insert no-op so debugger can step on the "end" token.
+        gen.Emit(OpCodes.Nop);
       }
       return target;
     }
@@ -413,6 +421,9 @@ namespace ModMaker.Lua.Compiler {
       ILGenerator gen = _compiler.CurrentGenerator;
       LocalBuilder f = _compiler.CreateTemporary(typeof(ILuaValue));
       LocalBuilder self = _compiler.CreateTemporary(typeof(object));
+      if (target.Statement) {
+        _compiler.MarkSequencePoint(target.Debug);
+      }
 
       /* add 'self' if instance call */
       if (target.InstanceName != null) {
@@ -518,6 +529,7 @@ namespace ModMaker.Lua.Compiler {
       ChunkBuilder.IVarDefinition field = null;
       string name = null;
       bool store = false;
+      _compiler.MarkSequencePoint(target.Debug);
 
       if (target.Local) {
         // Local function definition
@@ -584,6 +596,7 @@ namespace ModMaker.Lua.Compiler {
         throw new InvalidOperationException(Resources.ErrorResolveLabel);
       }
 
+      _compiler.MarkSequencePoint(target.Debug);
       _compiler.CurrentGenerator.Emit(OpCodes.Br, _labels[target.Target]);
 
       return target;
@@ -598,6 +611,7 @@ namespace ModMaker.Lua.Compiler {
       Label end = gen.DefineLabel();
 
       // if (!{Exp}.IsTrue) goto next;
+      _compiler.MarkSequencePoint(target.IfDebug);
       target.Expression.Accept(this);
       gen.Emit(OpCodes.Callvirt,
                typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
@@ -613,6 +627,7 @@ namespace ModMaker.Lua.Compiler {
       gen.MarkLabel(next);
       foreach (var item in target.Elses) {
         // if (!{item.Item1}.IsTrue) goto next;
+        _compiler.MarkSequencePoint(item.Debug);
         next = gen.DefineLabel();
         item.Expression.Accept(this);
         gen.Emit(OpCodes.Callvirt,
@@ -629,11 +644,14 @@ namespace ModMaker.Lua.Compiler {
         gen.MarkLabel(next);
       }
       if (target.ElseBlock != null) {
+        _compiler.MarkSequencePoint(target.ElseDebug);
         target.ElseBlock.Accept(this);
       }
 
       // end:
+      _compiler.MarkSequencePoint(target.EndDebug);
       gen.MarkLabel(end);
+      gen.Emit(OpCodes.Nop);  // Insert no-op so debugger can step on the "end" token.
 
       return target;
     }
@@ -710,12 +728,15 @@ namespace ModMaker.Lua.Compiler {
       Label end = _labels[target.Break];
 
       // start:
+      _compiler.MarkSequencePoint(target.RepeatDebug);
       gen.MarkLabel(start);
+      gen.Emit(OpCodes.Nop);  // So the debugger can stop on "repeat".
 
       // {Block}
       target.Block.Accept(this);
 
       // if (!{Exp}.IsTrue) goto start;
+      _compiler.MarkSequencePoint(target.UntilDebug);
       target.Expression.Accept(this);
       gen.Emit(OpCodes.Callvirt,
                typeof(ILuaValue).GetProperty(nameof(ILuaValue.IsTrue)).GetGetMethod());
@@ -731,6 +752,7 @@ namespace ModMaker.Lua.Compiler {
         throw new ArgumentNullException(nameof(target));
       }
 
+      _compiler.MarkSequencePoint(target.Debug);
       ILGenerator gen = _compiler.CurrentGenerator;
       if (target.Expressions.Length == 1 && !target.IsLastExpressionSingle &&
           target.Expressions[0] is FuncCallItem func) {
@@ -818,6 +840,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       ILGenerator gen = _compiler.CurrentGenerator;
+      _compiler.MarkSequencePoint(target.Debug);
 
       // ILuaValue[] loc = new ILuaValue[{target.Expressions.Count}];
       LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Expressions.Length);
@@ -891,6 +914,7 @@ namespace ModMaker.Lua.Compiler {
       Label end = _labels[target.Break];
 
       // start:
+      _compiler.MarkSequencePoint(target.WhileDebug);
       gen.MarkLabel(start);
 
       // if (!{Exp}.IsTrue) goto end;
@@ -906,7 +930,9 @@ namespace ModMaker.Lua.Compiler {
       gen.Emit(OpCodes.Br, start);
 
       // end:
+      _compiler.MarkSequencePoint(target.EndDebug);
       gen.MarkLabel(end);
+      gen.Emit(OpCodes.Nop);    // So the debugger can stop on "end".
 
       return target;
     }

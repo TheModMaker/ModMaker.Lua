@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -226,7 +227,13 @@ namespace ModMaker.Lua.Compiler {
       }
     }
 
+    readonly LuaSettings _settings;
+    readonly ModuleBuilder _mb;
     NestInfo _curNest;
+#if NETFRAMEWORK
+    Dictionary<string, ISymbolDocumentWriter> _documents =
+        new Dictionary<string, ISymbolDocumentWriter>();
+#endif
     int _mid = 1;
 
     /// <summary>
@@ -238,7 +245,8 @@ namespace ModMaker.Lua.Compiler {
     /// True to create a nested type for the global function, this means that there are nested
     /// functions.
     /// </param>
-    public ChunkBuilder(TypeBuilder tb, NameItem[] captures, bool createType) {
+    public ChunkBuilder(LuaSettings settings, ModuleBuilder mb, TypeBuilder tb, NameItem[] captures,
+                        bool createType) {
       //// ILuaEnviormnent $Env;
       var field = tb.DefineField("$Env", typeof(ILuaEnvironment), FieldAttributes.Private);
 
@@ -247,11 +255,14 @@ namespace ModMaker.Lua.Compiler {
           nameof(ILuaValue.Invoke), MethodAttributes.Public | MethodAttributes.HideBySig,
           typeof(ILuaMultiValue), new[] { typeof(ILuaEnvironment), typeof(ILuaMultiValue) });
       _curNest = NestInfo.Create(tb, method.GetILGenerator(), captures, createType);
+      _mb = mb;
+      _settings = settings;
 
       _addInvoke(tb, method, field);
       _addConstructor(tb, field);
       _addAbstracts(tb);
     }
+
     /// <summary>
     /// Adds default implementation of abstract methods.
     /// </summary>
@@ -349,6 +360,21 @@ namespace ModMaker.Lua.Compiler {
     /// Gets the ILGenerator for the current function.
     /// </summary>
     public ILGenerator CurrentGenerator { get { return _curNest.Generator; } }
+
+    public void MarkSequencePoint(DebugInfo info) {
+#if NETFRAMEWORK
+      if (!_settings.AddNativeDebugSymbols || info.Path == null)
+        return;
+
+      if (!_documents.ContainsKey(info.Path)) {
+        _documents.Add(info.Path, _mb.DefineDocument(info.Path, SymDocumentType.Text,
+                                                     SymLanguageType.ILAssembly, Guid.Empty));
+      }
+      CurrentGenerator.MarkSequencePoint(_documents[info.Path], (int)info.StartLine,
+                                         (int)info.StartPos, (int)info.EndLine, (int)info.EndPos);
+#endif
+
+    }
 
     /// <summary>
     /// Compiles the current code into am IMethod.

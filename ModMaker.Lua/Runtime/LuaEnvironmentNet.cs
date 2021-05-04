@@ -70,10 +70,10 @@ namespace ModMaker.Lua.Runtime {
     /// Creates a new LuaEnvironment without initializing the state, for use with a derived type.
     /// </summary>
     protected LuaEnvironmentNet() {
-      _compiler = new CodeCompiler();
+      Settings = new LuaSettings().AsReadOnly();
+      _compiler = new CodeCompiler(Settings);
       _parser = new PlainParser();
       _runtime = new LuaRuntimeNet(this);
-      Settings = new LuaSettings().AsReadOnly();
       _globals = new LuaValues.LuaTable();
       _modules = new ModuleBinder();
     }
@@ -87,13 +87,13 @@ namespace ModMaker.Lua.Runtime {
         throw new ArgumentNullException(nameof(settings));
       }
 
+      Settings = settings.AsReadOnly();
+
       _globals = new LuaTable();
       _runtime = new LuaRuntimeNet(this);
-      _compiler = new CodeCompiler();
+      _compiler = new CodeCompiler(Settings);
       _parser = new PlainParser();
       _modules = new ModuleBinder();
-
-      Settings = settings.AsReadOnly();
 
       // initialize the global variables.
       LuaStaticLibraries.Initialize(this);

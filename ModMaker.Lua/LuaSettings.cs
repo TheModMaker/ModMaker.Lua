@@ -121,6 +121,7 @@ namespace ModMaker.Lua {
     Encoding? _enc;
     Stream? _in;
     Stream? _out;
+    bool _native_symbols;
     readonly bool _readonly;
 
     /// <summary>
@@ -142,6 +143,11 @@ namespace ModMaker.Lua {
       _access = LuaClassAccess.Registered;
       _in = stdin;
       _out = stdout;
+#if DEBUG
+      _native_symbols = true;
+#else
+      _native_symbols = false;
+#endif
     }
     /// <summary>
     /// Creates a read-only copy of the given settings.
@@ -155,6 +161,7 @@ namespace ModMaker.Lua {
       _enc = copy._enc;
       _in = copy._in;
       _out = copy._out;
+      _native_symbols = copy._native_symbols;
     }
 
     /// <summary>
@@ -196,6 +203,18 @@ namespace ModMaker.Lua {
       set {
         _checkReadonly();
         _enc = value;
+      }
+    }
+
+    /// <summary>
+    /// If true, the generated code will include native debugging symbols.  This can allow debugging
+    /// Lua code in Visual Studio.  This does NOT affect the Lua "debug" library.
+    /// </summary>
+    public bool AddNativeDebugSymbols {
+      get { return _native_symbols; }
+      set {
+        _checkReadonly();
+        _native_symbols = value;
       }
     }
 

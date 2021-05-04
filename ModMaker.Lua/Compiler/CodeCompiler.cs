@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using ModMaker.Lua.Parser;
@@ -29,15 +30,33 @@ namespace ModMaker.Lua.Compiler {
     readonly List<string> _types = new List<string>();
     readonly AssemblyBuilder _ab;
     readonly ModuleBuilder _mb;
+    readonly LuaSettings _settings;
     int _tid = 1;
 
     /// <summary>
     /// Creates a new CodeCompiler object.
     /// </summary>
-    public CodeCompiler() {
+    public CodeCompiler(LuaSettings settings) {
+      _settings = settings;
       _ab = AssemblyBuilder.DefineDynamicAssembly(
           new AssemblyName("DynamicAssembly"), AssemblyBuilderAccess.Run);
+
+#if NETFRAMEWORK
+      if (_settings.AddNativeDebugSymbols) {
+        ConstructorInfo debugConstructor = typeof(DebuggableAttribute).GetConstructor(
+            new[] { typeof(DebuggableAttribute.DebuggingModes) });
+        var debugBuilder = new CustomAttributeBuilder(
+            debugConstructor, new object[] {
+                DebuggableAttribute.DebuggingModes.DisableOptimizations |
+                DebuggableAttribute.DebuggingModes.Default,
+            });
+        _ab.SetCustomAttribute(debugBuilder);
+      }
+
+      _mb = _ab.DefineDynamicModule("DynamicAssembly.dll", true);
+#else
       _mb = _ab.DefineDynamicModule("DynamicAssembly.dll");
+#endif
     }
 
     public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name) {
@@ -65,7 +84,8 @@ namespace ModMaker.Lua.Compiler {
       TypeBuilder tb = _mb.DefineType(
           name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed,
           typeof(LuaValueBase), Type.EmptyTypes);
-      ChunkBuilder cb = new ChunkBuilder(tb, lVisitor._globalCaptures, lVisitor._globalNested);
+      ChunkBuilder cb = new ChunkBuilder(_settings, _mb, tb, lVisitor._globalCaptures,
+                                         lVisitor._globalNested);
 
       CompilerVisitor cVisitor = new CompilerVisitor(cb);
       item.Accept(cVisitor);
