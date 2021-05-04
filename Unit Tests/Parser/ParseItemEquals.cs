@@ -21,6 +21,24 @@ using ModMaker.Lua.Parser.Items;
 using NUnit.Framework;
 
 namespace UnitTests.Parser {
+  /// <summary>
+  /// A special parse item that will be ignored when comparing children.  This can be used as a
+  /// replacement for any parse item type.
+  /// </summary>
+  sealed class IgnoreItem : IParseVariable, IParseStatement {
+    /// <summary>
+    /// A special instance that is used to indicate a block should be ignored.  This is used in a
+    /// by-reference comparison.
+    /// </summary>
+    public static readonly BlockItem IgnoreBlock = new BlockItem();
+
+    public DebugInfo Debug { get; set; }
+
+    public IParseItem Accept(IParseItemVisitor visitor) {
+      throw new NotImplementedException();
+    }
+  }
+
   static class ParseItemEquals {
     public static void CheckEquals(object expected, object actual, bool checkDebug = false) {
       _checkEquals(expected, actual, checkDebug, "$");
@@ -29,7 +47,7 @@ namespace UnitTests.Parser {
     static void _checkEquals(object expected, object actual, bool checkDebug, string path) {
       // Skip these properties since they should be different and don't affect the AST itself.
       ISet<string> ignoredProperties = new HashSet<string>() {
-          "UserData", "Break", "Target", "FunctionInformation",
+          "Break", "Target", "FunctionInformation",
       };
       // Just look at the properties of the given types in addition to IParseItem subclasses.
       ISet<string> specialTypes = new HashSet<string>() {
@@ -43,6 +61,8 @@ namespace UnitTests.Parser {
 
       Assert.IsNotNull(actual, path);
       Type type = expected.GetType();
+      if (type == typeof(IgnoreItem) || ReferenceEquals(expected, IgnoreItem.IgnoreBlock))
+        return;
       Assert.IsAssignableFrom(type, actual, path);
 
       if (type.GetInterfaces().Contains(typeof(IParseItem)) || specialTypes.Contains(type.Name)) {

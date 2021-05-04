@@ -175,52 +175,12 @@ namespace UnitTests.Parser {
           new DebugInfo(path, col, line, colEnd, lineEnd);
       IParseItem expected = new BlockItem(new IParseStatement[] {
           new IfItem(
-              new BinOpItem(
-                  new NameItem("a") { Debug = d(2, 12, 2, 13) },
-                  BinaryOperationType.Equals,
-                  new LiteralItem(1.0) { Debug = d(2, 17, 2, 18) }) { Debug = d(2, 12, 2, 18) },
-              new BlockItem(new[] {
-                  new AssignmentItem(new[] {
-                      new NameItem("b") { Debug = d(3, 11, 3, 12) }
-                  }, new[] {
-                      new LiteralItem(2.0) { Debug = d(3, 15, 3, 16) },
-                  }) {
-                      Debug = d(3, 11, 3, 16),
-                      IsLastExpressionSingle = false,
-                      Local = false,
-                  },
-              }) { Debug = d(3, 11, 3, 16) },
+              new IgnoreItem(),
+              IgnoreItem.IgnoreBlock,
               new[] {
-                  new IfItem.ElseInfo(
-                      new BinOpItem(
-                          new NameItem("c") { Debug = d(4, 16, 4, 17) },
-                          BinaryOperationType.Equals,
-                          new LiteralItem(3.0) { Debug = d(4, 21, 4, 22) }) {
-                          Debug = d(4, 16, 4, 22)
-                      },
-                      new BlockItem(new[] {
-                          new AssignmentItem(new[] {
-                              new NameItem("d") { Debug = d(5, 11, 5, 12) }
-                          }, new[] {
-                              new LiteralItem(4.0) { Debug = d(5, 15, 5, 16) },
-                          }) {
-                              Debug = d(5, 11, 5, 16),
-                              IsLastExpressionSingle = false,
-                              Local = false,
-                          },
-                      }) { Debug = d(5, 11, 5, 16) },
-                      d(4, 9, 4, 27))
-              }, new BlockItem(new[] {
-                  new AssignmentItem(new[] {
-                      new NameItem("e") { Debug = d(7, 11, 7, 12) }
-                  }, new[] {
-                      new LiteralItem(5.0) { Debug = d(7, 15, 7, 16) },
-                  }) {
-                      Debug = d(7, 11, 7, 16),
-                      IsLastExpressionSingle = false,
-                      Local = false,
-                  },
-              }) { Debug = d(7, 11, 7, 16) }) {
+                  new IfItem.ElseInfo(new IgnoreItem(), IgnoreItem.IgnoreBlock, d(4, 9, 4, 27)),
+              },
+              IgnoreItem.IgnoreBlock) {
               Debug = d(2, 9, 8, 12),
               IfDebug = d(2, 9, 2, 23),
               ElseDebug = d(6, 9, 6, 13),
