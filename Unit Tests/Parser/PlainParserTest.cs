@@ -669,6 +669,13 @@ namespace UnitTests.Parser {
     }
 
     [Test]
+    public void Assignment_LocalNoValues() {
+      ParseItemEquals.CheckEquals(
+          new AssignmentItem(new[] { new NameItem("x") }, new IParseExp[0]) { Local = true },
+          _parseStatement("local x"));
+    }
+
+    [Test]
     public void Assignment_LastArgSingle() {
       ParseItemEquals.CheckEquals(
           new AssignmentItem(new[] { new NameItem("x") },

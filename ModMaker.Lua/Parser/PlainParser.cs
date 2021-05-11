@@ -451,8 +451,10 @@ namespace ModMaker.Lua.Parser {
         throw input.SyntaxError(string.Format(Resources.InvalidDefinition, "assignment"));
       }
 
+      DebugInfo endDebug =
+          exps.Count == 0 ? names[names.Count - 1].Debug : exps[exps.Count - 1].Debug;
       return new AssignmentItem(names.ToArray(), exps.ToArray()) {
-        Debug = _makeDebug(input, debug, exps[exps.Count - 1].Debug),
+        Debug = _makeDebug(input, debug, endDebug),
         Local = local,
         IsLastExpressionSingle = isParentheses,
       };
