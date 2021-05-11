@@ -14,13 +14,14 @@
 
 using System;
 using System.Threading;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines a helper thread used for LuaThread objects.  This will execute multiple LuaThread
   /// objects over its lifetime.
   /// </summary>
-  sealed class WorkerThread : IDisposable {
+  sealed class WorkerThread {
     /// <summary>
     /// The max wait time in milliseconds to wait for a new task.
     /// </summary>
@@ -45,33 +46,29 @@ namespace ModMaker.Lua.Runtime {
     }
 
     readonly object _lock = new object();
-    readonly ILuaEnvironment _env;
     readonly ThreadPool _owner;
-    bool _disposed = false;
+    readonly Thread _backing;
     Status _status;
-    Thread _backing;
 
     /// <summary>
     /// Creates a new WorkerThread object.
     /// </summary>
     /// <param name="owner">The factory that created this object.</param>
-    /// <param name="env">The current environment.</param>
-    public WorkerThread(ThreadPool owner, ILuaEnvironment env) {
+    public WorkerThread(ThreadPool owner) {
       _status = Status.Waiting;
       _owner = owner;
-      _env = env;
       _backing = new Thread(_execute);
       _backing.IsBackground = true;
       _backing.Start();
     }
     ~WorkerThread() {
-      _dispose(false);
+      _backing.Abort();
     }
 
     /// <summary>
     /// Gets the current target of the thread.
     /// </summary>
-    public LuaThreadNet Target { get; private set; }
+    public LuaThread Target { get; private set; }
     /// <summary>
     /// Gets the ID for the worker thread.
     /// </summary>
@@ -87,43 +84,11 @@ namespace ModMaker.Lua.Runtime {
             "The worker thread must be waiting to get a new task.");
       }
 
-      Target = new LuaThreadNet(_env, _backing, target);
+      Target = new LuaThread(target, _backing);
       _status = Status.Working;
       lock (_lock) {
         Monitor.Pulse(_lock);
       }
-    }
-
-    public void Dispose() {
-      if (!_disposed) {
-        _disposed = true;
-        GC.SuppressFinalize(this);
-        _dispose(true);
-      }
-    }
-    void _dispose(bool disposing) {
-      if (!disposing) {
-        return;
-      }
-
-      if (Target != null) {
-        Target.Dispose();
-      }
-
-      Target = null;
-
-      if (_backing != null) {
-        if (_status == Status.Working) {
-          _backing.Abort();
-        } else {
-          _status = Status.Shutdown;
-          lock (_lock) {
-            Monitor.Pulse(_lock);
-          }
-        }
-        _backing.Join();
-      }
-      _backing = null;
     }
 
     /// <summary>

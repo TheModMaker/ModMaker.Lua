@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using ModMaker.Lua.Runtime.LuaValues;
 
@@ -35,21 +34,11 @@ namespace ModMaker.Lua.Runtime {
     readonly SortedList<int, WorkerThread> _threads = new SortedList<int, WorkerThread>();
     readonly Queue<WorkerThread> _waitingThreads = new Queue<WorkerThread>();
     readonly object _lock = new object();
-    readonly ILuaEnvironment _env;
-    bool _disposed = false;
 
     /// <summary>
     /// Creates a new ThreadPool.
     /// </summary>
-    public ThreadPool(ILuaEnvironment env) {
-      _env = env;
-    }
-    /// <summary>
-    /// Releases the current instance.
-    /// </summary>
-    ~ThreadPool() {
-      _dispose(false);
-    }
+    public ThreadPool() { }
 
     /// <summary>
     /// Creates a new LuaThread for the given action.
@@ -59,7 +48,6 @@ namespace ModMaker.Lua.Runtime {
     /// <exception cref="System.ArgumentNullException">If action is null.</exception>
     public ILuaThread Create(ILuaValue action) {
       lock (_lock) {
-        _checkDisposed();
         _resizePool();
         WorkerThread thread = _waitingThreads.Dequeue();
 
@@ -71,15 +59,13 @@ namespace ModMaker.Lua.Runtime {
     /// Searches the factory for the thread that executes on the given ManagedThreadId.
     /// </summary>
     /// <param name="managedId">The ManagedThreadId of the thread to search.</param>
-    /// <returns>The thread for that Id or null if not found.</returns>
+    /// <returns>The thread for that Id or a new object if not found.</returns>
     public LuaThread Search(int managedId) {
       lock (_lock) {
-        _checkDisposed();
-
         if (_threads.TryGetValue(managedId, out WorkerThread worker)) {
           return worker.Target;
         } else {
-          return new LuaThreadNet();
+          return new LuaThread();
         }
       }
     }
@@ -115,38 +101,13 @@ namespace ModMaker.Lua.Runtime {
     }
 
     /// <summary>
-    /// Performs application-defined tasks associated with freeing, releasing, or resetting
-    /// unmanaged resources.
-    /// </summary>
-    public void Dispose() {
-      if (!_disposed) {
-        _disposed = true;
-        GC.SuppressFinalize(this);
-        _dispose(true);
-      }
-    }
-    void _dispose(bool disposing) {
-      if (!disposing) {
-        return;
-      }
-
-      lock (_lock) {
-        foreach (var item in _threads) {
-          item.Value.Dispose();
-        }
-
-        _waitingThreads.Clear();
-      }
-    }
-
-    /// <summary>
     /// Resizes the thread pool to fit a new thread object and removes extra threads.
     /// </summary>
     void _resizePool() {
       lock (_lock) {
         // Check that we have at least one waiting thread.
         if (_waitingThreads.Count == 0) {
-          var temp = new WorkerThread(this, _env);
+          var temp = new WorkerThread(this);
           _waitingThreads.Enqueue(temp);
           _threads.Add(temp.ID, temp);
         }
@@ -155,16 +116,7 @@ namespace ModMaker.Lua.Runtime {
         while (_waitingThreads.Count > (_threads.Count * _waitingThreadTarget + _minThreadCount)) {
           var temp = _waitingThreads.Dequeue();
           _threads.Remove(temp.ID);
-          temp.Dispose();
         }
-      }
-    }
-    /// <summary>
-    /// Checks whether the object is disposed and throws an exception if it is.
-    /// </summary>
-    void _checkDisposed() {
-      if (_disposed) {
-        throw new ObjectDisposedException(ToString());
       }
     }
   }

@@ -34,7 +34,7 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     public LuaRuntimeNet(ILuaEnvironment env) {
       _env = env;
-      _threadPool = new ThreadPool(env);
+      _threadPool = new ThreadPool();
     }
 
     /// <summary>
