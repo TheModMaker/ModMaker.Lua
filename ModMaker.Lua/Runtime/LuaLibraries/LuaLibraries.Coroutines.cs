@@ -48,6 +48,9 @@ namespace ModMaker.Lua.Runtime {
       }
       [MultipleReturn]
       IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
+        if (thread == null) {
+          throw new ArgumentNullException();
+        }
         try {
           ILuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
           return new[] { LuaBoolean.True }.Concat(ret);
@@ -66,7 +69,10 @@ namespace ModMaker.Lua.Runtime {
       }
       [IgnoreExtraArguments]
       string status(ILuaThread thread) {
-        return thread.Status.ToString().ToLowerInvariant();
+        if (thread.Status == LuaThreadStatus.Complete)
+          return "dead";
+        else
+          return thread.Status.ToString().ToLowerInvariant();
       }
       object wrap(ILuaValue func) {
         if (func.ValueType != LuaValueType.Function) {

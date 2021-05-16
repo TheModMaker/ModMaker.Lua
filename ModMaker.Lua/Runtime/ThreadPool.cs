@@ -61,13 +61,7 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="managedId">The ManagedThreadId of the thread to search.</param>
     /// <returns>The thread for that Id or a new object if not found.</returns>
     public LuaThread Search(int managedId) {
-      lock (_lock) {
-        if (_threads.TryGetValue(managedId, out WorkerThread worker)) {
-          return worker.Target;
-        } else {
-          return new LuaThread();
-        }
-      }
+      return LuaThread.Search(managedId);
     }
     /// <summary>
     /// Called when a thread is done working.

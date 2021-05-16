@@ -29,6 +29,10 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     Suspended,
     /// <summary>
+    /// The thread has called coroutine.resume and is waiting for the thread to stop.
+    /// </summary>
+    Normal,
+    /// <summary>
     /// The thread has completed execution.
     /// </summary>
     Complete,
