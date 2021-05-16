@@ -27,6 +27,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// info.
   /// </remarks>
   public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor {
+    static DelegateBuilder _builder = new DelegateBuilder();
+
     /// <summary>
     /// Creates a new LuaFunction.
     /// </summary>
@@ -74,6 +76,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     T ILuaValue.As<T>() {
       if (typeof(T).IsAssignableFrom(GetType())) {
         return (T)(object)this;
+      }
+      if (typeof(Delegate).IsAssignableFrom(typeof(T))) {
+        return (T)(object)_builder.CreateDelegate(typeof(T), this);
       }
 
       throw new InvalidCastException(string.Format(Resources.BadCast, GetType(), typeof(T)));

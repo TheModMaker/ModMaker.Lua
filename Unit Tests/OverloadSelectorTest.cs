@@ -404,6 +404,20 @@ namespace UnitTests {
     }
 
     [Test]
+    public void Compare_Function() {
+      var a = new Choice(new[] { typeof(Action) });
+      var b = new Choice(new[] { typeof(int) });
+      _runTest(a, b, new[] { typeof(LuaFunction) }, bValid: false);
+    }
+
+    [Test]
+    public void Compare_Function_Inherited() {
+      var a = new Choice(new[] { typeof(Func<int, string>) });
+      var b = new Choice(new[] { typeof(int) });
+      _runTest(a, b, new[] { typeof(LuaDefinedFunction) }, bValid: false);
+    }
+
+    [Test]
     public void FindOverload_SingleValue() {
       var choices = new[] {
         new Choice(new[] { typeof(Base) }),

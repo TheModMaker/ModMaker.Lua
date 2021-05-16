@@ -361,6 +361,12 @@ namespace ModMaker.Lua {
         }
       }
 
+      // A LuaFunction can be converted to any Delegate type.
+      if (typeof(LuaFunction).IsAssignableFrom(sourceType) &&
+          typeof(Delegate).IsAssignableFrom(destType)) {
+        return true;
+      }
+
       // Get any methods from source type that is not marked with LuaIgnoreAttribute and has
       // the name 'op_Explicit' or 'op_Implicit' and has a return type of the destination
       // type and a sole argument that is implicitly compatible with the source type.

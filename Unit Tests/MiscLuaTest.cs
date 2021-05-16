@@ -40,5 +40,17 @@ namespace UnitTests {
 
       Assert.Throws<InvalidOperationException>(() => _lua.DoText("getType().Name = ''"));
     }
+
+    [Test]
+    public void CanUseFunctions() {
+      Action<Action> foo = (act) => act();
+      _lua.Register(foo, "foo");
+
+      _lua.DoText(@"
+        local x = 0
+        foo(function() x = 1 end)
+        assertEquals(x, 1, 'functions')
+      ");
+    }
   }
 }
