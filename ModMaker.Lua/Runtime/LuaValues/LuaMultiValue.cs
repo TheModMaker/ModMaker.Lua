@@ -22,12 +22,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines multiple LuaValues.  This is used to pass arguments and get results from functions.
   /// </summary>
-  public sealed class LuaMultiValue : LuaValueBase, ILuaMultiValue {
+  public sealed class LuaMultiValue : LuaValueBase, IEnumerable<ILuaValue> {
     static readonly ILuaValue[] _nil = new[] { LuaNil.Nil };
     /// <summary>
     /// Contains an empty multi-value object.
     /// </summary>
-    public static ILuaMultiValue Empty = new LuaMultiValue(new ILuaValue[0]);
+    public static LuaMultiValue Empty = new LuaMultiValue(new ILuaValue[0]);
 
     /// <summary>
     /// Creates a new multi-value from the given objects.  Each object is first converted
@@ -35,7 +35,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="values">The values to store.</param>
     /// <returns>A new multi-value object.</returns>
-    public static ILuaMultiValue CreateMultiValueFromObj(params object[] args) {
+    public static LuaMultiValue CreateMultiValueFromObj(params object[] args) {
       var temp = args.Select(o => CreateValue(o)).ToArray();
       return new LuaMultiValue(temp);
     }
@@ -47,7 +47,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="args">The arguments of the function.</param>
     public LuaMultiValue(params ILuaValue[] args) {
-      var end = args.Length > 0 && args[args.Length - 1] is ILuaMultiValue multi
+      var end = args.Length > 0 && args[args.Length - 1] is LuaMultiValue multi
           ? multi : args.Skip(args.Length - 1);
       _values = args.Take(args.Length - 1).Select(v => v.Single()).Concat(end).ToArray();
 
@@ -127,7 +127,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _values[0].Arithmetic(type, other);
     }
-    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
       return _values[0].Invoke(self, memberCall, args);
     }
     public override ILuaValue GetIndex(ILuaValue index) {
@@ -162,7 +162,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return self.Arithmetic(type, _values[0]);
     }
 
-    public ILuaMultiValue AdjustResults(int number) {
+    public LuaMultiValue AdjustResults(int number) {
       if (number < 0) {
         number = 0;
       }

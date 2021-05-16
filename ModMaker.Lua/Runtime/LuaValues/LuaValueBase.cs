@@ -124,7 +124,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public virtual void SetIndex(ILuaValue index, ILuaValue value) {
       throw new InvalidOperationException(Errors.CannotIndex(this.ValueType));
     }
-    public virtual ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+    public virtual LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
       throw new InvalidOperationException(Errors.CannotCall(ValueType));
     }
 

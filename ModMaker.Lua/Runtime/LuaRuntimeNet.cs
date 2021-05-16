@@ -45,8 +45,8 @@ namespace ModMaker.Lua.Runtime {
       get { return _threadPool.Search(Thread.CurrentThread.ManagedThreadId); }
     }
 
-    public virtual IEnumerable<ILuaMultiValue> GenericLoop(ILuaEnvironment env,
-                                                           ILuaMultiValue args) {
+    public virtual IEnumerable<LuaMultiValue> GenericLoop(ILuaEnvironment env,
+                                                           LuaMultiValue args) {
       // TODO: Replace this.
       if (args == null) {
         throw new ArgumentNullException(nameof(args));
@@ -58,7 +58,7 @@ namespace ModMaker.Lua.Runtime {
 
       ILuaValue target = args[0];
       object temp = target.GetValue();
-      if (temp is IEnumerable<ILuaMultiValue> enumT) {
+      if (temp is IEnumerable<LuaMultiValue> enumT) {
         foreach (var item in enumT) {
           yield return item;
         }

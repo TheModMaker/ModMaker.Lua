@@ -42,7 +42,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     public string Name { get; }
 
-    public abstract ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args);
+    public abstract LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args);
 
     public bool Equals(ILuaValue other) {
       return ReferenceEquals(this, other);

@@ -32,7 +32,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     readonly bool _releaseBacking = false;
     readonly int _threadId;
     ExceptionDispatchInfo _exception = null;
-    ILuaMultiValue _args = null;
+    LuaMultiValue _args = null;
 
     private LuaThread(int threadId) {
       Status = LuaThreadStatus.Running;
@@ -73,7 +73,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public LuaThreadStatus Status { get; private set; }
     public bool IsLua { get; }
 
-    public ILuaMultiValue Resume(ILuaMultiValue args) {
+    public LuaMultiValue Resume(LuaMultiValue args) {
       lock (_handle) {
         if (!IsLua) {
           throw new InvalidOperationException(
@@ -102,11 +102,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           _exception.Throw();
         }
 
-        ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue ret = Interlocked.Exchange(ref _args, null);
         return ret ?? new LuaMultiValue();
       }
     }
-    public ILuaMultiValue Yield(ILuaMultiValue args) {
+    public LuaMultiValue Yield(LuaMultiValue args) {
       lock (_handle) {
         if (!IsLua) {
           throw new InvalidOperationException(
@@ -134,7 +134,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           Monitor.Wait(_handle);
         }
 
-        ILuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue ret = Interlocked.Exchange(ref _args, null);
         return ret ?? new LuaMultiValue();
       }
     }
@@ -172,8 +172,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           }
         }
 
-        ILuaMultiValue args = Interlocked.Exchange(ref _args, null);
-        ILuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, args);
+        LuaMultiValue args = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, args);
 
         lock (_handle) {
           _args = ret;

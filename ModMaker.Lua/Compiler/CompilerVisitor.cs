@@ -170,9 +170,9 @@ namespace ModMaker.Lua.Compiler {
         _labels.Add(target.Break, gen.DefineLabel());
       Label start = gen.DefineLabel();
       Label end = _labels[target.Break];
-      LocalBuilder ret = _compiler.CreateTemporary(typeof(ILuaMultiValue));
-      LocalBuilder enumerable = _compiler.CreateTemporary(typeof(IEnumerable<ILuaMultiValue>));
-      LocalBuilder enumerator = _compiler.CreateTemporary(typeof(IEnumerator<ILuaMultiValue>));
+      LocalBuilder ret = _compiler.CreateTemporary(typeof(LuaMultiValue));
+      LocalBuilder enumerable = _compiler.CreateTemporary(typeof(IEnumerable<LuaMultiValue>));
+      LocalBuilder enumerator = _compiler.CreateTemporary(typeof(IEnumerator<LuaMultiValue>));
 
       using (_compiler.LocalBlock()) {
         // temp = new ILuaValue[...];
@@ -204,7 +204,7 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Ldloc, enumerable);
         gen.Emit(
             OpCodes.Callvirt,
-            typeof(IEnumerable<ILuaMultiValue>).GetMethod(nameof(IEnumerable.GetEnumerator)));
+            typeof(IEnumerable<LuaMultiValue>).GetMethod(nameof(IEnumerable.GetEnumerator)));
         gen.Emit(OpCodes.Stloc, enumerator);
 
         // try {
@@ -220,8 +220,8 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Ldloc, enumerator);
         gen.Emit(
             OpCodes.Callvirt,
-            typeof(IEnumerator<ILuaMultiValue>)
-                .GetProperty(nameof(IEnumerator<ILuaMultiValue>.Current)).GetGetMethod());
+            typeof(IEnumerator<LuaMultiValue>)
+                .GetProperty(nameof(IEnumerator<LuaMultiValue>.Current)).GetGetMethod());
         gen.Emit(OpCodes.Stloc, ret);
         _compiler.RemoveTemporary(enumerator);
 
@@ -231,7 +231,7 @@ namespace ModMaker.Lua.Compiler {
           field.StartSet();
           gen.Emit(OpCodes.Ldloc, ret);
           gen.Emit(OpCodes.Ldc_I4, i);
-          gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+          gen.Emit(OpCodes.Call, typeof(LuaMultiValue).GetMethod("get_Item"));
           field.EndSet();
         }
         _compiler.RemoveTemporary(ret);
@@ -480,7 +480,7 @@ namespace ModMaker.Lua.Compiler {
       }
 
       // var rargs = new LuaMultiValue(args);
-      var rargs = _compiler.CreateTemporary(typeof(ILuaMultiValue));
+      var rargs = _compiler.CreateTemporary(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldloc, args);
       gen.Emit(OpCodes.Newobj,
                typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
@@ -512,7 +512,7 @@ namespace ModMaker.Lua.Compiler {
             // $value = rargs[{i}];
             gen.Emit(OpCodes.Ldloc, rargs);
             gen.Emit(OpCodes.Ldc_I4, i);
-            gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+            gen.Emit(OpCodes.Call, typeof(LuaMultiValue).GetMethod("get_Item"));
           });
         }
       }
@@ -871,8 +871,8 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
       }
 
-      // ILuaMultiValue exp = new LuaMultiValue(loc);
-      LocalBuilder exp = _compiler.CreateTemporary(typeof(ILuaMultiValue));
+      // LuaMultiValue exp = new LuaMultiValue(loc);
+      LocalBuilder exp = _compiler.CreateTemporary(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldloc, loc);
       gen.Emit(OpCodes.Newobj,
                typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
@@ -894,7 +894,7 @@ namespace ModMaker.Lua.Compiler {
               // $value = exp[{i}];
               gen.Emit(OpCodes.Ldloc, exp);
               gen.Emit(OpCodes.Ldc_I4, i);
-              gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+              gen.Emit(OpCodes.Callvirt, typeof(LuaMultiValue).GetMethod("get_Item"));
             });
       }
       _compiler.RemoveTemporary(exp);

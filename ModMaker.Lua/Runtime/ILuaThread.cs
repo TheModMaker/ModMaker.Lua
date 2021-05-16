@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using System;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   /// <summary>
@@ -47,7 +48,7 @@ namespace ModMaker.Lua.Runtime {
     /// Creates a new YieldEventArgs object.
     /// </summary>
     /// <param name="args">The arguments given to Yield.</param>
-    internal YieldEventArgs(ILuaMultiValue args) {
+    internal YieldEventArgs(LuaMultiValue args) {
       Arguments = args;
       RejectYield = false;
       ReturnArguments = null;
@@ -57,11 +58,11 @@ namespace ModMaker.Lua.Runtime {
     /// Contains the arguments that were given to the Yield function.  This reference will be
     /// passed to Lua so any changes to these items will be reflected in Lua.
     /// </summary>
-    public ILuaMultiValue Arguments;
+    public LuaMultiValue Arguments;
     /// <summary>
     /// If RejectYield is true, this will be returned from the call to Yield.
     /// </summary>
-    public ILuaMultiValue ReturnArguments;
+    public LuaMultiValue ReturnArguments;
     /// <summary>
     /// If set to true, then the current thread will not actually yield. Instead, it will
     /// simply return ReturnArguments.
@@ -102,7 +103,7 @@ namespace ModMaker.Lua.Runtime {
     /// <exception cref="System.Reflection.TargetInvocationException">
     /// If the thread throws an exception.
     /// </exception>
-    ILuaMultiValue Resume(ILuaMultiValue args);
+    LuaMultiValue Resume(LuaMultiValue args);
     /// <summary>
     /// Must be called from the thread that is managed by this instance.  This suspends the
     /// current thread and causes the call to Resume to return the given values.  If Resume
@@ -113,6 +114,6 @@ namespace ModMaker.Lua.Runtime {
     /// <exception cref="System.InvalidOperationException">
     /// If the thread is not already running -or- if this is not a Lua thread.
     /// </exception>
-    ILuaMultiValue Yield(ILuaMultiValue args);
+    LuaMultiValue Yield(LuaMultiValue args);
   }
 }

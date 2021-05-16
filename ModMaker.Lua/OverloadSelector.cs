@@ -304,7 +304,7 @@ namespace ModMaker.Lua {
       return ret;
     }
 
-    public static int FindOverload(Choice[] choices, ILuaMultiValue args) {
+    public static int FindOverload(Choice[] choices, LuaMultiValue args) {
       Tuple<Type, Type?>? mapValue(ILuaValue? value) {
         if (value == null || value == LuaNil.Nil)
           return null;
@@ -406,13 +406,13 @@ namespace ModMaker.Lua {
     /// <param name="args">The arguments to convert.</param>
     /// <param name="choice">The choice to call.</param>
     /// <returns>The arguments as they can be passed to the given method.</returns>
-    public static object?[] ConvertArguments(ILuaMultiValue args, Choice choice) {
+    public static object?[] ConvertArguments(LuaMultiValue args, Choice choice) {
       object?[] ret = new object[choice.FormalArguments.Length];
       int min = Math.Min(ret.Length, args.Count);
       MethodInfo asMethodGeneric = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))!;
 
       if (choice.FormalArguments.Length == 1 &&
-          choice.FormalArguments[0] == typeof(ILuaMultiValue)) {
+          choice.FormalArguments[0] == typeof(LuaMultiValue)) {
         return new object[] { args };
       }
 

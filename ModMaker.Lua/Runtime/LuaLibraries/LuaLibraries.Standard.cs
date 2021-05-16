@@ -236,7 +236,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class pcall : LuaFrameworkFunction {
         public pcall(ILuaEnvironment env) : base(env, "pcall") { }
 
-        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
+        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
           }
@@ -261,7 +261,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class print : LuaFrameworkFunction {
         public print(ILuaEnvironment env) : base(env, "print") { }
 
-        protected override ILuaMultiValue _invokeInternal(ILuaMultiValue args) {
+        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
           StringBuilder str = new StringBuilder();
           if (args != null) {
             for (int i = 0; i < args.Count; i++) {

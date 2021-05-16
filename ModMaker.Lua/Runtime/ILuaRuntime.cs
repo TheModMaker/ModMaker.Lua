@@ -13,7 +13,7 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using System.Reflection;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   /// <summary>
@@ -37,7 +37,7 @@ namespace ModMaker.Lua.Runtime {
     /// <exception cref="System.ArgumentNullException">If args or E is null.</exception>
     /// <exception cref="System.InvalidOperationException">If the object(s)
     /// cannot be enumerated over.</exception>
-    IEnumerable<ILuaMultiValue> GenericLoop(ILuaEnvironment e, ILuaMultiValue args);
+    IEnumerable<LuaMultiValue> GenericLoop(ILuaEnvironment e, LuaMultiValue args);
 
     /// <summary>
     /// Creates a new Lua thread that calls the given method.

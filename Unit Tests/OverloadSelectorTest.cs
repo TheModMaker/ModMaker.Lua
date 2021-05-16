@@ -658,7 +658,7 @@ namespace UnitTests {
 
     [Test]
     public void ConvertArguments_MultiValueArg() {
-      var choice = new Choice(new[] { typeof(ILuaMultiValue) });
+      var choice = new Choice(new[] { typeof(LuaMultiValue) });
       var args = new LuaMultiValue();
 
       var converted = OverloadSelector.ConvertArguments(args, choice);

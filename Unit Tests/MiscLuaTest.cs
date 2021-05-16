@@ -14,7 +14,7 @@
 
 using System;
 using System.Reflection;
-using ModMaker.Lua.Runtime;
+using ModMaker.Lua.Runtime.LuaValues;
 using NUnit.Framework;
 
 namespace UnitTests {
@@ -56,7 +56,7 @@ namespace UnitTests {
 
     [Test]
     public void CanAcceptMultiValue() {
-      Action<ILuaMultiValue> foo = (vals) => { };
+      Action<LuaMultiValue> foo = (vals) => { };
       _lua.Register(foo, "foo");
 
       _lua.DoText(@"

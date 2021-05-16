@@ -44,7 +44,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _methods = methods.Zip(targets, Tuple.Create).ToList();
       for (int i = 0; i < _methods.Count; i++) {
         var param = _methods[i].Item1.GetParameters();
-        if (param.Length == 1 && param[0].ParameterType == typeof(ILuaMultiValue)) {
+        if (param.Length == 1 && param[0].ParameterType == typeof(LuaMultiValue)) {
           _defaultMethod = _methods[i];
           _methods.RemoveAt(i);
           break;
@@ -76,7 +76,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
                                      new[] { _methods[index].Item2 });
     }
 
-    public override ILuaMultiValue Invoke(ILuaValue self, bool methodCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue self, bool methodCall, LuaMultiValue args) {
       int index = OverloadSelector.FindOverload(_choices.ToArray(), args);
       object[] realArgs;
       Tuple<MethodInfo, object> method;
@@ -100,7 +100,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         args[i] = LuaValueBase.CreateValue(realArgs[i]);
       }
 
-      if (retObj is ILuaMultiValue ret) {
+      if (retObj is LuaMultiValue ret) {
         return ret;
       }
 

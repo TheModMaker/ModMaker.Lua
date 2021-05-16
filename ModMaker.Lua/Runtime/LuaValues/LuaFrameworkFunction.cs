@@ -38,9 +38,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="args">The arguments that were passed to the method, never null.</param>
     /// <returns>The values returned by this method.</returns>
-    protected abstract ILuaMultiValue _invokeInternal(ILuaMultiValue args);
+    protected abstract LuaMultiValue _invokeInternal(LuaMultiValue args);
 
-    public override ILuaMultiValue Invoke(ILuaValue target, bool methodCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue target, bool methodCall, LuaMultiValue args) {
       if (methodCall) {
         args = new LuaMultiValue(new[] { target }.Concat(args).ToArray());
       }

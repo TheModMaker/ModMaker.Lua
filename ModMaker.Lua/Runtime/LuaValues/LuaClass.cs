@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return Helpers.GetSetMember(Type, null, index);
     }
 
-    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
       if (args == null) {
         args = new LuaMultiValue();
       }
@@ -280,8 +280,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       ctorgen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
       ctorgen.Emit(OpCodes.Stloc, target);
 
-      // ILuaMultiValue args = new LuaMultiValue(ctorArgs);
-      LocalBuilder args = ctorgen.DeclareLocal(typeof(ILuaMultiValue));
+      // LuaMultiValue args = new LuaMultiValue(ctorArgs);
+      LocalBuilder args = ctorgen.DeclareLocal(typeof(LuaMultiValue));
       ctorgen.Emit(OpCodes.Ldarg, 4);
       ctorgen.Emit(OpCodes.Newobj,
                    typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
@@ -463,7 +463,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     #endregion
 
-    public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
       return new LuaMultiValue(new LuaUserData<object>(CreateInstance(args.ToArray())));
     }
 
@@ -622,8 +622,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
         }
 
-        // ILuaMultiValue args = new LuaMultiValue(loc);
-        var args = gen.DeclareLocal(typeof(ILuaMultiValue));
+        // LuaMultiValue args = new LuaMultiValue(loc);
+        var args = gen.DeclareLocal(typeof(LuaMultiValue));
         gen.Emit(OpCodes.Ldloc, loc);
         gen.Emit(OpCodes.Newobj,
                  typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
@@ -745,8 +745,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             // Define a getter method that returns a value from a method.
             FieldBuilder field = _addMethodArg(data, Method);
 
-            // ILuaMultiValue loc = new LuaMultiValue(new ILuaValue[0]);
-            LocalBuilder loc = gen.DeclareLocal(typeof(ILuaMultiValue));
+            // LuaMultiValue loc = new LuaMultiValue(new ILuaValue[0]);
+            LocalBuilder loc = gen.DeclareLocal(typeof(LuaMultiValue));
             gen.Emit(OpCodes.Ldc_I4, 0);
             gen.Emit(OpCodes.Newarr, typeof(ILuaValue));
             gen.Emit(OpCodes.Newobj,
@@ -787,8 +787,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
             gen.Emit(OpCodes.Stelem, typeof(object));
 
-            // ILuaMultiValue args = LuaMultiValue.CreateMultiValueFromObj(loc);
-            LocalBuilder args = gen.DeclareLocal(typeof(ILuaMultiValue));
+            // LuaMultiValue args = LuaMultiValue.CreateMultiValueFromObj(loc);
+            LocalBuilder args = gen.DeclareLocal(typeof(LuaMultiValue));
             gen.Emit(OpCodes.Ldloc, loc);
             gen.Emit(
                 OpCodes.Call,

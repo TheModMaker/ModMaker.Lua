@@ -29,8 +29,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="env">The current environment.</param>
     /// <param name="args">The arguments to pass.</param>
     /// <returns>The values returned from Lua.</returns>
-    protected delegate ILuaMultiValue LuaFunc(ILuaEnvironment env, ILuaMultiValue args,
-                                              ILuaValue target, bool memberCall);
+    protected delegate LuaMultiValue LuaFunc(ILuaEnvironment env, LuaMultiValue args,
+                                             ILuaValue target, bool memberCall);
     /// <summary>
     /// The backing Lua defined method.
     /// </summary>
@@ -59,7 +59,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _env = env;
     }
 
-    public override ILuaMultiValue Invoke(ILuaValue target, bool methodCall, ILuaMultiValue args) {
+    public override LuaMultiValue Invoke(ILuaValue target, bool methodCall, LuaMultiValue args) {
       return _method(_env, args, target, methodCall);
     }
   }

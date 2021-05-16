@@ -14,6 +14,7 @@
 
 using System;
 using ModMaker.Lua.Parser.Items;
+using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   /// <summary>
@@ -76,7 +77,7 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="memberCall">Whether the call was using member call notation (:).</param>
     /// <param name="args">The arguments for the call.</param>
     /// <returns>The return values from the invocation.</returns>
-    ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args);
+    LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args);
 
     /// <summary>
     /// Performs a binary arithmetic operation and returns the result.

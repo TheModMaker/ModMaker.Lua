@@ -253,7 +253,7 @@ namespace ModMaker.Lua.Compiler {
       //// ILuaMultiValue Invoke(ILuaEnvironment E, ILuaMultiValue args);
       var method = tb.DefineMethod(
           nameof(ILuaValue.Invoke), MethodAttributes.Public | MethodAttributes.HideBySig,
-          typeof(ILuaMultiValue), new[] { typeof(ILuaEnvironment), typeof(ILuaMultiValue) });
+          typeof(LuaMultiValue), new[] { typeof(ILuaEnvironment), typeof(LuaMultiValue) });
       _curNest = NestInfo.Create(tb, method.GetILGenerator(), captures, createType);
       _mb = mb;
       _settings = settings;
@@ -343,8 +343,8 @@ namespace ModMaker.Lua.Compiler {
       MethodBuilder mb = tb.DefineMethod(
           nameof(ILuaValue.Invoke),
           MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-          typeof(ILuaMultiValue),
-          new Type[] { typeof(ILuaValue), typeof(bool), typeof(ILuaMultiValue) });
+          typeof(LuaMultiValue),
+          new Type[] { typeof(ILuaValue), typeof(bool), typeof(LuaMultiValue) });
       var gen = mb.GetILGenerator();
 
       // return this.Invoke(this.Environment, args);
@@ -422,9 +422,9 @@ namespace ModMaker.Lua.Compiler {
       funcName ??= "<>__" + (_mid++);
       string name = _curNest.Members.Contains(funcName) ? funcName + "_" + (_mid++) : funcName;
       MethodBuilder mb = _curNest.TypeDef.DefineMethod(
-          name, MethodAttributes.Public, typeof(ILuaMultiValue),
+          name, MethodAttributes.Public, typeof(LuaMultiValue),
           new Type[] {
-              typeof(ILuaEnvironment), typeof(ILuaMultiValue), typeof(ILuaValue), typeof(bool)
+              typeof(ILuaEnvironment), typeof(LuaMultiValue), typeof(ILuaValue), typeof(bool)
           });
       var gen = mb.GetILGenerator();
       _curNest = new NestInfo(
@@ -459,7 +459,7 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Ldarg_2);
         if (args[0].Name != "...") {
           gen.Emit(OpCodes.Ldc_I4_0);
-          gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+          gen.Emit(OpCodes.Call, typeof(LuaMultiValue).GetMethod("get_Item"));
         } else {
           if (args.Length != 1) {
             throw new InvalidOperationException(
@@ -499,7 +499,7 @@ namespace ModMaker.Lua.Compiler {
           gen.Emit(OpCodes.Ldc_I4, i - 1);
           gen.Emit(OpCodes.Ldloc, c);
           gen.Emit(OpCodes.Add);
-          gen.Emit(OpCodes.Callvirt, typeof(ILuaMultiValue).GetMethod("get_Item"));
+          gen.Emit(OpCodes.Call, typeof(LuaMultiValue).GetMethod("get_Item"));
           field.EndSet();
         }
       }

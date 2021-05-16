@@ -136,8 +136,8 @@ namespace ModMaker.Lua.Runtime {
                                             BindingFlags.Static | BindingFlags.Public));
       gen.Emit(OpCodes.Stloc, args);
 
-      // ILuaMultiValue ret = arg0.Invoke(LuaNil.Nil, false, args);
-      var ret = gen.DeclareLocal(typeof(ILuaMultiValue));
+      // LuaMultiValue ret = arg0.Invoke(LuaNil.Nil, false, args);
+      var ret = gen.DeclareLocal(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldsfld, typeof(LuaNil).GetField(nameof(LuaNil.Nil)));
       gen.Emit(OpCodes.Ldc_I4_0);

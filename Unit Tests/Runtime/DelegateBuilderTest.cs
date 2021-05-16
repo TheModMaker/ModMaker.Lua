@@ -21,12 +21,12 @@ namespace UnitTests.Runtime {
   [TestFixture]
   class DelegateBuilderTest {
     class MockFunction : LuaFunction {
-      public ILuaMultiValue LastCall = null;
-      public ILuaMultiValue Return = new LuaMultiValue();
+      public LuaMultiValue LastCall = null;
+      public LuaMultiValue Return = new LuaMultiValue();
 
       public MockFunction() : base("") { }
 
-      public override ILuaMultiValue Invoke(ILuaValue self, bool memberCall, ILuaMultiValue args) {
+      public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
         Assert.IsNull(LastCall);
         Assert.IsNotNull(args);
         LastCall = args;

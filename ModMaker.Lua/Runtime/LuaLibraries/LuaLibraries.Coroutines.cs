@@ -33,7 +33,7 @@ namespace ModMaker.Lua.Runtime {
         Register(_env, coroutine, (Func<object[]>)running);
         Register(_env, coroutine, (Func<ILuaThread, string>)status);
         Register(_env, coroutine, (Func<ILuaValue, object>)wrap);
-        Register(_env, coroutine, (Func<ILuaValue[], ILuaMultiValue>)yield);
+        Register(_env, coroutine, (Func<ILuaValue[], LuaMultiValue>)yield);
 
         _env.GlobalsTable.SetItemRaw(new LuaString("coroutine"), coroutine);
       }
@@ -52,7 +52,7 @@ namespace ModMaker.Lua.Runtime {
           throw new ArgumentNullException();
         }
         try {
-          ILuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
+          LuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
           return new[] { LuaBoolean.True }.Concat(ret);
         } catch (Exception e) {
           if (e.Message == "Cannot resume a dead thread.") {
@@ -81,9 +81,9 @@ namespace ModMaker.Lua.Runtime {
         }
 
         var thread = _env.Runtime.CreateThread(func);
-        return (Func<ILuaMultiValue, ILuaMultiValue>)thread.Resume;
+        return (Func<LuaMultiValue, LuaMultiValue>)thread.Resume;
       }
-      ILuaMultiValue yield(params ILuaValue[] args) {
+      LuaMultiValue yield(params ILuaValue[] args) {
         ILuaThread thread = _env.Runtime.CurrentThread;
         if (!thread.IsLua) {
           throw new InvalidOperationException("Cannot yield the main thread.");

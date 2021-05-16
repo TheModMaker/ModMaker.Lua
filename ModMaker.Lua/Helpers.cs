@@ -175,7 +175,7 @@ namespace ModMaker.Lua {
               "Attempt to call indexer on a static type.");
         }
 
-        ILuaMultiValue args;
+        LuaMultiValue args;
         if (index.ValueType == LuaValueType.Number) {
           args = new LuaMultiValue(new[] { value });
         } else {
@@ -300,7 +300,7 @@ namespace ModMaker.Lua {
     /// <param name="index">The indexing object.</param>
     /// <param name="value">The value to set to.</param>
     /// <returns>The value for get or value if setting.</returns>
-    static ILuaValue _getSetIndex(Type targetType, object target, ILuaMultiValue indicies,
+    static ILuaValue _getSetIndex(Type targetType, object target, LuaMultiValue indicies,
                                   ILuaValue value = null) {
       // Arrays do not actually define an 'Item' method so we need to access the indexer directly.
       if (target is Array targetArray) {
