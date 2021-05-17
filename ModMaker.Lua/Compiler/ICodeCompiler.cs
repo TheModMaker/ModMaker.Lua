@@ -30,10 +30,6 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="env">The current environment.</param>
     /// <param name="item">The item to compile.</param>
     /// <returns>A compiled version of the object.</returns>
-    /// <exception cref="System.ArgumentNullException">If E or item is null.</exception>
-    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
-    /// If there is syntax errors in the item tree.
-    /// </exception>
     ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name);
   }
 }

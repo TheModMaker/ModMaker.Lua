@@ -15,6 +15,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ModMaker.Lua;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
 using NUnit.Framework;
@@ -44,7 +45,7 @@ namespace UnitTests.Parser {
     }
 
     void _checkSyntaxError(string input, Token token) {
-      var err = Assert.Throws<SyntaxException>(() => _parseBlock(input));
+      var err = Assert.Throws<CompilerMessage>(() => _parseBlock(input));
       var debug = new DebugInfo(null, token.StartPos, token.StartLine,
                                 token.StartPos + token.Value.Length, token.StartLine);
       Assert.AreEqual(debug, err.Debug);

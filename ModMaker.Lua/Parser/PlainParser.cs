@@ -64,7 +64,7 @@ namespace ModMaker.Lua.Parser {
       // parse the chunk
       IParseItem read = _readBlock(lexer);
       if (!lexer.PeekType(TokenType.None)) {
-        throw lexer.SyntaxError("Expecting EOF");
+        throw lexer.SyntaxError(MessageId.ExpectingEof);
       }
 
       return read;
@@ -78,9 +78,6 @@ namespace ModMaker.Lua.Parser {
     /// <param name="name">The name of the input, used for debugging.</param>
     /// <returns>The parses IParseItem tree.</returns>
     /// <exception cref="System.ArgumentNullException">If parser or dump is null.</exception>
-    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
-    /// If the dump contains invalid Lua code.
-    /// </exception>
     public static IParseItem Parse(IParser parser, string dump, string name) {
       if (parser == null) {
         throw new ArgumentNullException(nameof(parser));
@@ -130,12 +127,10 @@ namespace ModMaker.Lua.Parser {
           if (exp is FuncCallItem funcCall) {
             funcCall.Statement = true;
             statements.Add(funcCall);
-          } else if (exp is LiteralItem) {
-            throw input.SyntaxError("A literal is not a variable.", cur);
           } else if (exp is NameItem || exp is IndexerItem) {
             statements.Add(_readAssignment(input, cur, false, (IParseVariable)exp));
           } else {
-            throw input.SyntaxError(string.Format(Resources.TokenStatement, cur.Value), cur);
+            throw input.SyntaxError(MessageId.ExpectedStatementStart, cur);
           }
         }
       }
@@ -433,8 +428,11 @@ namespace ModMaker.Lua.Parser {
       while (input.ReadIfType(TokenType.Comma)) {
         var curDebug = input.Peek();
         var exp = _readExp(input, out _);
-        if ((local && !(exp is NameItem)) || (!local && !(exp is IParseVariable))) {
-          throw input.SyntaxError(Resources.NameOrExpForVar, curDebug);
+        if (local && !(exp is NameItem)) {
+          throw input.SyntaxError(MessageId.LocalMustBeIdentifier, curDebug);
+        }
+        if (!local && !(exp is IParseVariable)) {
+          throw input.SyntaxError(MessageId.AssignmentMustBeVariable, curDebug);
         }
         names.Add((IParseVariable)exp);
       }
@@ -448,7 +446,7 @@ namespace ModMaker.Lua.Parser {
           exps.Add(_readExp(input, out isParentheses));
         }
       } else if (!local) {
-        throw input.SyntaxError(string.Format(Resources.InvalidDefinition, "assignment"));
+        input.Expect(TokenType.Assign);
       }
 
       DebugInfo endDebug =
@@ -631,10 +629,10 @@ namespace ModMaker.Lua.Parser {
         }
       }
       if (name != null && !canName) {
-        throw input.SyntaxError(Resources.FunctionCantHaveName, debug);
+        throw input.SyntaxError(MessageId.FunctionNameWhenExpression, debug);
       }
       if (name == null && canName) {
-        throw input.SyntaxError("Function statements must provide name", debug);
+        throw input.SyntaxError(MessageId.FunctionNameWhenStatement, debug);
       }
 
       var args = new List<NameItem>();
@@ -683,7 +681,7 @@ namespace ModMaker.Lua.Parser {
           IParseExp val = _readExp(input, out _);
           if (input.ReadIfType(TokenType.Assign)) {
             if (!(val is NameItem name)) {
-              throw input.SyntaxError(string.Format(Resources.InvalidDefinition, "table"), debug);
+              throw input.SyntaxError(MessageId.TableKeyMustBeName, debug);
             }
 
             IParseExp exp = _readExp(input, out _);

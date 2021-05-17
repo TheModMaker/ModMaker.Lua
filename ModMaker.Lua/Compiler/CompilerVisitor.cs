@@ -534,11 +534,11 @@ namespace ModMaker.Lua.Compiler {
       if (target.Local) {
         // Local function definition
         if (target.InstanceName != null) {
-          throw new SyntaxException(Resources.InstanceLocalMethod, target.Debug);
+          throw new CompilerMessage(MessageLevel.Fatal, MessageId.LocalInstanceName, target.Debug);
         }
 
         if (!(target.Prefix is NameItem)) {
-          throw new SyntaxException(Resources.IndexerLocalMethod, target.Debug);
+          throw new CompilerMessage(MessageLevel.Fatal, MessageId.LocalMethodIndexer, target.Debug);
         }
 
         NameItem namei = (NameItem)target.Prefix;

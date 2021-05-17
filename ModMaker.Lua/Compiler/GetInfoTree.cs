@@ -242,7 +242,6 @@ namespace ModMaker.Lua.Compiler {
     /// Recursively resolves any GotoItems to their correct LabelItem or throws an exception.
     /// </summary>
     /// <param name="root">The current root node.</param>
-    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
     /// If a label could not be resolved.
     /// </exception>
     static void _resolve(TreeNode root) {
@@ -275,7 +274,8 @@ namespace ModMaker.Lua.Compiler {
                (item.Name == "<break>" || root.Passable) &&
                (root = root.Parent) != null);
 
-      throw new SyntaxException(string.Format(Resources.LabelNotFound, item.Name), item.Debug);
+      throw new CompilerMessage(MessageLevel.Fatal, MessageId.LabelNotFound, item.Debug,
+                                $"Label '{item.Name}' for goto wasn't found");
     }
   }
 }

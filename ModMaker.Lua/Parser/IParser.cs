@@ -28,9 +28,6 @@ namespace ModMaker.Lua.Parser {
     /// <param name="encoding">The encoding that the stream uses.</param>
     /// <param name="name">The name of the chunk, used for exceptions.</param>
     /// <returns>The code as an IParseItem tree.</returns>
-    /// <exception cref="ModMaker.Lua.Parser.SyntaxException">
-    /// If the code is not in the correct format.
-    /// </exception>
     /// <exception cref="System.ArgumentNullException">If input is null.</exception>
     IParseItem Parse(Stream input, Encoding encoding, string name);
   }

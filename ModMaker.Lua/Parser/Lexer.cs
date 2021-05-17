@@ -143,10 +143,11 @@ namespace ModMaker.Lua.Parser {
     public Token Expect(TokenType type) {
       Token read = Peek();
       if (read.Type == TokenType.None) {
-        throw SyntaxError($"Unexpected EOF waiting for '{type}'");
+        throw SyntaxError(MessageId.UnexpectedEof, null, $"Unexpected EOF waiting for '{type}'");
       }
       if (read.Type != type) {
-        throw SyntaxError($"Found '{read.Value}', expecting '{type}'.", read);
+        throw SyntaxError(MessageId.UnexpectedToken, read,
+                          $"Found '{read.Value}', expecting '{type}'.");
       }
       return Read();
     }
@@ -173,10 +174,11 @@ namespace ModMaker.Lua.Parser {
     /// <summary>
     /// Returns a syntax error object at the current position.
     /// </summary>
-    /// <param name="message">The message of the error.</param>
+    /// <param name="id">The message ID to use.</param>
     /// <param name="token">An optional token object to replace the current token.</param>
-    /// <returns>A new SyntaxException object.</returns>
-    public SyntaxException SyntaxError(string message, Token? token = null) {
+    /// <param name="message">The message of the error.</param>
+    /// <returns>A new CompilerMessage object.</returns>
+    public CompilerMessage SyntaxError(MessageId id, Token? token = null, string message = null) {
       if (token == null && _peek.Count > 0) {
         token = _peek.Peek();
       }
@@ -184,7 +186,7 @@ namespace ModMaker.Lua.Parser {
       DebugInfo debug = new DebugInfo(Name, token.Value.StartPos, token.Value.StartLine,
                                       token.Value.StartPos + token.Value.Value.Length,
                                       token.Value.StartLine);
-      return new SyntaxException(message, debug);
+      return new CompilerMessage(MessageLevel.Fatal, id, debug, message);
     }
 
     /// <summary>
@@ -214,7 +216,7 @@ namespace ModMaker.Lua.Parser {
           _input.Read(depth + 2);
           retStr.Value = _input.ReadUntil(end);
           if (!retStr.Value.EndsWith(end)) {
-            throw SyntaxError(string.Format(Resources.UnexpectedEOF, "long string"));
+            throw SyntaxError(MessageId.UnexpectedEof);
           }
           retStr.Value = retStr.Value.Substring(0, retStr.Value.Length - end.Length)
               .Replace("\r\n", "\n");
@@ -242,7 +244,7 @@ namespace ModMaker.Lua.Parser {
         return _readString();
       }
 
-      throw SyntaxError("Invalid token");
+      throw SyntaxError(MessageId.UnknownToken);
     }
 
     /// <summary>
@@ -277,7 +279,7 @@ namespace ModMaker.Lua.Parser {
       debug.Value += read;
 
       if (endStr != null && !read.EndsWith(endStr)) {
-        throw SyntaxError(string.Format(Resources.MissingEnd, "long comment"), debug);
+        throw SyntaxError(MessageId.UnexpectedEof, debug);
       }
     }
 
@@ -299,9 +301,9 @@ namespace ModMaker.Lua.Parser {
       }
 
       if (ret.Value.Contains("\n")) {
-        throw SyntaxError("Cannot have newline in string.");
+        throw SyntaxError(MessageId.NewlineInStringLiteral);
       } else if (!ret.Value.EndsWith(end)) {
-        throw SyntaxError("Unexpected EOF in string.");
+        throw SyntaxError(MessageId.UnexpectedEof);
       }
 
       ret.Value = Regex.Replace(ret.Value, @"\\(x(\d\d)|(\d\d?\d?)|(z\s+)|.)", (match) => {
@@ -337,7 +339,7 @@ namespace ModMaker.Lua.Parser {
           case "v":
             return "\v";
           default:
-            throw SyntaxError(string.Format(Resources.InvalidEscape, val), ret);
+            throw SyntaxError(MessageId.InvalidEscapeInString, ret);
         }
       });
       ret.Value = ret.Value.Substring(0, ret.Value.Length - 1);
