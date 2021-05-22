@@ -45,10 +45,10 @@ namespace UnitTests.Parser {
     }
 
     void _checkSyntaxError(string input, Token token) {
-      var err = Assert.Throws<CompilerMessage>(() => _parseBlock(input));
+      var err = Assert.Throws<CompilerException>(() => _parseBlock(input));
       var debug = new DebugInfo(null, token.StartPos, token.StartLine,
                                 token.StartPos + token.Value.Length, token.StartLine);
-      Assert.AreEqual(debug, err.Debug);
+      Assert.AreEqual(debug, err.Errors[0].Debug);
     }
 
     #region DebugInfo
@@ -627,12 +627,23 @@ namespace UnitTests.Parser {
 
     [Test]
     public void Table_Errors() {
-      _checkSyntaxError("{x+1=1}", new Token(TokenType.BeginTable, "{", 1, 1));
+      _checkSyntaxError("{x+1=1}", new Token(TokenType.Identifier, "x", 2, 1));
       _checkSyntaxError("{[x=1}", new Token(TokenType.Assign, "=", 4, 1));
       _checkSyntaxError("{[x], 1}", new Token(TokenType.Comma, ",", 5, 1));
       _checkSyntaxError("{a,,b}", new Token(TokenType.Comma, ",", 4, 1));
       _checkSyntaxError("{a a}", new Token(TokenType.Identifier, "a", 4, 1));
       _checkSyntaxError("{a", new Token(TokenType.None, "", 3, 1));
+    }
+
+    [Test]
+    public void Table_MultipleErrors() {
+      var e = Assert.Throws<CompilerException>(() => _parseBlock("{1=2, 2=3}"));
+      Assert.AreEqual(3, e.Errors.Length);
+      Assert.AreEqual(MessageId.TableKeyMustBeName, e.Errors[0].ID);
+      Assert.AreEqual(2, e.Errors[0].Debug.StartPos);
+      Assert.AreEqual(MessageId.TableKeyMustBeName, e.Errors[1].ID);
+      Assert.AreEqual(7, e.Errors[1].Debug.StartPos);
+      Assert.AreEqual(MessageId.ExpectedStatementStart, e.Errors[2].ID);
     }
 
     #endregion

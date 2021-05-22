@@ -102,9 +102,9 @@ namespace ModMaker.Lua {
   }
 
   /// <summary>
-  /// An exception for errors, warnings, and info messages.
+  /// Describes errors, warnings, and info messages.
   /// </summary>
-  public sealed class CompilerMessage : Exception {
+  public sealed class CompilerMessage {
     /// <summary>
     /// Creates a new CompilerMessage with the given info.
     /// </summary>
@@ -112,11 +112,11 @@ namespace ModMaker.Lua {
     /// <param name="id">The ID of the message.</param>
     /// <param name="source">The source DebugInfo that caused the exception.</param>
     public CompilerMessage(MessageLevel level, MessageId id, DebugInfo source,
-                           string message = null)
-        : base(message ?? _defaultMessage(id)) {
+                           string message = null) {
       Debug = source;
       Level = level;
       ID = id;
+      Message = message ?? _defaultMessage(id);
     }
 
     static string _defaultMessage(MessageId id) {
@@ -155,5 +155,9 @@ namespace ModMaker.Lua {
     /// Gets the ID of the message.
     /// </summary>
     public MessageId ID { get; }
+    /// <summary>
+    /// Gets the text of the message.
+    /// </summary>
+    public string Message { get; }
   }
 }

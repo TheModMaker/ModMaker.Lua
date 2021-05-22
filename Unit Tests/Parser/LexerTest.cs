@@ -24,7 +24,7 @@ namespace UnitTests.Parser {
     static Lexer _createLexer(string str) {
       var encoding = Encoding.UTF8;
       var stream = new MemoryStream(encoding.GetBytes(str));
-      return new Lexer(stream, encoding, "Test");
+      return new Lexer(new CompilerMessageCollection(MessageLevel.Fatal), stream, encoding, "Test");
     }
 
     [Test]
@@ -98,8 +98,15 @@ end"
 
     [Test]
     public void StringErrorTest() {
-      Assert.Throws<CompilerMessage>(() => _createLexer("'foo\nbar'").Read());
-      Assert.Throws<CompilerMessage>(() => _createLexer("\"foo\nbar\"").Read());
+      Lexer lex = _createLexer("'foo\nbar'");
+      lex.Read();
+      Assert.AreEqual(1, lex.MakeException().Errors.Length);
+      Assert.AreEqual(MessageId.NewlineInStringLiteral, lex.MakeException().Errors[0].ID);
+
+      lex = _createLexer("\"foo\nbar\"");
+      lex.Read();
+      Assert.AreEqual(1, lex.MakeException().Errors.Length);
+      Assert.AreEqual(MessageId.NewlineInStringLiteral, lex.MakeException().Errors[0].ID);
     }
 
     [Test]
@@ -139,16 +146,16 @@ end"
       var tok2 = lexer.Expect(TokenType.Add);
       Assert.AreEqual(tok2.Value, "+");
 
-      Assert.Throws<CompilerMessage>(() => lexer.Expect(TokenType.Add));
-      Assert.Throws<CompilerMessage>(() => lexer.Expect(TokenType.Add));
-      Assert.Throws<CompilerMessage>(() => lexer.Expect(TokenType.Assign));
+      Assert.Throws<CompilerException>(() => lexer.Expect(TokenType.Add));
+      Assert.Throws<CompilerException>(() => lexer.Expect(TokenType.Add));
+      Assert.Throws<CompilerException>(() => lexer.Expect(TokenType.Assign));
 
       var tok3 = lexer.Expect(TokenType.Identifier);
       Assert.AreEqual(tok3.Value, "b");
 
       Assert.AreEqual(lexer.Read().Type, TokenType.None);  // EOF
-      Assert.Throws<CompilerMessage>(() => lexer.Expect(TokenType.Assign));
-      Assert.Throws<CompilerMessage>(() => lexer.Expect(TokenType.Equals));
+      Assert.Throws<CompilerException>(() => lexer.Expect(TokenType.Assign));
+      Assert.Throws<CompilerException>(() => lexer.Expect(TokenType.Equals));
     }
 
     [Test]
@@ -175,15 +182,21 @@ end"
       Token tok = _createLexer(@"'\'\""\\\n\a\b\f\r\t\v\x12\73\z    '").Read();
       Assert.AreEqual(tok.Value, "'\"\\\n\a\b\f\r\t\v\x12\x3b");
 
-      Assert.Throws<CompilerMessage>(() => _createLexer("'\\w'").Read());
-      Assert.Throws<CompilerMessage>(() => _createLexer("'\\q'").Read());
+      Lexer lex = _createLexer("'\\w'");
+      lex.Read();
+      Assert.AreEqual(1, lex.MakeException().Errors.Length);
+      Assert.AreEqual(MessageId.InvalidEscapeInString, lex.MakeException().Errors[0].ID);
+      lex = _createLexer("'\\q'");
+      lex.Read();
+      Assert.AreEqual(1, lex.MakeException().Errors.Length);
+      Assert.AreEqual(MessageId.InvalidEscapeInString, lex.MakeException().Errors[0].ID);
     }
 
     [Test]
     public void CommentErrorTest() {
-      Assert.Throws<CompilerMessage>(() => _createLexer("--[[ ").Read());
-      Assert.Throws<CompilerMessage>(() => _createLexer("--[[ ]").Read());
-      Assert.Throws<CompilerMessage>(() => _createLexer("--[[ ]=]").Read());
+      Assert.Throws<CompilerException>(() => _createLexer("--[[ ").Read());
+      Assert.Throws<CompilerException>(() => _createLexer("--[[ ]").Read());
+      Assert.Throws<CompilerException>(() => _createLexer("--[[ ]=]").Read());
     }
   }
 }

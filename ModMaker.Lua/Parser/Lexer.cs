@@ -90,6 +90,10 @@ namespace ModMaker.Lua.Parser {
     /// Contains the input to the lexer.
     /// </summary>
     readonly BufferedStringReader _input;
+    /// <summary>
+    /// Contains the messages for the parser/lexer.
+    /// </summary>
+    readonly CompilerMessageCollection _messages;
 
     /// <summary>
     /// Gets the name of the current file, used for throwing exceptions.
@@ -102,13 +106,14 @@ namespace ModMaker.Lua.Parser {
     /// <param name="input">Where to read input from.</param>
     /// <param name="name">The name of the input, used for debugging.</param>
     /// <exception cref="System.ArgumentNullException">If input is null.</exception>
-    public Lexer(Stream input, Encoding encoding, string name) {
+    public Lexer(CompilerMessageCollection messages, Stream input, Encoding encoding, string name) {
       if (input == null) {
         throw new ArgumentNullException(nameof(input));
       }
 
       _input = new BufferedStringReader(input, encoding);
       _peek = new Stack<Token>();
+      _messages = messages;
       Name = name;
     }
 
@@ -143,11 +148,12 @@ namespace ModMaker.Lua.Parser {
     public Token Expect(TokenType type) {
       Token read = Peek();
       if (read.Type == TokenType.None) {
-        throw SyntaxError(MessageId.UnexpectedEof, null, $"Unexpected EOF waiting for '{type}'");
+        SyntaxError(MessageId.UnexpectedEof, null, $"Unexpected EOF waiting for '{type}'");
+        throw MakeException();
       }
       if (read.Type != type) {
-        throw SyntaxError(MessageId.UnexpectedToken, read,
-                          $"Found '{read.Value}', expecting '{type}'.");
+        SyntaxError(MessageId.UnexpectedToken, read, $"Found '{read.Value}', expecting '{type}'.");
+        throw MakeException();
       }
       return Read();
     }
@@ -172,13 +178,12 @@ namespace ModMaker.Lua.Parser {
     }
 
     /// <summary>
-    /// Returns a syntax error object at the current position.
+    /// Adds a new syntax error to the message collection.
     /// </summary>
     /// <param name="id">The message ID to use.</param>
     /// <param name="token">An optional token object to replace the current token.</param>
     /// <param name="message">The message of the error.</param>
-    /// <returns>A new CompilerMessage object.</returns>
-    public CompilerMessage SyntaxError(MessageId id, Token? token = null, string message = null) {
+    public void SyntaxError(MessageId id, Token? token = null, string message = null) {
       if (token == null && _peek.Count > 0) {
         token = _peek.Peek();
       }
@@ -186,7 +191,13 @@ namespace ModMaker.Lua.Parser {
       DebugInfo debug = new DebugInfo(Name, token.Value.StartPos, token.Value.StartLine,
                                       token.Value.StartPos + token.Value.Value.Length,
                                       token.Value.StartLine);
-      return new CompilerMessage(MessageLevel.Fatal, id, debug, message);
+      _messages.Add(new CompilerMessage(MessageLevel.Fatal, id, debug, message));
+    }
+    /// <summary>
+    /// Creates a CompilerException based on the current error messages.
+    /// </summary>
+    public CompilerException MakeException() {
+      return _messages.MakeException();
     }
 
     /// <summary>
@@ -216,7 +227,8 @@ namespace ModMaker.Lua.Parser {
           _input.Read(depth + 2);
           retStr.Value = _input.ReadUntil(end);
           if (!retStr.Value.EndsWith(end)) {
-            throw SyntaxError(MessageId.UnexpectedEof);
+            SyntaxError(MessageId.UnexpectedEof);
+            throw MakeException();
           }
           retStr.Value = retStr.Value.Substring(0, retStr.Value.Length - end.Length)
               .Replace("\r\n", "\n");
@@ -244,7 +256,8 @@ namespace ModMaker.Lua.Parser {
         return _readString();
       }
 
-      throw SyntaxError(MessageId.UnknownToken);
+      SyntaxError(MessageId.UnknownToken);
+      throw MakeException();
     }
 
     /// <summary>
@@ -279,7 +292,8 @@ namespace ModMaker.Lua.Parser {
       debug.Value += read;
 
       if (endStr != null && !read.EndsWith(endStr)) {
-        throw SyntaxError(MessageId.UnexpectedEof, debug);
+        SyntaxError(MessageId.UnexpectedEof, debug);
+        throw MakeException();
       }
     }
 
@@ -301,9 +315,9 @@ namespace ModMaker.Lua.Parser {
       }
 
       if (ret.Value.Contains("\n")) {
-        throw SyntaxError(MessageId.NewlineInStringLiteral);
+        SyntaxError(MessageId.NewlineInStringLiteral);
       } else if (!ret.Value.EndsWith(end)) {
-        throw SyntaxError(MessageId.UnexpectedEof);
+        SyntaxError(MessageId.UnexpectedEof);
       }
 
       ret.Value = Regex.Replace(ret.Value, @"\\(x(\d\d)|(\d\d?\d?)|(z\s+)|.)", (match) => {
@@ -339,7 +353,8 @@ namespace ModMaker.Lua.Parser {
           case "v":
             return "\v";
           default:
-            throw SyntaxError(MessageId.InvalidEscapeInString, ret);
+            SyntaxError(MessageId.InvalidEscapeInString, ret);
+            return "\\" + val;
         }
       });
       ret.Value = ret.Value.Substring(0, ret.Value.Length - 1);
