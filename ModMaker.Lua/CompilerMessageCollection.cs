@@ -22,7 +22,7 @@ namespace ModMaker.Lua {
   /// </summary>
   public sealed class CompilerMessageCollection : List<CompilerMessage> {
     public CompilerMessageCollection(MessageLevel errorLevel) {
-      ErrorLevel = errorLevel < MessageLevel.Fatal ? MessageLevel.Fatal : errorLevel;
+      ErrorLevel = errorLevel < MessageLevel.Error ? MessageLevel.Error : errorLevel;
     }
 
     /// <summary>

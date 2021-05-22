@@ -24,7 +24,7 @@ namespace UnitTests.Parser {
     static Lexer _createLexer(string str) {
       var encoding = Encoding.UTF8;
       var stream = new MemoryStream(encoding.GetBytes(str));
-      return new Lexer(new CompilerMessageCollection(MessageLevel.Fatal), stream, encoding, "Test");
+      return new Lexer(new CompilerMessageCollection(MessageLevel.Error), stream, encoding, "Test");
     }
 
     [Test]

@@ -274,7 +274,7 @@ namespace ModMaker.Lua.Compiler {
                (item.Name == "<break>" || root.Passable) &&
                (root = root.Parent) != null);
 
-      var msg =  new CompilerMessage(MessageLevel.Fatal, MessageId.LabelNotFound, item.Debug,
+      var msg =  new CompilerMessage(MessageLevel.Error, MessageId.LabelNotFound, item.Debug,
                                      $"Label '{item.Name}' for goto wasn't found");
       throw new CompilerException(new[] { msg });
     }

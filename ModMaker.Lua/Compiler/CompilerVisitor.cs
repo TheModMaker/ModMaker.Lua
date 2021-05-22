@@ -535,13 +535,13 @@ namespace ModMaker.Lua.Compiler {
         // Local function definition
         // TODO: Allow returning multiple errors.
         if (target.InstanceName != null) {
-          var msg =  new CompilerMessage(MessageLevel.Fatal, MessageId.LocalInstanceName,
+          var msg =  new CompilerMessage(MessageLevel.Error, MessageId.LocalInstanceName,
                                          target.Debug);
           throw new CompilerException(new[] {  msg });
         }
 
         if (!(target.Prefix is NameItem)) {
-          var msg =  new CompilerMessage(MessageLevel.Fatal, MessageId.LocalMethodIndexer,
+          var msg =  new CompilerMessage(MessageLevel.Error, MessageId.LocalMethodIndexer,
                                          target.Debug);
           throw new CompilerException(new[] { msg });
         }

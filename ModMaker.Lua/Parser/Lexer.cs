@@ -191,7 +191,7 @@ namespace ModMaker.Lua.Parser {
       DebugInfo debug = new DebugInfo(Name, token.Value.StartPos, token.Value.StartLine,
                                       token.Value.StartPos + token.Value.Value.Length,
                                       token.Value.StartLine);
-      _messages.Add(new CompilerMessage(MessageLevel.Fatal, id, debug, message));
+      _messages.Add(new CompilerMessage(MessageLevel.Error, id, debug, message));
     }
     /// <summary>
     /// Creates a CompilerException based on the current error messages.

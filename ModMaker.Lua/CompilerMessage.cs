@@ -20,22 +20,17 @@ namespace ModMaker.Lua {
     /// <summary>
     /// A fatal error; this cannot be ignored.  For example, invalid Lua syntax.
     /// </summary>
-    Fatal = 1,
-    /// <summary>
-    /// A non-fatal error; this can be ignored, but may result in undefined behavior.  For example,
-    /// an invalid goto target.
-    /// </summary>
-    Error = 2,
+    Error = 1,
     /// <summary>
     /// A warning message; the program may behave unexpectedly, but is valid.  For example, trying
     /// to add invalid literal types.
     /// </summary>
-    Warning = 3,
+    Warning = 2,
     /// <summary>
     /// An info message; the program will behave normally, but may be inefficient or may behave
     /// oddly.  For example, replacing built-in library methods.
     /// </summary>
-    Info = 4,
+    Info = 3,
   }
 
   public enum MessageId : int {
