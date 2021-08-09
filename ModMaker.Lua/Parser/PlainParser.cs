@@ -56,11 +56,16 @@ namespace ModMaker.Lua.Parser {
     }
 
     public IParseItem Parse(Stream input, Encoding encoding, string name) {
+      return ParseCommon(new BufferedStringReader(input, encoding), name);
+    }
+
+    public IParseItem Parse(string input, string name) {
+      return ParseCommon(new BufferedStringReader(input), name);
+    }
+
+    public IParseItem ParseCommon(BufferedStringReader input, string name) {
       var messages = new CompilerMessageCollection(MessageLevel.Error);
-      var lexer = new Lexer(messages, input, encoding, name);
-      if (input == null) {
-        throw new ArgumentNullException(nameof(input));
-      }
+      var lexer = new Lexer(messages, input, name);
 
       // parse the chunk
       IParseItem read = _readBlock(lexer);
@@ -71,27 +76,6 @@ namespace ModMaker.Lua.Parser {
       if (messages.ShouldThrow())
         throw messages.MakeException();
       return read;
-    }
-
-    /// <summary>
-    /// Parses the given string dump using the given parser.
-    /// </summary>
-    /// <param name="parser">The parser to use to parse the code.</param>
-    /// <param name="dump">The string dump of the Lua code.</param>
-    /// <param name="name">The name of the input, used for debugging.</param>
-    /// <returns>The parses IParseItem tree.</returns>
-    /// <exception cref="System.ArgumentNullException">If parser or dump is null.</exception>
-    public static IParseItem Parse(IParser parser, string dump, string name) {
-      if (parser == null) {
-        throw new ArgumentNullException(nameof(parser));
-      }
-      if (dump == null) {
-        throw new ArgumentNullException(nameof(dump));
-      }
-
-      var encoding = Encoding.UTF8;
-      var stream = new MemoryStream(encoding.GetBytes(dump));
-      return parser.Parse(stream, encoding, name);
     }
 
     #region Read Functions

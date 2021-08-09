@@ -18,6 +18,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// This reads from an input Stream and outputs strings from it.  This maintains an internal
@@ -27,23 +29,20 @@ namespace ModMaker.Lua.Parser {
   /// All sizes are given as number of displayed characters, i.e. a grapheme.
   /// </summary>
   public class BufferedStringReader {
-    /// <summary>
-    /// The size of the reads that happen.
-    /// </summary>
-    const int _readSize = 1024 * 32;
-    readonly Stream _source;
-    readonly Decoder _decoder;
+    readonly byte[] _tempBuffer = new byte[1024 * 32];
+    readonly Stream? _source;
+    readonly Decoder? _decoder;
     string _buffer;
-    int _bufferPos;
+    int _bufferPos = 0;
 
     /// <summary>
     /// Gets the column offset of the current position.
     /// </summary>
-    public int Column { get; private set; }
+    public int Column { get; private set; } = 1;
     /// <summary>
     /// Gets the line number of the current position.
     /// </summary>
-    public int Line { get; private set; }
+    public int Line { get; private set; } = 1;
 
     /// <summary>
     /// Creates a new reader that reads from the given stream.
@@ -53,12 +52,9 @@ namespace ModMaker.Lua.Parser {
     /// The encoding to use when reading.  If null, this will auto-detect based on byte-order-marks,
     /// or default to UTF8.
     /// </param>
-    public BufferedStringReader(Stream stream, Encoding encoding) {
+    public BufferedStringReader(Stream stream, Encoding? encoding) {
       _source = stream;
       _buffer = "";
-      _bufferPos = 0;
-      Column = 1;
-      Line = 1;
 
       if (encoding == null) {
         byte[] buffer;
@@ -72,6 +68,15 @@ namespace ModMaker.Lua.Parser {
       } else {
         _decoder = encoding.GetDecoder();
       }
+    }
+    /// <summary>
+    /// Creates a new reader that reads from the given string.
+    /// </summary>
+    /// <param name="input">The string to read from.</param>
+    public BufferedStringReader(string input) {
+      _source = null;
+      _decoder = null;
+      _buffer = input;
     }
 
     /// <summary>
@@ -167,10 +172,10 @@ namespace ModMaker.Lua.Parser {
     /// <param name="offset">Will contain the offset in the buffer to start at.</param>
     /// <param name="length">Will contain the number bytes read.</param>
     /// <returns>The detected encoding, or null.</returns>
-    Encoding _detectEncoding(Stream source, out byte[] buffer, out int offset, out int length) {
+    Encoding? _detectEncoding(Stream source, out byte[] buffer, out int offset, out int length) {
       // Order by length so if the source matches multiple, we use the longer.  For example, UTF32
       // has the same first two bytes as UTF16, so if it matches, we want to assume UTF32.
-      Predicate<byte[]> empty = (arr) => arr == null || arr.Length == 0;
+      static bool empty(byte[] arr) => arr == null || arr.Length == 0;
       Encoding[] encodings = Encoding.GetEncodings()
           .Select((info) => info.GetEncoding())
           .Where((e) => !empty(e.GetPreamble()))
@@ -218,11 +223,14 @@ namespace ModMaker.Lua.Parser {
     /// </summary>
     /// <returns>True if something was read, false if at EOF.</returns>
     bool _extendBuffer() {
-      byte[] buffer = new byte[_readSize];
-      int bytesRead = _source.Read(buffer, 0, _readSize);
-      int charCount = _decoder.GetCharCount(buffer, 0, bytesRead);
+      if (_source == null || _decoder == null) {
+        return false;
+      }
+
+      int bytesRead = _source.Read(_tempBuffer, 0, _tempBuffer.Length);
+      int charCount = _decoder.GetCharCount(_tempBuffer, 0, bytesRead);
       char[] chars = new char[charCount];
-      int charsRead = _decoder.GetChars(buffer, 0, bytesRead, chars, 0);
+      int charsRead = _decoder.GetChars(_tempBuffer, 0, bytesRead, chars, 0);
 
       _buffer = _buffer.Substring(_bufferPos) + new string(chars, 0, charsRead);
       _bufferPos = 0;

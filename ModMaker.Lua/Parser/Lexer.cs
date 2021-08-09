@@ -14,8 +14,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace ModMaker.Lua.Parser {
@@ -106,12 +104,12 @@ namespace ModMaker.Lua.Parser {
     /// <param name="input">Where to read input from.</param>
     /// <param name="name">The name of the input, used for debugging.</param>
     /// <exception cref="System.ArgumentNullException">If input is null.</exception>
-    public Lexer(CompilerMessageCollection messages, Stream input, Encoding encoding, string name) {
+    public Lexer(CompilerMessageCollection messages, BufferedStringReader input, string name) {
       if (input == null) {
         throw new ArgumentNullException(nameof(input));
       }
 
-      _input = new BufferedStringReader(input, encoding);
+      _input = input;
       _peek = new Stack<Token>();
       _messages = messages;
       Name = name;

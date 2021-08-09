@@ -163,9 +163,8 @@ namespace ModMaker.Lua {
     /// <param name="name">The name to give the chunk.</param>
     /// <returns>The loaded chunk.</returns>
     public ILuaValue CompileText(string chunk, string? name = null) {
-      return Environment.CodeCompiler.Compile(Environment,
-                                              PlainParser.Parse(Environment.Parser, chunk, name),
-                                              name);
+      return Environment.CodeCompiler.Compile(
+          Environment, Environment.Parser.Parse(chunk, name), name);
     }
   }
 }

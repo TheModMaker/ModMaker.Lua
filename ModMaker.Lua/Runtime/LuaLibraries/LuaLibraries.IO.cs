@@ -576,8 +576,7 @@ namespace ModMaker.Lua.Runtime {
           }
 
           string chunk = File.ReadAllText(file);
-          var parsed = PlainParser.Parse(_environment.Parser, chunk,
-                                         Path.GetFileNameWithoutExtension(file));
+          var parsed = _environment.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
           var r = _environment.CodeCompiler.Compile(_environment, parsed, null);
           return r.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
         }
@@ -614,7 +613,7 @@ namespace ModMaker.Lua.Runtime {
           }
 
           try {
-            var parsed = PlainParser.Parse(_environment.Parser, chunk, null);
+            var parsed = _environment.Parser.Parse(chunk, null);
             return new LuaMultiValue(_environment.CodeCompiler.Compile(_environment, parsed, null));
           } catch (Exception e) {
             return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);
@@ -650,8 +649,7 @@ namespace ModMaker.Lua.Runtime {
 
           string chunk = File.ReadAllText(file);
           try {
-            var parsed = PlainParser.Parse(_environment.Parser, chunk,
-                                           Path.GetFileNameWithoutExtension(file));
+            var parsed = _environment.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
             return new LuaMultiValue(_environment.CodeCompiler.Compile(_environment, parsed, null));
           } catch (Exception e) {
             return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);

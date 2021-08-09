@@ -22,9 +22,8 @@ namespace UnitTests.Parser {
   [TestFixture]
   public class LexerTest {
     static Lexer _createLexer(string str) {
-      var encoding = Encoding.UTF8;
-      var stream = new MemoryStream(encoding.GetBytes(str));
-      return new Lexer(new CompilerMessageCollection(MessageLevel.Error), stream, encoding, "Test");
+      return new Lexer(new CompilerMessageCollection(MessageLevel.Error),
+                       new BufferedStringReader(str), "Test");
     }
 
     [Test]
