@@ -69,7 +69,7 @@ namespace ModMaker.Lua {
         static bool isNullableParam(ParameterInfo p) {
           // TODO: Parse nullable reference type metadata:
           // https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
           if (p.IsDefined(typeof(NotNullAttribute)))
             return false;
 #endif

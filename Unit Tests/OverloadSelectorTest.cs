@@ -62,7 +62,7 @@ namespace UnitTests {
     }
 
     delegate void TestDelegate(ref int x);
-#if NETCOREAPP3_1
+#if NETCOREAPP3_1_OR_GREATER
     static void _withNotNull([NotNull] object _) { }
 #endif
     static void _withParams(params string[] _) { }
