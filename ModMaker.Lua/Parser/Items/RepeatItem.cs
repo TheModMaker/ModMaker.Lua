@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+#nullable enable
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -54,10 +54,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo UntilDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

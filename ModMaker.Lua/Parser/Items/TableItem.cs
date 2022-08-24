@@ -15,6 +15,8 @@
 using System;
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a table definition expression.
@@ -23,7 +25,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new TableItem with no entries.
     /// </summary>
-    public TableItem() : this(new KeyValuePair<IParseExp, IParseExp>[0]) { }
+    public TableItem() : this(Array.Empty<KeyValuePair<IParseExp, IParseExp>>()) { }
 
     /// <summary>
     /// Creates a new instance of TableItem.
@@ -40,10 +42,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

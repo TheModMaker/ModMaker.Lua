@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
+#nullable enable
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -27,9 +25,8 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="name">The name of the class.</param>
     /// <param name="implements">The types that it implements.</param>
     public ClassDefItem(string name, string[] implements) {
-      implements ??= new string[0];
       Name = name;
-      Implements = new List<string>(implements.Where(s => !string.IsNullOrEmpty(s)));
+      Implements = implements;
     }
 
     /// <summary>
@@ -39,15 +36,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets the types that this class implements.
     /// </summary>
-    public IList<string> Implements { get; private set; }
+    public string[] Implements { get; set; }
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a block of code.
@@ -22,7 +24,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new empty BlockItem.
     /// </summary>
-    public BlockItem() : this(new IParseStatement[0]) { }
+    public BlockItem() : this(Array.Empty<IParseStatement>()) { }
     /// <summary>
     /// Creates a new BlockItem with the given return values.
     /// </summary>
@@ -38,15 +40,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the return statement of the block, can be null.
     /// </summary>
-    public ReturnItem Return { get; set; } = null;
+    public ReturnItem? Return { get; set; } = null;
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

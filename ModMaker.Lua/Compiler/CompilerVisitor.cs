@@ -122,7 +122,7 @@ namespace ModMaker.Lua.Compiler {
       _compiler.MarkSequencePoint(target.Debug);
 
       // string[] loc = new string[{implements.Count}];
-      LocalBuilder loc = _compiler.CreateArray(typeof(string), target.Implements.Count);
+      LocalBuilder loc = _compiler.CreateArray(typeof(string), target.Implements.Length);
 
       int i = 0;
       foreach (var item in target.Implements) {

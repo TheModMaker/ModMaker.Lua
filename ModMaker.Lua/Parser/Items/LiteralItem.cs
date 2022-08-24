@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a literal.
@@ -23,7 +25,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Creates a new LiteralItem with the given value.
     /// </summary>
     /// <param name="item">The value of this literal.</param>
-    public LiteralItem(object item) {
+    public LiteralItem(object? item) {
       if (!(item is bool || item is double || item is string || item is null)) {
         throw new InvalidOperationException(Resources.InvalidLiteralType);
       }
@@ -34,15 +36,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the value of this literal.
     /// </summary>
-    public object Value { get; set; }
+    public object? Value { get; set; }
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

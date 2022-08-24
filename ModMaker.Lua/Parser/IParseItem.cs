@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// A code item that has been parsed into a tree.  This represents a single item such as an if

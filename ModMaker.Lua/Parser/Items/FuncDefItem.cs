@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a function definition.
@@ -42,7 +44,7 @@ namespace ModMaker.Lua.Parser.Items {
       /// Gets or sets an array of the local variables defined in this function that are captured by
       /// nested  functions.
       /// </summary>
-      public NameItem[] CapturedLocals { get; set; } = new NameItem[0];
+      public NameItem[] CapturedLocals { get; set; } = Array.Empty<NameItem>();
     }
 
     /// <summary>
@@ -70,23 +72,19 @@ namespace ModMaker.Lua.Parser.Items {
     /// Gets or sets the prefix expression for this function definition, must be a NameItem or an
     /// IndexerItem.
     /// </summary>
-    public IParseVariable Prefix { get; set; } = null;
+    public IParseVariable? Prefix { get; set; } = null;
     /// <summary>
     /// Gets or sets the name if the instance method or null if this isn't an instance method.
     /// </summary>
-    public string InstanceName { get; set; } = null;
+    public string? InstanceName { get; set; } = null;
     /// <summary>
     /// Gets or sets information about the function. To get this information, use GetInfoVisitor.
     /// </summary>
-    public FunctionInfo FunctionInformation { get; set; } = null;
+    public FunctionInfo? FunctionInformation { get; set; } = null;
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

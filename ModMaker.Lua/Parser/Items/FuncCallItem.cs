@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a function call expression or statement.
@@ -44,22 +46,14 @@ namespace ModMaker.Lua.Parser.Items {
     }
 
     /// <inheritdoc cref="FuncCallItem(IParseExp, ArgumentInfo[])"/>
-    public FuncCallItem(IParseExp prefix) : this(prefix, new ArgumentInfo[0]) { }
+    public FuncCallItem(IParseExp prefix) : this(prefix, Array.Empty<ArgumentInfo>()) { }
 
     /// <summary>
     /// Creates a new instance of FuncCallItem with the given state.
     /// </summary>
     /// <param name="prefix">The prefix expression that defines the call.</param>
     /// <param name="args">The arguments to call with.</param>
-    /// <exception cref="System.ArgumentException">
-    /// If prefix is not an expression or prefix-expression.
-    /// </exception>
-    /// <exception cref="System.ArgumentNullException">If prefix is null.</exception>
     public FuncCallItem(IParseExp prefix, ArgumentInfo[] args) {
-      if (prefix == null) {
-        throw new ArgumentNullException(nameof(prefix));
-      }
-
       Arguments = args;
       Prefix = prefix;
     }
@@ -91,15 +85,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the instance name of the call or null if not an instance call.
     /// </summary>
-    public string InstanceName { get; set; } = null;
+    public string? InstanceName { get; set; } = null;
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

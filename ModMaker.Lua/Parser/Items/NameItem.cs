@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Diagnostics;
+
+#nullable enable
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -37,18 +38,14 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
 
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       return obj is NameItem name && Equals(name.Name, Name);
     }
     public override int GetHashCode() {
-      return (Name ?? "").GetHashCode();
+      return Name.GetHashCode();
     }
   }
 }

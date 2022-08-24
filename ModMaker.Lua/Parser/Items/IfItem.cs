@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that is a conditional statement.  It contains a main block, an optional
@@ -49,8 +51,9 @@ namespace ModMaker.Lua.Parser.Items {
       public DebugInfo Debug { get; }
     }
 
-    public IfItem(IParseExp exp, BlockItem block) : this(exp, block, new ElseInfo[0], null) { }
-    public IfItem(IParseExp exp, BlockItem block, ElseInfo[] elses, BlockItem elseBlock = null) {
+    public IfItem(IParseExp exp, BlockItem block)
+        : this(exp, block, Array.Empty<ElseInfo>(), null) { }
+    public IfItem(IParseExp exp, BlockItem block, ElseInfo[] elses, BlockItem? elseBlock = null) {
       Expression = exp;
       Block = block;
       Elses = elses;
@@ -73,7 +76,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// The else block to execute if none are true.
     /// </summary>
-    public BlockItem ElseBlock { get; set; }
+    public BlockItem? ElseBlock { get; set; }
 
     /// <summary>
     /// Contains the DebugInfo for the whole block.
@@ -93,10 +96,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo EndDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

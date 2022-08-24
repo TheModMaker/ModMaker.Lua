@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines the type of a binary expression.
@@ -92,9 +94,6 @@ namespace ModMaker.Lua.Parser.Items {
   /// e.g. a + b.
   /// </summary>
   public sealed class BinOpItem : IParseExp {
-    IParseExp _lhs;
-    IParseExp _rhs;
-
     /// <summary>
     /// Creates a new instance with the given state.
     /// </summary>
@@ -103,47 +102,19 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="type">The type of the expression.</param>
     /// <exception cref="System.ArgumentNullException">If lhs is null.</exception>
     public BinOpItem(IParseExp lhs, BinaryOperationType type, IParseExp rhs) {
-      if (lhs == null) {
-        throw new ArgumentNullException(nameof(lhs));
-      }
-
-      if (rhs == null) {
-        throw new ArgumentNullException(nameof(rhs));
-      }
-
-      _lhs = lhs;
-      _rhs = rhs;
+      Lhs = lhs;
+      Rhs = rhs;
       OperationType = type;
     }
 
     /// <summary>
     /// Gets or sets the left-hand-side of the expression.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Lhs {
-      get { return _lhs; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _lhs = value;
-      }
-    }
+    public IParseExp Lhs { get; set; }
     /// <summary>
     /// Gets or sets the right-hand-side of the expression.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to null.</exception>
-    public IParseExp Rhs {
-      get { return _rhs; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _rhs = value;
-      }
-    }
+    public IParseExp Rhs {get;set; }
     /// <summary>
     /// Gets or sets the type of the operation, e.g. addition.
     /// </summary>
@@ -152,10 +123,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

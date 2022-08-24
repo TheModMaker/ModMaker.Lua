@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+#nullable enable
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -23,12 +23,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// Creates a new GotoItem with the given name.
     /// </summary>
     /// <param name="label">The name of the target label.</param>
-    /// <exception cref="System.ArgumentNullException">If label is null.</exception>
     public GotoItem(string label) {
-      if (label == null) {
-        throw new ArgumentNullException(nameof(label));
-      }
-
       Name = label;
     }
 
@@ -39,15 +34,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the destination of the goto.
     /// </summary>
-    public LabelItem Target { get; set; } = null;
+    public LabelItem? Target { get; set; } = null;
 
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

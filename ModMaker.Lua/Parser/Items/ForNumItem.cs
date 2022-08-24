@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
+#nullable enable
 
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
@@ -28,20 +28,8 @@ namespace ModMaker.Lua.Parser.Items {
     /// <param name="start">The item that defines the start of the loop.</param>
     /// <param name="step">The item that defines the step of the loop.</param>
     /// <exception cref="System.ArgumentNullException">If name, start, or limit is null.</exception>
-    public ForNumItem(NameItem name, IParseExp start, IParseExp limit, IParseExp step,
+    public ForNumItem(NameItem name, IParseExp start, IParseExp limit, IParseExp? step,
                       BlockItem block) {
-      if (name == null) {
-        throw new ArgumentNullException(nameof(name));
-      }
-
-      if (start == null) {
-        throw new ArgumentNullException(nameof(start));
-      }
-
-      if (limit == null) {
-        throw new ArgumentNullException(nameof(limit));
-      }
-
       Start = start;
       Limit = limit;
       Step = step;
@@ -66,7 +54,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the expression that determines the step of the loop.
     /// </summary>
-    public IParseExp Step { get; set; }
+    public IParseExp? Step { get; set; }
     /// <summary>
     /// Gets or sets the block of the for loop.
     /// </summary>
@@ -90,10 +78,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo EndDebug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }

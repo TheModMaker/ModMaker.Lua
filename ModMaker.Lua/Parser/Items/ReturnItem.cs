@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a return statement.
@@ -22,7 +24,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Creates a new instance of ReturnItem.
     /// </summary>
-    public ReturnItem() : this(new IParseExp[0]) { }
+    public ReturnItem() : this(Array.Empty<IParseExp>()) { }
     /// <summary>
     /// Creates a new instance of ReturnItem.
     /// </summary>
@@ -43,10 +45,6 @@ namespace ModMaker.Lua.Parser.Items {
     public DebugInfo Debug { get; set; }
 
     public IParseItem Accept(IParseItemVisitor visitor) {
-      if (visitor == null) {
-        throw new ArgumentNullException(nameof(visitor));
-      }
-
       return visitor.Visit(this);
     }
   }
