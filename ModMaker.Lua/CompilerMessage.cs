@@ -15,6 +15,8 @@
 using System;
 using ModMaker.Lua.Parser;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   public enum MessageLevel : byte {
     /// <summary>
@@ -107,7 +109,7 @@ namespace ModMaker.Lua {
     /// <param name="id">The ID of the message.</param>
     /// <param name="source">The source DebugInfo that caused the exception.</param>
     public CompilerMessage(MessageLevel level, MessageId id, DebugInfo source,
-                           string message = null) {
+                           string? message = null) {
       Debug = source;
       Level = level;
       ID = id;

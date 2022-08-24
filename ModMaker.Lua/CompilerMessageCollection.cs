@@ -15,6 +15,8 @@
 using System.Collections.Generic;
 using System.Linq;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   /// <summary>
   /// Contains a collection of CompilerMessage objects that have happened.  This also handles

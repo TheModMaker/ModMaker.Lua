@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// Defines possible types of tokens.
@@ -323,7 +325,7 @@ namespace ModMaker.Lua.Parser {
     /// true if the specified System.Object is equal to the current System.Object; otherwise,
     /// false.
     /// </returns>
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       Token? lhs = obj as Token?;
       return lhs.HasValue && lhs.Value == this;
     }

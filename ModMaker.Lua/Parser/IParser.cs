@@ -15,6 +15,8 @@
 using System.IO;
 using System.Text;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// This object is in charge of parsing input into an object tree.  This will take a Stream object
@@ -28,7 +30,7 @@ namespace ModMaker.Lua.Parser {
     /// <param name="encoding">The encoding that the stream uses.</param>
     /// <param name="name">The name of the chunk, used for exceptions.</param>
     /// <returns>The code as an IParseItem tree.</returns>
-    IParseItem Parse(Stream input, Encoding encoding, string name);
+    IParseItem Parse(Stream input, Encoding? encoding, string name);
     /// <summary>
     /// Parses the given Lua code into a IParseItem tree.
     /// </summary>

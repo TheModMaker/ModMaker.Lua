@@ -61,8 +61,9 @@ namespace ModMaker.Lua.Compiler {
 #endif
     }
 
-    public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string? name) {
-      name ??= "<>_func_" + (_tid++);
+    public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name) {
+      if (name.Length == 0)
+        name = "<>_func_" + (_tid++);
       if (_types.Contains(name)) {
         int i = 0;
         while (_types.Contains(name + i)) {

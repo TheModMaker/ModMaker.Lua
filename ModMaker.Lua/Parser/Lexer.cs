@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
+#nullable enable
+
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// Defines a lexer that accepts a TextElementEnumerator and produces a stream of token for use in
@@ -105,10 +107,6 @@ namespace ModMaker.Lua.Parser {
     /// <param name="name">The name of the input, used for debugging.</param>
     /// <exception cref="System.ArgumentNullException">If input is null.</exception>
     public Lexer(CompilerMessageCollection messages, BufferedStringReader input, string name) {
-      if (input == null) {
-        throw new ArgumentNullException(nameof(input));
-      }
-
       _input = input;
       _peek = new Stack<Token>();
       _messages = messages;
@@ -181,7 +179,7 @@ namespace ModMaker.Lua.Parser {
     /// <param name="id">The message ID to use.</param>
     /// <param name="token">An optional token object to replace the current token.</param>
     /// <param name="message">The message of the error.</param>
-    public void SyntaxError(MessageId id, Token? token = null, string message = null) {
+    public void SyntaxError(MessageId id, Token? token = null, string? message = null) {
       if (token == null && _peek.Count > 0) {
         token = _peek.Peek();
       }
@@ -275,7 +273,7 @@ namespace ModMaker.Lua.Parser {
 
       Token debug = new Token(TokenType.None, "", _input.Column, _input.Line);
       debug.Value += _input.Read(2);
-      string endStr = null;
+      string? endStr = null;
       if (_input.Peek(1) == "[") {
         debug.Value += _input.Read(1);
         string temp = _input.ReadWhile((ch) => ch == "=");
@@ -397,7 +395,7 @@ namespace ModMaker.Lua.Parser {
     /// </summary>
     /// <returns>The token that was read.</returns>
     protected virtual Token _readIdentifier() {
-      Predicate<string> isWord = (ch) => ch == "_" || char.IsLetterOrDigit(ch, 0);
+      static bool isWord(string ch) => ch == "_" || char.IsLetterOrDigit(ch, 0);
       Token ret = new Token(TokenType.None, "", _input.Column, _input.Line);
       ret.Value = _input.ReadWhile(isWord);
       if (!_tokens.TryGetValue(ret.Value, out ret.Type)) {

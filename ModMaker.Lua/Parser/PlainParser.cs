@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using ModMaker.Lua.Parser.Items;
+
+#nullable enable
 
 namespace ModMaker.Lua.Parser {
   /// <summary>
@@ -55,7 +56,7 @@ namespace ModMaker.Lua.Parser {
       _functions.Add(TokenType.While, _readWhile);
     }
 
-    public IParseItem Parse(Stream input, Encoding encoding, string name) {
+    public IParseItem Parse(Stream input, Encoding? encoding, string name) {
       return ParseCommon(new BufferedStringReader(input, encoding), name);
     }
 
@@ -242,7 +243,7 @@ namespace ModMaker.Lua.Parser {
         input.Expect(TokenType.Comma);
         IParseExp limit = _readExp(input, out _);
 
-        IParseExp step = null;
+        IParseExp? step = null;
         if (input.ReadIfType(TokenType.Comma)) {
           step = _readExp(input, out _);
         }
@@ -307,7 +308,7 @@ namespace ModMaker.Lua.Parser {
         elseIfs.Add(new IfItem.ElseInfo(elseExp, elseIfBlock, _makeDebug(input, elseIf, then)));
       }
 
-      BlockItem elseBlock = null;
+      BlockItem? elseBlock = null;
       Token elseToken = input.Peek();
       if (input.ReadIfType(TokenType.Else)) {
         elseBlock = _readBlock(input);
@@ -476,7 +477,7 @@ namespace ModMaker.Lua.Parser {
           var name = new LiteralItem(token.Value) { Debug = _makeDebug(input, token) };
           ret = new IndexerItem(ret, name) { Debug = _makeDebug(input, debug, token) };
         } else {
-          string instName = null;
+          string? instName = null;
           if (input.ReadIfType(TokenType.Colon)) {
             instName = input.Expect(TokenType.Identifier).Value;
           }
@@ -602,8 +603,8 @@ namespace ModMaker.Lua.Parser {
     protected virtual FuncDefItem _readFunctionHelper(Lexer input, bool canName, bool local) {
       Token debug = input.Expect(TokenType.Function);
 
-      IParseVariable name = null;
-      string instName = null;
+      IParseVariable? name = null;
+      string? instName = null;
       if (input.PeekType(TokenType.Identifier)) {
         Token temp = input.Expect(TokenType.Identifier);
         name = new NameItem(temp.Value) { Debug = _makeDebug(input, temp) };

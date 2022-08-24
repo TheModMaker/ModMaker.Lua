@@ -506,7 +506,7 @@ namespace ModMaker.Lua.Compiler {
           if (target.Prefix is NameItem nameItem) {
             name = nameItem.Name;
           } else {
-            name = (string)((LiteralItem)((IndexerItem)target.Prefix).Expression).Value;
+            name = (string?)((LiteralItem)((IndexerItem)target.Prefix).Expression).Value;
           }
 
           name += ":" + target.InstanceName;
@@ -519,7 +519,7 @@ namespace ModMaker.Lua.Compiler {
         } else if (target.Prefix is IndexerItem index) {
           // Global function definition with indexer
           // {Prefix}.SetIndex({Expression}, {ImplementFunction(..)})
-          name = (string)((LiteralItem)index.Expression).Value;
+          name = (string?)((LiteralItem)index.Expression).Value;
           index.Prefix.Accept(this);
           index.Expression.Accept(this);
           store = true;
@@ -617,7 +617,7 @@ namespace ModMaker.Lua.Compiler {
     }
     public IParseItem Visit(LiteralItem target) {
       ILGenerator gen = _compiler.CurrentGenerator;
-      object value = target.Value;
+      object? value = target.Value;
 
       if (value is null) {
         gen.Emit(OpCodes.Ldnull);

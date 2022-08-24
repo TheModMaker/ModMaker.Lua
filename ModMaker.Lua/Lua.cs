@@ -140,7 +140,7 @@ namespace ModMaker.Lua {
     /// guess; otherwise will fallback to UTF-8.
     /// </param>
     /// <returns>The loaded chunk.</returns>
-    public ILuaValue CompileFile(string path, string? name = null, Encoding? encoding = null) {
+    public ILuaValue CompileFile(string path, string name = "", Encoding? encoding = null) {
       using FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read);
       return CompileFile(fs, name ?? Path.GetFileName(path), encoding);
     }
@@ -154,7 +154,7 @@ namespace ModMaker.Lua {
     /// guess; otherwise will fallback to UTF-8.
     /// </param>
     /// <returns>The loaded chunk.</returns>
-    public ILuaValue CompileFile(Stream stream, string? name = null, Encoding? encoding = null) {
+    public ILuaValue CompileFile(Stream stream, string name = "", Encoding? encoding = null) {
       return Environment.CodeCompiler.Compile(
           Environment, Environment.Parser.Parse(stream, encoding ?? Settings.Encoding, name), name);
     }
@@ -164,7 +164,7 @@ namespace ModMaker.Lua {
     /// <param name="chunk">The Lua script to load from.</param>
     /// <param name="name">The name to give the chunk.</param>
     /// <returns>The loaded chunk.</returns>
-    public ILuaValue CompileText(string chunk, string? name = null) {
+    public ILuaValue CompileText(string chunk, string name = "") {
       return Environment.CodeCompiler.Compile(
           Environment, Environment.Parser.Parse(chunk, name), name);
     }

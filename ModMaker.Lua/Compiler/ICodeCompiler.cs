@@ -29,8 +29,8 @@ namespace ModMaker.Lua.Compiler {
     /// </summary>
     /// <param name="env">The current environment.</param>
     /// <param name="item">The item to compile.</param>
-    /// <param name="name">The name to given the module, can be null to auto-generate.</param>
+    /// <param name="name">The name to given the module, can be empty to auto-generate.</param>
     /// <returns>A compiled version of the object.</returns>
-    ILuaValue Compile(ILuaEnvironment env, IParseItem item, string? name);
+    ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name);
   }
 }
