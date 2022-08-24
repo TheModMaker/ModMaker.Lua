@@ -23,6 +23,8 @@ using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// Helps build a chunk by managing nested types and scopes.  Also generates some code to load
@@ -61,24 +63,24 @@ namespace ModMaker.Lua.Compiler {
       /// Gets the ILGenerator for this nest.  This generator belongs to the type of the parent nest
       /// but is only used for generating code for this nest.
       /// </summary>
-      public ILGenerator Generator { get; private set; }
+      public ILGenerator? Generator { get; private set; }
       /// <summary>
       /// Gets the type definition for this nested type.  It is created in the constructor.
       /// </summary>
-      public TypeBuilder TypeDef { get; private set; }
+      public TypeBuilder? TypeDef { get; private set; }
       /// <summary>
       /// Gets the parent nest object, is null for the root nest object.
       /// </summary>
-      public NestInfo Parent { get; private set; }
+      public NestInfo? Parent { get; private set; }
       /// <summary>
       /// Gets the field defined in this type that holds the parent instance.  This may not exist if
       /// the type does not capture any locals from the parent type.
       /// </summary>
-      public FieldBuilder ParentInst { get; private set; }
+      public FieldBuilder? ParentInst { get; private set; }
       /// <summary>
       /// Gets the local variable that holds an instance to this type.
       /// </summary>
-      public LocalBuilder ThisInst { get; private set; }
+      public LocalBuilder? ThisInst { get; private set; }
       /// <summary>
       /// Gets the local variable definitions for this nest.  These are the variables defined in the
       /// defining method.  The indices in the list are the scopes of the variables and the
@@ -110,16 +112,16 @@ namespace ModMaker.Lua.Compiler {
 
         if (createType) {
           // create the type and constructor.
-          TypeDef = parent.TypeDef.DefineNestedType(
+          TypeDef = parent.TypeDef!.DefineNestedType(
               "<>c__DisplayClass" + (_id++),
               TypeAttributes.NestedPublic | TypeAttributes.Sealed | TypeAttributes.BeforeFieldInit);
           var ctor = TypeDef.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard,
-                                               new Type[0]);
+                                               Array.Empty<Type>());
           var cgen = ctor.GetILGenerator();
 
           // base();
           cgen.Emit(OpCodes.Ldarg_0);
-          cgen.Emit(OpCodes.Call, typeof(object).GetConstructor(new Type[0]));
+          cgen.Emit(OpCodes.Call, typeof(object).GetConstructor(new Type[0])!);
           cgen.Emit(OpCodes.Ret);
 
           if (storeParent) {
@@ -139,7 +141,7 @@ namespace ModMaker.Lua.Compiler {
             // ThisInst.ParentInst = this;
             gen.Emit(OpCodes.Ldloc, ThisInst);
             gen.Emit(OpCodes.Ldarg_0);
-            gen.Emit(OpCodes.Stfld, ParentInst);
+            gen.Emit(OpCodes.Stfld, ParentInst!);
           }
         } else {
           TypeDef = null;
@@ -182,10 +184,10 @@ namespace ModMaker.Lua.Compiler {
       /// </summary>
       /// <param name="name">The Lua name of the variable.</param>
       /// <returns>A variable that will manipulate it's value or null if not found.</returns>
-      public IVarDefinition FindLocal(NameItem name) {
+      public IVarDefinition? FindLocal(NameItem name) {
         // The iterator will return in the order they would be pop'd.
         foreach (var item in Locals) {
-          if (item.TryGetValue(name.Name, out IVarDefinition ret)) {
+          if (item.TryGetValue(name.Name, out IVarDefinition? ret)) {
             return ret;
           }
         }
@@ -209,10 +211,10 @@ namespace ModMaker.Lua.Compiler {
           }
 
           Members.Add(mName);
-          var field = TypeDef.DefineField(mName, typeof(ILuaValue), FieldAttributes.Public);
-          return Locals.Peek()[name.Name] = new CapturedVarDef(Generator, ThisInst, field);
+          var field = TypeDef!.DefineField(mName, typeof(ILuaValue), FieldAttributes.Public);
+          return Locals.Peek()[name.Name] = new CapturedVarDef(Generator!, ThisInst!, field);
         } else {
-          var loc = Generator.DeclareLocal(typeof(ILuaValue));
+          var loc = Generator!.DeclareLocal(typeof(ILuaValue));
           return Locals.Peek()[name.Name] = new LocalVarDef(Generator, loc);
         }
       }
@@ -358,7 +360,7 @@ namespace ModMaker.Lua.Compiler {
     /// <summary>
     /// Gets the ILGenerator for the current function.
     /// </summary>
-    public ILGenerator CurrentGenerator { get { return _curNest.Generator; } }
+    public ILGenerator CurrentGenerator { get { return _curNest.Generator!; } }
 
     public void MarkSequencePoint(DebugInfo info) {
 #if NETFRAMEWORK
@@ -372,7 +374,6 @@ namespace ModMaker.Lua.Compiler {
       CurrentGenerator.MarkSequencePoint(_documents[info.Path], (int)info.StartLine,
                                          (int)info.StartPos, (int)info.EndLine, (int)info.EndPos);
 #endif
-
     }
 
     /// <summary>
@@ -389,7 +390,7 @@ namespace ModMaker.Lua.Compiler {
         _curNest.TypeDef.CreateType();
       }
 
-      Type t = _curNest.Parent.TypeDef.CreateType();
+      Type t = _curNest.Parent!.TypeDef!.CreateType()!;
       return new LuaGlobalFunction(e, t);
     }
     /// <summary>
@@ -410,7 +411,7 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="visitor">The current visitor object.</param>
     /// <param name="function">The function to generate for.</param>
     public void ImplementFunction(IParseItemVisitor visitor, FuncDefItem function,
-                                  string funcName) {
+                                  string? funcName) {
       NameItem[] args = function.Arguments.ToArray();
       if (function.InstanceName != null) {
         args = new[] { new NameItem("self") }.Concat(args).ToArray();
@@ -420,7 +421,7 @@ namespace ModMaker.Lua.Compiler {
       //                         bool memberCall);
       funcName ??= "<>__" + (_mid++);
       string name = _curNest.Members.Contains(funcName) ? funcName + "_" + (_mid++) : funcName;
-      MethodBuilder mb = _curNest.TypeDef.DefineMethod(
+      MethodBuilder mb = _curNest.TypeDef!.DefineMethod(
           name, MethodAttributes.Public, typeof(LuaMultiValue),
           new Type[] {
               typeof(ILuaEnvironment), typeof(LuaMultiValue), typeof(ILuaValue), typeof(bool)
@@ -506,15 +507,15 @@ namespace ModMaker.Lua.Compiler {
         _curNest.TypeDef.CreateType();
       }
 
-      _curNest = _curNest.Parent;
+      _curNest = _curNest.Parent!;
       // push a pointer to the new method onto the stack of the previous nest method
       //   the above line restores the nest to the previous state and this code will
       //   push the new method.
       //! push new LuaDefinedFunction({name}, {nest.TypeDef}.GetMethod({name}),
       //                              {nest.ThisInst != null ? nest.NestInst : this} );
-      _curNest.Generator.Emit(OpCodes.Ldarg_1);
+      _curNest.Generator!.Emit(OpCodes.Ldarg_1);
       _curNest.Generator.Emit(OpCodes.Ldstr, name);
-      _curNest.Generator.Emit(OpCodes.Ldtoken, _curNest.TypeDef);
+      _curNest.Generator.Emit(OpCodes.Ldtoken, _curNest.TypeDef!);
       _curNest.Generator.Emit(OpCodes.Call, ReflectionMembers.Type_.GetTypeFromHandle);
       _curNest.Generator.Emit(OpCodes.Ldstr, name);
       _curNest.Generator.Emit(OpCodes.Callvirt, ReflectionMembers.Type_.GetMethod);
@@ -553,7 +554,7 @@ namespace ModMaker.Lua.Compiler {
           return new CapturedParVarDef(CurrentGenerator, fields.ToArray());
         }
 
-        fields.Add(cur.ParentInst);
+        fields.Add(cur.ParentInst!);
         cur = cur.Parent;
       }
 

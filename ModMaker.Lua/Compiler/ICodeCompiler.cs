@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
+
+#nullable enable
 
 namespace ModMaker.Lua.Compiler {
   /// <summary>
@@ -26,10 +27,10 @@ namespace ModMaker.Lua.Compiler {
     /// Compiles an IParseItem tree into an IModule object so that it can
     /// be executed.
     /// </summary>
-    /// <param name="name">The name to given the module, can be null to auto-generate.</param>
     /// <param name="env">The current environment.</param>
     /// <param name="item">The item to compile.</param>
+    /// <param name="name">The name to given the module, can be null to auto-generate.</param>
     /// <returns>A compiled version of the object.</returns>
-    ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name);
+    ILuaValue Compile(ILuaEnvironment env, IParseItem item, string? name);
   }
 }

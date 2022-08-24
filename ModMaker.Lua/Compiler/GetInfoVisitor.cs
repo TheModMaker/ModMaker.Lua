@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Linq;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
+
+#nullable enable
 
 namespace ModMaker.Lua.Compiler {
   /// <summary>
@@ -24,51 +25,32 @@ namespace ModMaker.Lua.Compiler {
   /// compiler.
   /// </summary>
   public sealed class GetInfoVisitor : IParseItemVisitor {
-    GetInfoTree _tree;
+    readonly GetInfoTree _tree;
+    readonly FuncDefItem.FunctionInfo _info;
 
-    internal NameItem[] _globalCaptures;
-    internal bool _globalNested;
-
-    /// <summary>
-    /// Creates a new instance of GetInfoVisitor.
-    /// </summary>
-    public GetInfoVisitor() {
-      _tree = new GetInfoTree();
-    }
-
-    /// <summary>
-    /// Resolves all the labels and updates the information in the given IParseItem tree.
-    /// </summary>
-    /// <param name="target">The IParseItem tree to traverse.</param>
-    /// <exception cref="System.ArgumentNullException">If target is null.</exception>
-    public void Resolve(IParseItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
+    GetInfoVisitor(IParseItem target) {
       _tree = new GetInfoTree();
       target.Accept(this);
       _tree.Resolve();
+      _info = _tree.EndFunc();
+    }
 
-      var info = _tree.EndFunc();
-      _globalCaptures = info.CapturedLocals;
-      _globalNested = info.HasNested;
+    /// <summary>
+    /// This traverses the tree, resolves the lables, and updates the info in the item.
+    /// </summary>
+    /// <param name="target">The IParseItem tree to traverse.</param>
+    /// <returns>The function info describing the item.</returns>
+    public static FuncDefItem.FunctionInfo Resolve(IParseItem target) {
+      var visitor = new GetInfoVisitor(target);
+      return visitor._info;
     }
 
     public IParseItem Visit(BinOpItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Lhs.Accept(this);
       target.Rhs.Accept(this);
       return target;
     }
     public IParseItem Visit(BlockItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       using (_tree.Block(true)) {
         foreach (var item in target.Children) {
           item.Accept(this);
@@ -85,10 +67,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForGenItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       using (_tree.Block(true)) {
         _tree.DefineLocal(target.Names);
         _tree.DefineLabel(target.Break);
@@ -102,10 +80,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForNumItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       using (_tree.Block(true)) {
         _tree.DefineLocal(new[] { target.Name });
         _tree.DefineLabel(target.Break);
@@ -126,10 +100,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(FuncCallItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       foreach (var item in target.Arguments) {
         item.Expression.Accept(this);
       }
@@ -139,12 +109,8 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(FuncDefItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       if (target.Local) {
-        _tree.DefineLocal(new[] { target.Prefix as NameItem });
+        _tree.DefineLocal(new[] { (NameItem)target.Prefix });
       }
 
       using (_tree.DefineFunc()) {
@@ -156,18 +122,10 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(GotoItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       _tree.DefineGoto(target);
       return target;
     }
     public IParseItem Visit(IfItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Expression.Accept(this);
 
       using (_tree.Block(true)) {
@@ -190,20 +148,12 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(IndexerItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Prefix.Accept(this);
       target.Expression.Accept(this);
 
       return target;
     }
     public IParseItem Visit(LabelItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       _tree.DefineLabel(target);
 
       return target;
@@ -213,19 +163,11 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(NameItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       _tree.GetName(target);
 
       return target;
     }
     public IParseItem Visit(RepeatItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Expression.Accept(this);
 
       using (_tree.Block(true)) {
@@ -236,10 +178,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ReturnItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       foreach (var item in target.Expressions) {
         item.Accept(this);
       }
@@ -247,10 +185,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(TableItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       foreach (var item in target.Fields) {
         item.Key.Accept(this);
         item.Value.Accept(this);
@@ -259,21 +193,13 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(UnOpItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Target.Accept(this);
 
       return target;
     }
     public IParseItem Visit(AssignmentItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       if (target.Local) {
-        _tree.DefineLocal(target.Names.Select(i => i as NameItem));
+        _tree.DefineLocal(target.Names.Cast<NameItem>());
       } else {
         foreach (var item in target.Names) {
           item.Accept(this);
@@ -287,10 +213,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(WhileItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       target.Expression.Accept(this);
 
       using (_tree.Block(true)) {

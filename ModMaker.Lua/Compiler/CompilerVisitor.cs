@@ -13,14 +13,14 @@
 // limitations under the License.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Reflection.Emit;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
+
+#nullable enable
 
 namespace ModMaker.Lua.Compiler {
   /// <summary>
@@ -61,10 +61,6 @@ namespace ModMaker.Lua.Compiler {
     }
 
     public IParseItem Visit(BinOpItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
 
       if (target.OperationType == BinaryOperationType.And ||
@@ -107,10 +103,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(BlockItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       using (_compiler.LocalBlock()) {
         foreach (IParseItem child in target.Children) {
           child.Accept(this);
@@ -126,10 +118,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ClassDefItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       _compiler.MarkSequencePoint(target.Debug);
 
@@ -156,10 +144,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForGenItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
 
       if (!_labels.ContainsKey(target.Break))
@@ -254,10 +238,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForNumItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
 
       if (!_labels.ContainsKey(target.Break))
@@ -394,10 +374,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(FuncCallItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       //// load the args into an array.
       ILGenerator gen = _compiler.CurrentGenerator;
       LocalBuilder f = _compiler.CreateTemporary(typeof(ILuaValue));
@@ -499,13 +475,9 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(FuncDefItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       var gen = _compiler.CurrentGenerator;
-      ChunkBuilder.IVarDefinition field = null;
-      string name = null;
+      ChunkBuilder.IVarDefinition? field = null;
+      string? name = null;
       bool store = false;
       _compiler.MarkSequencePoint(target.Debug);
 
@@ -531,7 +503,6 @@ namespace ModMaker.Lua.Compiler {
       } else if (target.Prefix != null) {
         if (target.InstanceName != null) {
           // Instance function definition
-          name = null;
           if (target.Prefix is NameItem nameItem) {
             name = nameItem.Name;
           } else {
@@ -571,10 +542,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(GotoItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       if (target.Target == null) {
         throw new InvalidOperationException(Resources.ErrorResolveLabel);
       }
@@ -585,10 +552,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(IfItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       Label next = gen.DefineLabel();
       Label end = gen.DefineLabel();
@@ -637,10 +600,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(IndexerItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       //! push {Prefix}.GetIndex({Expression})
       var gen = _compiler.CurrentGenerator;
       target.Prefix.Accept(this);
@@ -650,10 +609,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(LabelItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       if (!_labels.ContainsKey(target))
         _labels.Add(target, _compiler.CurrentGenerator.DefineLabel());
       _compiler.CurrentGenerator.MarkLabel(_labels[target]);
@@ -661,10 +616,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(LiteralItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       object value = target.Value;
 
@@ -687,10 +638,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(NameItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       // Get the value of the given name and push onto stack
       var field = _compiler.FindVariable(target);
       field.Get();
@@ -698,10 +645,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(RepeatItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       if (!_labels.ContainsKey(target.Break))
         _labels.Add(target.Break, gen.DefineLabel());
@@ -728,10 +671,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ReturnItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       _compiler.MarkSequencePoint(target.Debug);
       ILGenerator gen = _compiler.CurrentGenerator;
       if (target.Expressions.Length == 1 && !target.IsLastExpressionSingle &&
@@ -764,10 +703,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(TableItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       var gen = _compiler.CurrentGenerator;
       var loc = _compiler.CreateTemporary(typeof(ILuaValue));
 
@@ -791,10 +726,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(UnOpItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
 
       //! push {Target}.Minus();
@@ -814,10 +745,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(AssignmentItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       _compiler.MarkSequencePoint(target.Debug);
 
@@ -860,7 +787,7 @@ namespace ModMaker.Lua.Compiler {
       for (int i = 0; i < target.Names.Length; i++) {
         _assignValue(
             target.Names[i], target.Local,
-            !(target.Names[i] is IndexerItem) ? (Action)null : () => {
+            !(target.Names[i] is IndexerItem) ? (Action?)null : () => {
               // Only called if the target object is an indexer item
 
               // $index = names[{i}];
@@ -881,10 +808,6 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(WhileItem target) {
-      if (target == null) {
-        throw new ArgumentNullException(nameof(target));
-      }
-
       ILGenerator gen = _compiler.CurrentGenerator;
       if (!_labels.ContainsKey(target.Break))
         _labels.Add(target.Break, gen.DefineLabel());
@@ -923,7 +846,7 @@ namespace ModMaker.Lua.Compiler {
     /// A function to get the index of the object, pass null to use the default.
     /// </param>
     /// <param name="getValue">A function to get the value to set to.</param>
-    void _assignValue(IParseItem target, bool local, Action getIndex, Action getValue) {
+    void _assignValue(IParseItem target, bool local, Action? getIndex, Action getValue) {
       ILGenerator gen = _compiler.CurrentGenerator;
       ChunkBuilder.IVarDefinition field;
       if (local) {

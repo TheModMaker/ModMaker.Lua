@@ -21,6 +21,8 @@ using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// Defines an ICodeCompiler to compile the IParseItem tree into IL code.
@@ -59,15 +61,7 @@ namespace ModMaker.Lua.Compiler {
 #endif
     }
 
-    public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name) {
-      if (env == null) {
-        throw new ArgumentNullException(nameof(env));
-      }
-
-      if (item == null) {
-        throw new ArgumentNullException(nameof(item));
-      }
-
+    public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string? name) {
       name ??= "<>_func_" + (_tid++);
       if (_types.Contains(name)) {
         int i = 0;
@@ -78,14 +72,12 @@ namespace ModMaker.Lua.Compiler {
         name += i;
       }
 
-      GetInfoVisitor lVisitor = new GetInfoVisitor();
-      lVisitor.Resolve(item);
+      var info = GetInfoVisitor.Resolve(item);
 
       TypeBuilder tb = _mb.DefineType(
           name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed,
           typeof(LuaValueBase), Type.EmptyTypes);
-      ChunkBuilder cb = new ChunkBuilder(_settings, _mb, tb, lVisitor._globalCaptures,
-                                         lVisitor._globalNested);
+      ChunkBuilder cb = new ChunkBuilder(_settings, _mb, tb, info.CapturedLocals, info.HasNested);
 
       CompilerVisitor cVisitor = new CompilerVisitor(cb);
       item.Accept(cVisitor);

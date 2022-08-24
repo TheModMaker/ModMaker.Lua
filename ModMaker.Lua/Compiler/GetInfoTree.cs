@@ -15,8 +15,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
+
+#nullable enable
 
 namespace ModMaker.Lua.Compiler {
   /// <summary>
@@ -33,7 +34,7 @@ namespace ModMaker.Lua.Compiler {
       /// <summary>
       /// Creates a new node with the given parent node.
       /// </summary>
-      public TreeNode(TreeNode parent = null, bool passable = true) {
+      public TreeNode(TreeNode? parent = null, bool passable = true) {
         if (parent != null) {
           parent.Children.Add(this);
         }
@@ -46,7 +47,7 @@ namespace ModMaker.Lua.Compiler {
       /// <summary>
       /// Contains the parent node or null if it is the root of the tree.
       /// </summary>
-      public readonly TreeNode Parent;
+      public readonly TreeNode? Parent;
       /// <summary>
       /// Contains the children of this block.
       /// </summary>
@@ -168,21 +169,21 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="name">The name of the variable.</param>
     public void GetName(NameItem name) {
       bool inFunc = true;
-      TreeNode node = _cur;
+      TreeNode? node = _cur;
       while (node != null) {
         if (node.CapturedLocals.ContainsKey(name.Name) || node.TrueLocals.ContainsKey(name.Name)) {
           // Ignore the local if it is the current function
           if (!inFunc) {
             // If it is in TrueLocals, move it to CapturedLocals.
-            if (node.TrueLocals.TryGetValue(name.Name, out NameItem boundItem)) {
+            if (node.TrueLocals.TryGetValue(name.Name, out NameItem? boundItem)) {
               node.TrueLocals.Remove(name.Name);
               node.CapturedLocals.Add(name.Name, boundItem);
             }
 
             // Update all the CapturesParent for any nodes between the current node and the node
             // that defines the local.
-            TreeNode cur2 = _cur;
-            while (cur2 != node) {
+            TreeNode? cur2 = _cur;
+            while (cur2 != null && cur2 != node) {
               cur2.CapturesParent = true;
               cur2 = cur2.Parent;
             }
@@ -218,7 +219,7 @@ namespace ModMaker.Lua.Compiler {
       info.CapturesParent = _cur.CapturesParent;
       info.HasNested = _cur.HasNested;
 
-      _cur = _cur.Parent;
+      _cur = _cur.Parent!;
       return info;
     }
 
@@ -228,13 +229,11 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="root">The node to start the search.</param>
     /// <param name="names">Where to put the names.</param>
     static void _getNames(TreeNode root, List<NameItem> names) {
-      if (root != null) {
-        names.AddRange(root.CapturedLocals.Select(k => k.Value));
-        foreach (var item in root.Children) {
-          // Ignore locals defined in nested functions.
-          if (!item.IsFunction) {
-            _getNames(item, names);
-          }
+      names.AddRange(root.CapturedLocals.Select(k => k.Value));
+      foreach (var item in root.Children) {
+        // Ignore locals defined in nested functions.
+        if (!item.IsFunction) {
+          _getNames(item, names);
         }
       }
     }
@@ -245,14 +244,12 @@ namespace ModMaker.Lua.Compiler {
     /// If a label could not be resolved.
     /// </exception>
     static void _resolve(TreeNode root) {
-      if (root != null) {
-        foreach (var item in root.GotoItems) {
-          _resolveGoto(root, item);
-        }
+      foreach (var item in root.GotoItems) {
+        _resolveGoto(root, item);
+      }
 
-        foreach (var item in root.Children) {
-          _resolve(item);
-        }
+      foreach (var item in root.Children) {
+        _resolve(item);
       }
     }
     /// <summary>
@@ -262,17 +259,18 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="root">The node to start the search.</param>
     /// <param name="item">The item to resolve.</param>
     static void _resolveGoto(TreeNode root, GotoItem item) {
+      TreeNode? cur = root;
       do {
-        foreach (var label in root.Labels) {
+        foreach (var label in cur.Labels) {
           if (label.Name == item.Name) {
             item.Target = label;
             return;
           }
         }
         // Break statements can pass through local definitions
-      } while ((item.Name != "<break>" || !root.IsFunction) &&
-               (item.Name == "<break>" || root.Passable) &&
-               (root = root.Parent) != null);
+      } while ((item.Name != "<break>" || !cur.IsFunction) &&
+               (item.Name == "<break>" || cur.Passable) &&
+               (cur = cur.Parent) != null);
 
       var msg =  new CompilerMessage(MessageLevel.Error, MessageId.LabelNotFound, item.Debug,
                                      $"Label '{item.Name}' for goto wasn't found");
