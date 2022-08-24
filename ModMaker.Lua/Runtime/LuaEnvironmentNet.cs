@@ -266,8 +266,7 @@ namespace ModMaker.Lua.Runtime {
           o = GlobalsTable.GetItemRaw(LuaValueBase.CreateValue(indexes[0]));
         }
 
-        MethodInfo asMethod =
-            typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
+        MethodInfo asMethod = ReflectionMembers.ILuaValue.As.MakeGenericMethod(binder.ReturnType);
         result = Helpers.DynamicInvoke(asMethod, o, null);
         if (result is double d) {
           result = new NumberProxy(d);
@@ -295,8 +294,7 @@ namespace ModMaker.Lua.Runtime {
         o = GlobalsTable.GetItemRaw(new LuaString(binder.Name));
       }
 
-      MethodInfo asMethod =
-          typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(binder.ReturnType);
+      MethodInfo asMethod = ReflectionMembers.ILuaValue.As.MakeGenericMethod(binder.ReturnType);
       result = Helpers.DynamicInvoke(asMethod, o, null);
       if (result is double d) {
         result = new NumberProxy(d);

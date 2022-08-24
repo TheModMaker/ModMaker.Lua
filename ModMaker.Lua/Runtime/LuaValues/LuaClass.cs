@@ -18,6 +18,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser.Items;
 
 namespace ModMaker.Lua.Runtime.LuaValues {
@@ -223,16 +224,15 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, methodField);
       gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
+      gen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
       gen.Emit(OpCodes.Ldc_I4_1);
       gen.Emit(OpCodes.Ldloc, arguments);
-      gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
+      gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
 
       // Convert and push result if the return type is not null.
       if (returnType != null && returnType != typeof(void)) {
         // return $POP.As<{returnType}>();
-        gen.Emit(OpCodes.Callvirt,
-                 typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(returnType));
+        gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.As.MakeGenericMethod(returnType));
       } else {
         gen.Emit(OpCodes.Pop);
       }
@@ -277,14 +277,13 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       // ILuaValue target = LuaValueBase.CreateValue(this);
       LocalBuilder target = ctorgen.DeclareLocal(typeof(ILuaValue));
       ctorgen.Emit(OpCodes.Ldarg_0);
-      ctorgen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
+      ctorgen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
       ctorgen.Emit(OpCodes.Stloc, target);
 
       // LuaMultiValue args = new LuaMultiValue(ctorArgs);
       LocalBuilder args = ctorgen.DeclareLocal(typeof(LuaMultiValue));
       ctorgen.Emit(OpCodes.Ldarg, 4);
-      ctorgen.Emit(OpCodes.Newobj,
-                   typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
+      ctorgen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
       ctorgen.Emit(OpCodes.Stloc, args);
 
       // ctor.Invoke(target, true, args);
@@ -292,7 +291,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       ctorgen.Emit(OpCodes.Ldloc, target);
       ctorgen.Emit(OpCodes.Ldc_I4_1);
       ctorgen.Emit(OpCodes.Ldloc, args);
-      ctorgen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
+      ctorgen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
       ctorgen.Emit(OpCodes.Pop);
 
       ctorgen.MarkLabel(end);
@@ -618,15 +617,14 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             gen.Emit(OpCodes.Box, param[ind].ParameterType);
           }
 
-          gen.Emit(OpCodes.Call, typeof(LuaValueBase).GetMethod(nameof(LuaValueBase.CreateValue)));
+          gen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
           gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
         }
 
         // LuaMultiValue args = new LuaMultiValue(loc);
         var args = gen.DeclareLocal(typeof(LuaMultiValue));
         gen.Emit(OpCodes.Ldloc, loc);
-        gen.Emit(OpCodes.Newobj,
-                 typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
+        gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
         gen.Emit(OpCodes.Stloc, args);
 
         _callFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.EnvField);
@@ -731,9 +729,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
               data.CtorGen.Emit(OpCodes.Ldarg_2);
               data.CtorGen.Emit(OpCodes.Ldc_I4, (data.Constants.Count - 1));
               data.CtorGen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
-              data.CtorGen.Emit(
-                  OpCodes.Callvirt,
-                  typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(Type));
+              data.CtorGen.Emit(OpCodes.Callvirt,
+                                ReflectionMembers.ILuaValue.As.MakeGenericMethod(Type));
               data.CtorGen.Emit(OpCodes.Stfld, field);
             }
 
@@ -749,8 +746,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             LocalBuilder loc = gen.DeclareLocal(typeof(LuaMultiValue));
             gen.Emit(OpCodes.Ldc_I4, 0);
             gen.Emit(OpCodes.Newarr, typeof(ILuaValue));
-            gen.Emit(OpCodes.Newobj,
-                     typeof(LuaMultiValue).GetConstructor(new[] { typeof(ILuaValue[]) }));
+            gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
             gen.Emit(OpCodes.Stloc, loc);
 
             _callFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
@@ -768,8 +764,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           if (MethodSet == null) {
             // throw new NotSupportedException("Cannot write to a constant property.");
             gen.Emit(OpCodes.Ldstr, Resources.ConstantProperty);
-            gen.Emit(OpCodes.Newobj,
-                     typeof(NotSupportedException).GetConstructor(new[] { typeof(string) }));
+            gen.Emit(OpCodes.Newobj, ReflectionMembers.NotSupportedException.StringConstructor);
             gen.Emit(OpCodes.Throw);
           } else {
             FieldBuilder field = _addMethodArg(data, MethodSet);
@@ -790,9 +785,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             // LuaMultiValue args = LuaMultiValue.CreateMultiValueFromObj(loc);
             LocalBuilder args = gen.DeclareLocal(typeof(LuaMultiValue));
             gen.Emit(OpCodes.Ldloc, loc);
-            gen.Emit(
-                OpCodes.Call,
-                typeof(LuaMultiValue).GetMethod(nameof(LuaMultiValue.CreateMultiValueFromObj)));
+            gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.CreateMultiValueFromObj);
             gen.Emit(OpCodes.Stloc, args);
 
             _callFieldAndReturn(gen, null, field, args, data.EnvField);
@@ -849,9 +842,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           data.CtorGen.Emit(OpCodes.Ldarg_2);
           data.CtorGen.Emit(OpCodes.Ldc_I4, (data.Constants.Count - 1));
           data.CtorGen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
-          data.CtorGen.Emit(
-              OpCodes.Callvirt,
-              typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(Type));
+          data.CtorGen.Emit(OpCodes.Callvirt,
+                            ReflectionMembers.ILuaValue.As.MakeGenericMethod(Type));
           data.CtorGen.Emit(OpCodes.Stfld, field);
         }
       }

@@ -17,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
@@ -41,6 +42,7 @@ namespace ModMaker.Lua {
     /// </summary>
     /// <param name="settings">The settings to use.</param>
     public Lua(LuaSettings? settings) {
+      ReflectionMembers.EnsureInitialized();
       Environment = new LuaEnvironmentNet(
           settings ?? new LuaSettings(Console.OpenStandardInput(), Console.OpenStandardOutput()));
     }

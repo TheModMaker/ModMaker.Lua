@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
@@ -131,25 +132,23 @@ namespace ModMaker.Lua.Runtime {
       // LuaMultiValue args = LuaMultiValue.CreateMultiValueFromObj(objArgs);
       var args = gen.DeclareLocal(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldloc, objArgs);
-      gen.Emit(OpCodes.Call, typeof(LuaMultiValue)
-                                 .GetMethod(nameof(LuaMultiValue.CreateMultiValueFromObj),
-                                            BindingFlags.Static | BindingFlags.Public));
+      gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.CreateMultiValueFromObj);
       gen.Emit(OpCodes.Stloc, args);
 
       // LuaMultiValue ret = arg0.Invoke(LuaNil.Nil, false, args);
       var ret = gen.DeclareLocal(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Ldsfld, typeof(LuaNil).GetField(nameof(LuaNil.Nil)));
+      gen.Emit(OpCodes.Ldsfld, ReflectionMembers.LuaNil.Nil);
       gen.Emit(OpCodes.Ldc_I4_0);
       gen.Emit(OpCodes.Ldloc, args);
-      gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.Invoke)));
+      gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
       gen.Emit(OpCodes.Stloc, ret);
 
       // return ret.As<T>();
       if (item.ReturnType != null && item.ReturnType != typeof(void)) {
         gen.Emit(OpCodes.Ldloc, ret);
-        gen.Emit(OpCodes.Callvirt, typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
-                                       .MakeGenericMethod(item.ReturnType));
+        gen.Emit(OpCodes.Callvirt,
+                 ReflectionMembers.ILuaValue.As.MakeGenericMethod(item.ReturnType));
       }
       gen.Emit(OpCodes.Ret);
 

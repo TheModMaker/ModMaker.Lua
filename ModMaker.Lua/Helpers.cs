@@ -18,6 +18,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text.RegularExpressions;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
@@ -241,8 +242,7 @@ namespace ModMaker.Lua {
           // and explicit casts for user-defined types by default, SetValue only works if the
           // backing type is the same as or derived from the FieldType.  It does not even support
           // implicit numerical conversion
-          var convert =
-              typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(field.FieldType);
+          var convert = ReflectionMembers.ILuaValue.As.MakeGenericMethod(field.FieldType);
           field.SetValue(target, DynamicInvoke(convert, value, null));
           return null;
         }
@@ -272,8 +272,7 @@ namespace ModMaker.Lua {
             throw new InvalidOperationException(
                 "The set method for property '" + name + "' is inaccessible to Lua.");*/
 
-          var convert = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))
-              .MakeGenericMethod(property.PropertyType);
+          var convert = ReflectionMembers.ILuaValue.As.MakeGenericMethod(property.PropertyType);
           property.SetValue(target, DynamicInvoke(meth, value, null), null);
           return null;
         }
@@ -322,8 +321,7 @@ namespace ModMaker.Lua {
           // Convert to the array type.
           Type arrayType = targetArray.GetType().GetElementType();
           object valueObj = DynamicInvoke(
-              typeof(ILuaValue).GetMethod(nameof(ILuaValue.As)).MakeGenericMethod(arrayType),
-              value, null);
+              ReflectionMembers.ILuaValue.As.MakeGenericMethod(arrayType), value, null);
 
           targetArray.SetValue(valueObj, args);
           return value;
