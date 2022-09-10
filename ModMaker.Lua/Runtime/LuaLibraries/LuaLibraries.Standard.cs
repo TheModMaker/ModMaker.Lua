@@ -20,6 +20,8 @@ using System.Text;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class Standard {
@@ -37,7 +39,7 @@ namespace ModMaker.Lua.Runtime {
         Register(env, table, (Func<ILuaTable, ILuaValue, ILuaValue>)rawget);
         Register(env, table, (Func<ILuaTable, ILuaValue>)rawlen);
         Register(env, table, (Func<ILuaTable, ILuaValue, ILuaValue, ILuaValue>)rawset);
-        Register(env, table, (Func<ILuaValue, object[], IEnumerable<object>>)select);
+        Register(env, table, (Func<ILuaValue, ILuaValue[], IEnumerable<ILuaValue>>)select);
         Register(env, table, (Func<ILuaTable, ILuaTable, ILuaValue>)setmetatable);
         Register(env, table, (Func<ILuaTable, double?>)tonumber);
         Register(env, table, (Func<ILuaTable, string>)type);
@@ -59,10 +61,10 @@ namespace ModMaker.Lua.Runtime {
       static readonly ILuaValue _ipairs = new LuaString("__ipairs");
       static readonly ILuaValue _pairs = new LuaString("__pairs");
 
-      static ILuaValue assert(ILuaValue value, ILuaValue obj = null) {
+      static ILuaValue assert(ILuaValue value, ILuaValue? obj = null) {
         string message = $"Assertion failed: '{obj?.ToString() ?? ""}'.";
         if (value.IsTrue) {
-          return obj;
+          return obj ?? LuaNil.Nil;
         } else {
           throw new AssertException(message);
         }
@@ -84,7 +86,7 @@ namespace ModMaker.Lua.Runtime {
               GC.Collect(gen.Value);
             }
 
-            return new object[0];
+            return Array.Empty<object>();
           case "count":
             double mem = GC.GetTotalMemory(false);
             return new object[] { mem, mem % 1024 };
@@ -111,12 +113,12 @@ namespace ModMaker.Lua.Runtime {
             var m = meta.GetItemRaw(_tostring);
             if (m != null && m.ValueType == LuaValueType.Function) {
               var result = m.Invoke(value, true, LuaMultiValue.Empty);
-              return result[0].ToString();
+              return result[0].ToString()!;
             }
           }
         }
 
-        return value.ToString();
+        return value.ToString()!;
       }
       static void error(string message) {
         throw new AssertException(message);
@@ -134,7 +136,7 @@ namespace ModMaker.Lua.Runtime {
           }
         }
 
-        return meta;
+        return (ILuaValue?)meta ?? LuaNil.Nil;
       }
       [MultipleReturn]
       static object[] ipairs(ILuaTable table) {
@@ -163,7 +165,7 @@ namespace ModMaker.Lua.Runtime {
         }
 
         // return nil, nil;
-        return new object[0];
+        return Array.Empty<object>();
       }
       [MultipleReturn]
       static object[] pairs(ILuaTable table) {
@@ -192,11 +194,13 @@ namespace ModMaker.Lua.Runtime {
         return table;
       }
       [MultipleReturn]
-      static IEnumerable<object> select(ILuaValue index, params object[] args) {
+      static IEnumerable<ILuaValue> select(ILuaValue index, params ILuaValue[] args) {
         if (index.Equals("#")) {
-          return new object[] { args.Length };
+          return new ILuaValue[] { LuaNumber.Create(args.Length) };
         } else if (index.ValueType == LuaValueType.Number) {
-          double ind = index.AsDouble() ?? 0;
+          double ind = index.AsDouble() ?? 1;
+          if (ind == 0)
+            throw new ArgumentException("select index out of range");
           if (ind < 0) {
             ind = args.Length + ind + 1;
           }
@@ -269,10 +273,12 @@ namespace ModMaker.Lua.Runtime {
               str.Append(temp.ToString());
               str.Append('\t');
             }
-            str.Append("\n");
+            str.Append('\n');
           }
 
-          Stream s = _environment.Settings.Stdout;
+          Stream? s = _environment.Settings.Stdout;
+          if (s == null)
+            throw new Exception("No standard out given");
           byte[] txt = (_environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
           s.Write(txt, 0, txt.Length);
 
@@ -291,7 +297,7 @@ namespace ModMaker.Lua.Runtime {
 
         ILuaValue ret = table.GetItemRaw(LuaNumber.Create(index));
         if (ret == null || ret == LuaNil.Nil) {
-          return new object[0];
+          return Array.Empty<object>();
         } else {
           return new object[] { index, ret };
         }

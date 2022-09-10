@@ -18,6 +18,8 @@ using System.Linq;
 using System.Text;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Table {
@@ -39,8 +41,7 @@ namespace ModMaker.Lua.Runtime {
 
       readonly ILuaEnvironment _env;
 
-      string concat(ILuaTable table, string sep = null, int i = 1, int j = -1) {
-        CheckNotNull("table.concat", table);
+      string concat(ILuaTable table, string? sep = null, int i = 1, int j = -1) {
         int len = (int)(table.Length().AsDouble() ?? 0);
         if (i >= len) {
           return "";
@@ -66,16 +67,16 @@ namespace ModMaker.Lua.Runtime {
 
         return str.ToString();
       }
-      void insert(ILuaTable table, ILuaValue pos, ILuaValue value = null) {
-        CheckNotNull("table.insert", table);
-        CheckNotNull("table.insert", pos);
+      void insert(ILuaTable table, ILuaValue pos, ILuaValue? value = null) {
         double i;
         double len = table.Length().AsDouble() ?? 0;
         if (value == null) {
           value = pos;
           i = len + 1;
         } else {
-          i = pos.AsDouble() ?? 0;
+          if (pos.ValueType != LuaValueType.Number)
+            throw new ArgumentException("'table.insert' expects a number position.");
+          i = pos.AsDouble() ?? 1;
         }
 
         if (i > len + 1 || i < 1 || i % 1 != 0) {
@@ -98,10 +99,8 @@ namespace ModMaker.Lua.Runtime {
         return ret;
       }
       ILuaValue remove(ILuaTable table, int? pos = null) {
-        CheckNotNull("table.remove", table);
-
         double len = table.Length().AsDouble() ?? 0;
-        pos = pos ?? (int)len;
+        pos ??= (int)len;
         if (pos > len + 1 || pos < 1) {
           throw new ArgumentException(
               "Position given to function 'table.remove' is outside valid range.");
@@ -116,19 +115,23 @@ namespace ModMaker.Lua.Runtime {
         }
         return prev;
       }
-      void sort(ILuaTable table, ILuaValue comp = null) {
-        CheckNotNull("table.sort", table);
-        var comparer = new SortComparer(_env, comp);
+      void sort(ILuaTable table, ILuaValue? comp = null) {
+        if (comp != null && comp.ValueType != LuaValueType.Function) {
+          throw new ArgumentException(
+              $"Invalid '{comp.ValueType}' value for function 'table.sort'.");
+        }
+        var comparer = comp != null ? (IComparer<ILuaValue>)new SortComparer(comp)
+                                    : Comparer<ILuaValue>.Default;
 
-        ILuaValue[] elems = unpack(table).OrderBy(k => k, comparer).ToArray();
-        for (int i = 0; i < elems.Length; i++) {
+        int i = 0;
+        foreach (var item in unpack(table).OrderBy(k => k, comparer)) {
           ILuaValue ind = LuaNumber.Create(i + 1);
-          table.SetItemRaw(ind, elems[i]);
+          table.SetItemRaw(ind, item);
+          i++;
         }
       }
       [MultipleReturn]
       IEnumerable<ILuaValue> unpack(ILuaTable table, int i = 1, int? jOrNull = null) {
-        CheckNotNull("table.unpack", table);
         int len = (int)(table.Length().AsDouble() ?? 0);
         int j = jOrNull ?? len;
         for (; i <= j; i++) {
@@ -137,26 +140,16 @@ namespace ModMaker.Lua.Runtime {
       }
 
       class SortComparer : IComparer<ILuaValue> {
-        public SortComparer(ILuaEnvironment E, ILuaValue method) {
-          if (method != null && method.ValueType != LuaValueType.Function) {
-            throw new ArgumentException(
-                $"Invalid '{method.ValueType}' value for function 'table.sort'.");
-          }
+        public SortComparer(ILuaValue method) {
           _method = method;
-          _env = E;
         }
 
-        public int Compare(ILuaValue x, ILuaValue y) {
-          if (_method != null) {
-            LuaMultiValue ret = _method.Invoke(
-                LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(x, y));
-            return ret.IsTrue ? -1 : 1;
-          }
-
-          return x.CompareTo(y);
+        public int Compare(ILuaValue? x, ILuaValue? y) {
+          LuaMultiValue ret = _method.Invoke(
+              LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(x, y));
+          return ret.IsTrue ? -1 : 1;
         }
 
-        readonly ILuaEnvironment _env;
         readonly ILuaValue _method;
       }
     }

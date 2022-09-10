@@ -16,6 +16,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Names match Lua versions")]
   static partial class LuaStaticLibraries {
@@ -49,7 +51,7 @@ namespace ModMaker.Lua.Runtime {
       }
     }
 
-    static void Register(ILuaEnvironment env, ILuaValue table, Delegate func, string name = null) {
+    static void Register(ILuaEnvironment env, ILuaValue table, Delegate func, string? name = null) {
       var funcValue = LuaValueBase.CreateValue(func);
       var nameValue = new LuaString(name ?? func.Method.Name);
       table.SetIndex(nameValue, funcValue);
@@ -67,7 +69,7 @@ namespace ModMaker.Lua.Runtime {
       }
     }
 
-    static void CheckNotNull(string name, object o) {
+    static void CheckNotNull(string name, object? o) {
       if (o == null) {
         throw new ArgumentNullException($"Argument to function '{name}' cannot be nil.");
       }

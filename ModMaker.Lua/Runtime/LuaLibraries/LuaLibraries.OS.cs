@@ -21,6 +21,8 @@ using System.Text;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class OS {
@@ -36,11 +38,11 @@ namespace ModMaker.Lua.Runtime {
         Register(_env, os, (Func<double>)clock);
         Register(_env, os, (Func<string, object, object>)date);
         Register(_env, os, (Func<double, double, double>)difftime);
-        Register(_env, os, (Action<object, object>)exit);
-        Register(_env, os, (Func<string, string>)getenv);
-        Register(_env, os, (Func<string, object[]>)remove);
-        Register(_env, os, (Func<string, string, object[]>)rename);
-        Register(_env, os, (Func<string, string>)setlocale);
+        Register(_env, os, (Action<object>)exit);
+        Register(_env, os, (Func<string, string?>)getenv);
+        Register(_env, os, (Func<string, object?[]>)remove);
+        Register(_env, os, (Func<string, string, object?[]>)rename);
+        Register(_env, os, (Func<string, string?>)setlocale);
         Register(_env, os, (Func<object, double>)time);
         Register(_env, os, (Func<string>)tmpname);
 
@@ -50,7 +52,7 @@ namespace ModMaker.Lua.Runtime {
       double clock() {
         return _stop.Elapsed.TotalSeconds;
       }
-      object date(string format = "%c", object source = null) {
+      object date(string format = "%c", object? source = null) {
         DateTime time;
 
         if (source is double d) {
@@ -68,9 +70,9 @@ namespace ModMaker.Lua.Runtime {
 
         if (format == "*t") {
           ILuaTable table = new LuaTable();
-          Action<string, int> set = (a, b) => {
+          void set(string a, int b) {
             table.SetItemRaw(new LuaString(a), LuaNumber.Create(b));
-          };
+          }
           set("year", time.Year);
           set("month", time.Month);
           set("day", time.Day);
@@ -187,57 +189,72 @@ namespace ModMaker.Lua.Runtime {
       double difftime(double time1, double time2) {
         return time2 - time1;
       }
-      void exit(object code = null, object close = null) {
-        _env.Settings._callQuit(_env, code, close);
+      void exit(object? code = null) {
+        int icode;
+        if (code != null) {
+          if (code as bool? == true) {
+            icode = 0;
+          } else if (code is double d) {
+            icode = (int)System.Math.Round(d);
+          } else {
+            icode = 1;
+          }
+        } else {
+          icode = 0;
+        }
+        _env.Settings._callQuit(_env, icode);
       }
-      string getenv(string name) {
-        return System.Environment.GetEnvironmentVariable(name);
+      string? getenv(string name) {
+        return Environment.GetEnvironmentVariable(name);
       }
       [MultipleReturn]
-      object[] remove(string path) {
+      object?[] remove(string path) {
         if (File.Exists(path)) {
           try {
             File.Delete(path);
-            return new object[] { true };
+            return new object?[] { true };
           } catch (Exception e) {
-            return new object[] { null, e.Message, e };
+            return new object?[] { null, e.Message, e };
           }
         } else if (Directory.Exists(path)) {
           if (Directory.EnumerateFileSystemEntries(path).Any()) {
-            return new object[] { null, "Specified directory is not empty." };
+            return new object?[] { null, "Specified directory is not empty." };
           }
 
           try {
             Directory.Delete(path);
-            return new object[] { true };
+            return new object?[] { true };
           } catch (Exception e) {
-            return new object[] { null, e.Message, e };
+            return new object?[] { null, e.Message, e };
           }
         } else {
-          return new object[] { null, "Specified filename does not exist." };
+          return new object?[] { null, "Specified filename does not exist." };
         }
       }
       [MultipleReturn]
-      object[] rename(string old, string new_) {
+      object?[] rename(string old, string new_) {
         if (File.Exists(old)) {
           try {
             File.Move(old, new_);
-            return new object[] { true };
+            return new object?[] { true };
           } catch (Exception e) {
-            return new object[] { null, e.Message, e };
+            return new object?[] { null, e.Message, e };
           }
         } else if (Directory.Exists(old)) {
           try {
             Directory.Move(old, new_);
-            return new object[] { true };
+            return new object?[] { true };
           } catch (Exception e) {
-            return new object[] { null, e.Message, e };
+            return new object?[] { null, e.Message, e };
           }
         } else {
-          return new object[] { null, "Specified path does not exist." };
+          return new object?[] { null, "Specified path does not exist." };
         }
       }
-      string setlocale(string name) {
+      string? setlocale(string? name) {
+        if (name == null) {
+          return Thread.CurrentThread.CurrentCulture.Name;
+        }
         try {
           CultureInfo ci = CultureInfo.GetCultureInfo(name);
           if (ci == null) {
@@ -255,7 +272,7 @@ namespace ModMaker.Lua.Runtime {
 
         if (source is ILuaTable table) {
           int year, month, day, hour, min, sec;
-          Func<string, bool, int> get = (name, req) => {
+          int get(string name, bool req) {
             ILuaValue value = table.GetItemRaw(new LuaString(name));
             if (value == null || value.ValueType != LuaValueType.Number) {
               if (req) {
@@ -267,7 +284,7 @@ namespace ModMaker.Lua.Runtime {
             } else {
               return value.As<int>();
             }
-          };
+          }
 
           year = get("year", true);
           month = get("month", true);

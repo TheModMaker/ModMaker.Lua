@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Coroutine {
@@ -49,9 +51,6 @@ namespace ModMaker.Lua.Runtime {
       }
       [MultipleReturn]
       IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
-        if (thread == null) {
-          throw new ArgumentNullException();
-        }
         try {
           LuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
           return new[] { LuaBoolean.True }.Concat(ret);

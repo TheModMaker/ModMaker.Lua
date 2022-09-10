@@ -96,18 +96,8 @@ namespace ModMaker.Lua {
     /// </summary>
     public int Code { get; private set; }
 
-    internal ExitEventArgs(object code) {
-      if (code != null) {
-        if (code as bool? == true) {
-          Code = 0;
-        } else if (code is double d) {
-          Code = (int)Math.Round(d);
-        } else {
-          Code = 1;
-        }
-      } else {
-        Code = 0;
-      }
+    internal ExitEventArgs(int code) {
+      Code = code;
     }
   }
 
@@ -260,7 +250,7 @@ namespace ModMaker.Lua {
     /// <param name="sender">The sender of the event.</param>
     /// <param name="code">The value to use for the code.</param>
     /// <param name="close">Whether to call Environment.Exit.</param>
-    internal void _callQuit(object sender, object code, object close) {
+    internal void _callQuit(object? sender, int code) {
       ExitEventArgs e = new ExitEventArgs(code);
       if (sender != null && _onquit != null) {
         _onquit(sender, e);
