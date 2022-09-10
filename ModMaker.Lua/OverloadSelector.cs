@@ -66,14 +66,62 @@ namespace ModMaker.Lua {
         static bool nullableRef(Type t) {
           return !underlyingType(t).IsValueType;
         }
-        static bool isNullableParam(ParameterInfo p) {
-          // TODO: Parse nullable reference type metadata:
+        static bool isNotNullReferenceParam(ParameterInfo p, int index = 0) {
           // https://github.com/dotnet/roslyn/blob/main/docs/features/nullable-metadata.md
+          const int kNotNullFlag = 1;  // not annotated (so not nullable)
+          foreach (var attr in p.GetCustomAttributes()) {
+            Type attrType = attr.GetType();
+            if (attrType.FullName == "System.Runtime.CompilerServices.NullableAttribute") {
+              var field = attrType.GetField("NullableFlags");
+              if (field != null) {
+                var flags = field.GetValue(attr);
+                if (flags is byte[] bytes) {
+                  if (bytes.Length > index)
+                    return bytes[index] == kNotNullFlag;
+                  else
+                    return bytes[bytes.Length - 1] == kNotNullFlag;
+                }
+              }
+            }
+          }
+
+          // A NullableContextAttribute can be applied to higher levels (e.g. method or class level)
+          static bool getNullContext(MemberInfo m, out byte b) {
+            foreach (var attr in m.GetCustomAttributes()) {
+              Type attrType = attr.GetType();
+              if (attrType.FullName ==
+                  "System.Runtime.CompilerServices.NullableContextAttribute") {
+                var field = attrType.GetField("Flag");
+                if (field != null) {
+                  var flags = field.GetValue(attr);
+                  if (flags is byte b2) {
+                    b = b2;
+                    return true;
+                  }
+                }
+              }
+            }
+            b = 0;
+            return false;
+          }
+          byte flag;
+          if (getNullContext(p.Member, out flag))
+            return flag == kNotNullFlag;
+          for (Type? t = p.Member.DeclaringType; t != null; t = t.DeclaringType) {
+            if (getNullContext(t, out flag))
+              return flag == kNotNullFlag;
+          }
+          return false;
+        }
+        static bool isNullableParam(ParameterInfo p) {
 #if NETCOREAPP3_1_OR_GREATER
           if (p.IsDefined(typeof(NotNullAttribute)))
             return false;
 #endif
-          return nullableStruct(p.ParameterType) || nullableRef(p.ParameterType);
+
+          if (nullableStruct(p.ParameterType))
+            return true;
+          return nullableRef(p.ParameterType) && !isNotNullReferenceParam(p);
         }
 
         FormalArguments = param.Select((p) => underlyingType(p.ParameterType)).ToArray();
@@ -81,16 +129,21 @@ namespace ModMaker.Lua {
         OptionalValues = param.Where(p => p.IsOptional).Select(p => p.DefaultValue!).ToArray();
         HasParams =
             param.Length > 0 && param[param.Length - 1].IsDefined(typeof(ParamArrayAttribute));
-        Type? paramType =
-            !HasParams ? null : param[param.Length - 1].ParameterType.GetElementType();
-        ParamsNullable = HasParams && (nullableStruct(paramType!) || nullableRef(paramType!));
+        if (HasParams) {
+          ParameterInfo lastParam = param[param.Length - 1];
+          Type innerType = lastParam.ParameterType.GetElementType()!;
+          ParamsNullable = nullableStruct(innerType) ||
+                           (nullableRef(innerType) && !isNotNullReferenceParam(lastParam, 1));
+        } else {
+          ParamsNullable = false;
+        }
       }
 
       public Choice(Type[] args, bool[]? nullable = null, object[]? optionals = null,
                     bool hasParams = false, bool paramsNullable = false) {
         FormalArguments = args;
         Nullable = nullable ?? new bool[args.Length];
-        OptionalValues = optionals ?? new object[0];
+        OptionalValues = optionals ?? Array.Empty<object>();
         HasParams = hasParams;
         ParamsNullable = paramsNullable;
       }
@@ -305,7 +358,7 @@ namespace ModMaker.Lua {
     }
 
     public static int FindOverload(Choice[] choices, LuaMultiValue args) {
-      Tuple<Type, Type?>? mapValue(ILuaValue? value) {
+      static Tuple<Type, Type?>? mapValue(ILuaValue? value) {
         if (value == null || value == LuaNil.Nil)
           return null;
         else

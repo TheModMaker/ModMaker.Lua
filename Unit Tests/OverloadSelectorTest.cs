@@ -17,7 +17,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using ModMaker.Lua;
-using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 using NUnit.Framework;
 
@@ -33,15 +32,15 @@ namespace UnitTests {
     class Derived : Base { }
     class Other { }
 
-    Tuple<Type, Type?>?[] _mapValues(Type?[] values) {
+    static Tuple<Type, Type?>?[] _mapValues(Type?[] values) {
       return values.Select(t => t == null ? null : new Tuple<Type, Type?>(t, null)).ToArray();
     }
 
-    void _runTest(Choice a, Choice b, Type?[] values, bool bValid = true) {
+    static void _runTest(Choice a, Choice b, Type?[] values, bool bValid = true) {
       _runTest(a, b, _mapValues(values), bValid);
     }
 
-    void _runTest(Choice a, Choice b, Tuple<Type, Type?>?[] values, bool bValid = true) {
+    static void _runTest(Choice a, Choice b, Tuple<Type, Type?>?[] values, bool bValid = true) {
       // Verify both are valid when compared with something that won't match.
       var other = new Choice(new[] { typeof(int), typeof(int), typeof(int) });
       Assert.AreEqual(CompareResult.A, OverloadSelector.Compare(a, other, values));
@@ -52,42 +51,58 @@ namespace UnitTests {
       Assert.AreEqual(CompareResult.B, OverloadSelector.Compare(b, a, values));
     }
 
-    void _runNeither(Choice a, Choice b, Type?[] values) {
+    static void _runNeither(Choice a, Choice b, Type?[] values) {
       _runNeither(a, b, _mapValues(values));
     }
 
-    void _runNeither(Choice a, Choice b, Tuple<Type, Type?>?[] values) {
+    static void _runNeither(Choice a, Choice b, Tuple<Type, Type?>?[] values) {
       Assert.AreEqual(CompareResult.Neither, OverloadSelector.Compare(a, b, values));
       Assert.AreEqual(CompareResult.Neither, OverloadSelector.Compare(b, a, values));
     }
 
     delegate void TestDelegate(ref int x);
 #if NETCOREAPP3_1_OR_GREATER
-    static void _withNotNull([NotNull] object _) { }
+    static void _withNotNull([NotNull] object? _) { }
 #endif
     static void _withParams(params string[] _) { }
+    static void _withParamsNullableRef(params string?[] _) { }
     static void _withParamsPrimitive(params int[] _) { }
     static void _withParamsNullablePrimitive(params int?[] _) { }
     static void _withOptional(string a, int b = 1, long c = 2) { }
+    static void _withNullableString(string? _) { }
+    static void _withNullableString3(string? a, string? b, string? c) { }
+    static void _withNonNullString3(string a, string b, string c) { }
+    static void _withNonNullString3Mixed(string a, string? b, string c) { }
+
+    class NullableType_AllNullable {
+      static void _f1(string? _) { }
+      static void _f2(object? _) { }
+      static void _f3(Type? _) { }
+    }
+    class NullableType_AllNotNull {
+      static void _f1(string _) { }
+      static void _f2(object _) { }
+      static void _f3(Type _) { }
+    }
 
     [Test]
     public void Choice_MethodInfo_Empty() {
       Action func = () => { };
       var choice = new Choice(func.GetMethodInfo()!);
-      Assert.AreEqual(choice.FormalArguments, new Type[0]);
-      Assert.AreEqual(choice.Nullable, new bool[0]);
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.FormalArguments, Array.Empty<Type>());
+      Assert.AreEqual(choice.Nullable, Array.Empty<bool>());
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
 
     [Test]
     public void Choice_MethodInfo_Args() {
-      Func<int, bool, Base, int> func = (int a, bool b, Base c) => 0;
+      Func<int, bool, Base?, int> func = (int a, bool b, Base? c) => 0;
       var choice = new Choice(func.GetMethodInfo()!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int), typeof(bool), typeof(Base) });
       Assert.AreEqual(choice.Nullable, new[] { false, false, true });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -99,7 +114,7 @@ namespace UnitTests {
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withNotNull), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(object) });
       Assert.AreEqual(choice.Nullable, new[] { false });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -110,9 +125,13 @@ namespace UnitTests {
       var flags = BindingFlags.Static | BindingFlags.NonPublic;
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withParams), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(string[]) });
-      Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.Nullable, new[] { false });
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsTrue(choice.HasParams);
+      Assert.IsFalse(choice.ParamsNullable);
+
+      choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withParamsNullableRef), flags)!);
       Assert.IsTrue(choice.ParamsNullable);
     }
 
@@ -122,8 +141,8 @@ namespace UnitTests {
       var choice =
           new Choice(typeof(OverloadSelectorTest).GetMethod(nameof(_withParamsPrimitive), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int[]) });
-      Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.Nullable, new[] { false });
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsTrue(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -134,8 +153,8 @@ namespace UnitTests {
       var choice = new Choice(typeof(OverloadSelectorTest).GetMethod(
           nameof(_withParamsNullablePrimitive), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int?[]) });
-      Assert.AreEqual(choice.Nullable, new[] { true });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.Nullable, new[] { false });
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsTrue(choice.HasParams);
       Assert.IsTrue(choice.ParamsNullable);
     }
@@ -146,7 +165,7 @@ namespace UnitTests {
       var choice = new Choice(func.GetMethodInfo()!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(int) });
       Assert.AreEqual(choice.Nullable, new[] { false });
-      Assert.AreEqual(choice.OptionalValues, new object[0]);
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
     }
@@ -157,10 +176,37 @@ namespace UnitTests {
       var choice = new Choice(
           typeof(OverloadSelectorTest).GetMethod(nameof(_withOptional), flags)!);
       Assert.AreEqual(choice.FormalArguments, new[] { typeof(string), typeof(int), typeof(long) });
-      Assert.AreEqual(choice.Nullable, new[] { true, false, false});
+      Assert.AreEqual(choice.Nullable, new[] { false, false, false});
       Assert.AreEqual(choice.OptionalValues, new object[] { (int)1, (long)2 });
       Assert.IsFalse(choice.HasParams);
       Assert.IsFalse(choice.ParamsNullable);
+    }
+
+    [Test]
+    public void Choice_MethodInfo_NullableRef() {
+      var flags = BindingFlags.Static | BindingFlags.NonPublic;
+      var choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withNullableString), flags)!);
+      Assert.AreEqual(choice.FormalArguments, new[] { typeof(string) });
+      Assert.AreEqual(choice.Nullable, new[] { true });
+      Assert.AreEqual(choice.OptionalValues, Array.Empty<object>());
+      Assert.IsFalse(choice.HasParams);
+      Assert.IsFalse(choice.ParamsNullable);
+
+      choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withNullableString3), flags)!);
+      Assert.AreEqual(choice.Nullable, new[] { true, true, true });
+      choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withNonNullString3), flags)!);
+      Assert.AreEqual(choice.Nullable, new[] { false, false, false });
+      choice = new Choice(
+          typeof(OverloadSelectorTest).GetMethod(nameof(_withNonNullString3Mixed), flags)!);
+      Assert.AreEqual(choice.Nullable, new[] { false, true, false });
+
+      choice = new Choice(typeof(NullableType_AllNullable).GetMethod("_f1", flags)!);
+      Assert.AreEqual(choice.Nullable, new[] { true });
+      choice = new Choice(typeof(NullableType_AllNotNull).GetMethod("_f1", flags)!);
+      Assert.AreEqual(choice.Nullable, new[] { false });
     }
 
 
@@ -284,7 +330,7 @@ namespace UnitTests {
     public void Compare_Params_AcceptsZeroValues() {
       var a = new Choice(new[] { typeof(Derived[]) }, hasParams: true);
       var b = new Choice(new[] { typeof(Other) });
-      _runTest(a, b, new Type[0], bValid: false);
+      _runTest(a, b, Array.Empty<Type>(), bValid: false);
     }
 
     [Test]
@@ -327,7 +373,7 @@ namespace UnitTests {
     public void Compare_Optional_NotEnough() {
       var a = new Choice(new[] { typeof(Base), typeof(Base) }, optionals: new object[] { 1 });
       var b = new Choice(new[] { typeof(Other) });
-      _runNeither(a, b, new Type[0]);
+      _runNeither(a, b, Array.Empty<Type>());
     }
 
     [Test]
@@ -706,7 +752,7 @@ namespace UnitTests {
 
       args = new LuaMultiValue(new LuaString("a"));
       converted = OverloadSelector.ConvertArguments(args, choice);
-      Assert.AreEqual(new object[] { "a", new int[0] }, converted);
+      Assert.AreEqual(new object[] { "a", Array.Empty<int>() }, converted);
     }
   }
 }
