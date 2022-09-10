@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
@@ -188,15 +189,20 @@ namespace ModMaker.Lua {
     /// <returns>Less than 0 if a is better; greater than 0 if b is better; 0 if equal.</returns>
     public static CompareResult Compare(Choice a, Choice b, Tuple<Type, Type?>?[] values) {
       static bool compatible(Tuple<Type, Type?>? value, Type argType, bool nullable) {
-        if (value == null) {
+        if (value == null)
           return nullable;
-        } else {
+
+        // If the argument is "object", only allow the inner value.
+        if (argType != typeof(object)) {
           bool ret = TypesCompatible(value.Item1, argType, out _);
-          if (!ret && value.Item2 != null) {
-            return TypesCompatible(value.Item2, argType, out _);
-          }
-          return ret;
+          if (ret)
+            return ret;
         }
+
+        if (value.Item2 == null)
+          return nullable;
+        else
+          return TypesCompatible(value.Item2, argType, out _);
       }
 
       // This tracks which calls are valid; this will never equal Neither (since we return early).
@@ -358,11 +364,8 @@ namespace ModMaker.Lua {
     }
 
     public static int FindOverload(Choice[] choices, LuaMultiValue args) {
-      static Tuple<Type, Type?>? mapValue(ILuaValue? value) {
-        if (value == null || value == LuaNil.Nil)
-          return null;
-        else
-          return new Tuple<Type, Type?>(value.GetType(), value.GetValue()?.GetType());
+      static Tuple<Type, Type?>? mapValue(ILuaValue value) {
+        return new Tuple<Type, Type?>(value.GetType(), value.GetValue()?.GetType());
       }
       return FindOverload(choices, args.Select(mapValue).ToArray());
     }
@@ -462,7 +465,7 @@ namespace ModMaker.Lua {
     public static object?[] ConvertArguments(LuaMultiValue args, Choice choice) {
       object?[] ret = new object[choice.FormalArguments.Length];
       int min = Math.Min(ret.Length, args.Count);
-      MethodInfo asMethodGeneric = typeof(ILuaValue).GetMethod(nameof(ILuaValue.As))!;
+      MethodInfo asMethodGeneric = ReflectionMembers.ILuaValue.As;
 
       if (choice.FormalArguments.Length == 1 &&
           choice.FormalArguments[0] == typeof(LuaMultiValue)) {

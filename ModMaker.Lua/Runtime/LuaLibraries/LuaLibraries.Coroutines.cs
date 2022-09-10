@@ -39,6 +39,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       ILuaValue create(ILuaValue method) {
+        CheckNotNull("coroutine.create", method);
         if (method.ValueType != LuaValueType.Function) {
           throw new ArgumentException(
               "First argument to function 'coroutine.create' must be a function.");

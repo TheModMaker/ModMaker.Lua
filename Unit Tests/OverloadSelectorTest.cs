@@ -17,6 +17,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using ModMaker.Lua;
+using ModMaker.Lua.Compiler;
+using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 using NUnit.Framework;
 
@@ -31,6 +33,10 @@ namespace UnitTests {
     class Base { }
     class Derived : Base { }
     class Other { }
+
+    static OverloadSelectorTest() {
+      ReflectionMembers.EnsureInitialized();
+    }
 
     static Tuple<Type, Type?>?[] _mapValues(Type?[] values) {
       return values.Select(t => t == null ? null : new Tuple<Type, Type?>(t, null)).ToArray();
@@ -433,6 +439,20 @@ namespace UnitTests {
     }
 
     [Test]
+    public void Compare_DoubleType_NullableSuccess() {
+      var a = new Choice(new[] { typeof(ILuaValue) });
+      var b = new Choice(new[] { typeof(object) }, nullable: new[] { true });
+      _runTest(a, b, new[] { new Tuple<Type, Type?>(typeof(LuaNil), null) });
+    }
+
+    [Test]
+    public void Compare_DoubleType_NullableError() {
+      var a = new Choice(new[] { typeof(string) }, nullable: new[] { false });
+      var b = new Choice(new[] { typeof(object) }, nullable: new[] { false });
+      _runNeither(a, b, new[] { new Tuple<Type, Type?>(typeof(LuaNil), null) });
+    }
+
+    [Test]
     public void Compare_DoubleType_NumberBase() {
       // Should favor double since that's the "real" type of the number.
       var a = new Choice(new[] { typeof(double) });
@@ -721,6 +741,15 @@ namespace UnitTests {
     }
 
     [Test]
+    public void ConvertArguments_WrappedArgs() {
+      var choice = new Choice(new[] { typeof(LuaNumber), typeof(LuaString) });
+      var args = new LuaMultiValue(LuaNumber.Create(0), new LuaString("foo"));
+
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object[] { args[0], args[1] }, converted);
+    }
+
+    [Test]
     public void ConvertArguments_AddsOptionals() {
       var choice = new Choice(new[] { typeof(string), typeof(int), typeof(int) },
                               optionals: new object[] { 1, 2 });
@@ -753,6 +782,15 @@ namespace UnitTests {
       args = new LuaMultiValue(new LuaString("a"));
       converted = OverloadSelector.ConvertArguments(args, choice);
       Assert.AreEqual(new object[] { "a", Array.Empty<int>() }, converted);
+    }
+
+    [Test]
+    public void ConvertArguments_Null() {
+      var choice = new Choice(new[] { typeof(object) }, nullable: new[] { true });
+
+      var args = new LuaMultiValue(LuaNil.Nil);
+      var converted = OverloadSelector.ConvertArguments(args, choice);
+      Assert.AreEqual(new object?[] { null }, converted);
     }
   }
 }

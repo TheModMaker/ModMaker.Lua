@@ -90,7 +90,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public virtual T As<T>() {
-      if (typeof(T).IsAssignableFrom(GetType())) {
+      if (typeof(T) != typeof(object) && typeof(T).IsAssignableFrom(GetType())) {
         return (T)(object)this;
       }
 
@@ -112,6 +112,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
 
         return (T)value;
+      } else if (typeof(T) == typeof(object)) {
+        return (T)(object)this;
       } else {
         throw new InvalidCastException(string.Format(Resources.BadCast, value.GetType(),
                                                      typeof(T)));
