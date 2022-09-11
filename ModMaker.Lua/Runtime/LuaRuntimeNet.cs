@@ -96,7 +96,7 @@ namespace ModMaker.Lua.Runtime {
           access = _env.GlobalsTable.Where(k => k.Value is LuaType)
               .Select(k => ((LuaType)k.Value).Type);
           access = access.Concat(AppDomain.CurrentDomain.GetAssemblies()
-              .Where(a => allowed.Contains(a.GetName().GetPublicKey().ToStringBase16()))
+              .Where(a => allowed.Contains(a.GetName().GetPublicKey()?.ToStringBase16()))
               .SelectMany(a => a.GetTypes()));
         } else {
           access = _env.GlobalsTable.Where(k => k.Value is LuaType)

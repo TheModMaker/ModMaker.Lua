@@ -32,7 +32,7 @@ namespace ModMaker.Lua.Compiler {
   static class ReflectionMembers {
     static ReflectionMembers() {
       foreach (Type this_type in typeof(ReflectionMembers).GetNestedTypes()) {
-        var ref_type = this_type.GetCustomAttribute<ReflectFieldsForAttribute>().Type;
+        var ref_type = this_type.GetCustomAttribute<ReflectFieldsForAttribute>()!.Type;
         var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
         foreach (FieldInfo field in this_type.GetFields(flags)) {
           var args_attr = field.GetCustomAttribute<ArgsAttribute>();

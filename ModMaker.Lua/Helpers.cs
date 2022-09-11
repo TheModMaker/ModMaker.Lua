@@ -22,6 +22,8 @@ using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   /// <summary>
   /// A static class that contains several helper methods.
@@ -31,7 +33,7 @@ namespace ModMaker.Lua {
 
     static Helpers() {
       MethodInfo preserveStackTrace = typeof(Exception).GetMethod(
-          "InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic);
+          "InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic)!;
       _preserveStackTrace =
           (Action<Exception>)Delegate.CreateDelegate(typeof(Action<Exception>), preserveStackTrace);
     }
@@ -119,8 +121,8 @@ namespace ModMaker.Lua {
     /// A reference to the single custom attribute of type attributeType that is applied to element,
     /// or null if there is no such attribute.
     /// </returns>
-    public static T GetCustomAttribute<T>(this MemberInfo element) where T : Attribute {
-      return (T)Attribute.GetCustomAttribute(element, typeof(T));
+    public static T? GetCustomAttribute<T>(this MemberInfo element) where T : Attribute {
+      return (T?)Attribute.GetCustomAttribute(element, typeof(T));
     }
     /// <summary>
     /// Retrieves a custom attribute applied to a member of a type. Parameters specify the member,
@@ -134,8 +136,9 @@ namespace ModMaker.Lua {
     /// A reference to the single custom attribute of type attributeType that is applied to element,
     /// or null if there is no such attribute.
     /// </returns>
-    public static T GetCustomAttribute<T>(this MemberInfo element, bool inherit) where T : Attribute {
-      return (T)Attribute.GetCustomAttribute(element, typeof(T), inherit);
+    public static T? GetCustomAttribute<T>(this MemberInfo element,
+                                           bool inherit) where T : Attribute {
+      return (T?)Attribute.GetCustomAttribute(element, typeof(T), inherit);
     }
 
     /// <summary>
@@ -146,11 +149,11 @@ namespace ModMaker.Lua {
     /// <param name="target">The target of the invocation.</param>
     /// <param name="args">The arguments to pass to the method.</param>
     /// <returns>Any value returned from the method.</returns>
-    public static object DynamicInvoke(MethodBase method, object target, object[] args) {
+    public static object? DynamicInvoke(MethodBase method, object? target, object?[]? args) {
       try {
         return method.Invoke(target, args);
       } catch (TargetInvocationException e) {
-        Exception inner = e.InnerException;
+        Exception? inner = e.InnerException;
         if (inner == null) {
           throw;
         }
@@ -168,8 +171,8 @@ namespace ModMaker.Lua {
     /// <param name="index">The indexing object.</param>
     /// <param name="value">The value to set to.</param>
     /// <returns>The value for get or null if setting.</returns>
-    public static ILuaValue GetSetMember(Type targetType, object target, ILuaValue index,
-                                         ILuaValue value = null) {
+    public static ILuaValue GetSetMember(Type targetType, object? target, ILuaValue index,
+                                         ILuaValue? value = null) {
       if (index.ValueType == LuaValueType.Number || index.ValueType == LuaValueType.Table) {
         if (target == null) {
           throw new InvalidOperationException(
@@ -178,7 +181,7 @@ namespace ModMaker.Lua {
 
         LuaMultiValue args;
         if (index.ValueType == LuaValueType.Number) {
-          args = new LuaMultiValue(new[] { value });
+          args = new LuaMultiValue(new[] { value ?? LuaNil.Nil });
         } else {
           int len = index.Length().As<int>();
           object[] objArgs = new object[len];
@@ -229,7 +232,7 @@ namespace ModMaker.Lua {
       }
     }
 
-    static ILuaValue _getSetValue(MemberInfo[] members, object target, ILuaValue value = null) {
+    static ILuaValue _getSetValue(MemberInfo[] members, object? target, ILuaValue? value = null) {
       // Perform the action on the given member.  Although this only checks the first member, the
       // only type that can return more than one with the same name is a method and can only be
       // other methods.
@@ -244,11 +247,11 @@ namespace ModMaker.Lua {
           // implicit numerical conversion
           var convert = ReflectionMembers.ILuaValue.As.MakeGenericMethod(field.FieldType);
           field.SetValue(target, DynamicInvoke(convert, value, null));
-          return null;
+          return LuaNil.Nil;
         }
       } else if (members[0] is PropertyInfo property) {
         if (value == null) {
-          MethodInfo meth = property.GetGetMethod();
+          MethodInfo? meth = property.GetGetMethod();
           if (meth == null) {
             throw new InvalidOperationException($"The property '{property.Name}' is write-only.");
           }
@@ -261,7 +264,7 @@ namespace ModMaker.Lua {
 
           return LuaValueBase.CreateValue(DynamicInvoke(meth, target, null));
         } else {
-          MethodInfo meth = property.GetSetMethod();
+          MethodInfo? meth = property.GetSetMethod();
           if (meth == null) {
             throw new InvalidOperationException($"The property '{property.Name}' is read-only.");
           }
@@ -274,7 +277,7 @@ namespace ModMaker.Lua {
 
           var convert = ReflectionMembers.ILuaValue.As.MakeGenericMethod(property.PropertyType);
           property.SetValue(target, DynamicInvoke(meth, value, null), null);
-          return null;
+          return LuaNil.Nil;
         }
       } else if (members[0] is MethodInfo method) {
         if (value != null) {
@@ -299,8 +302,8 @@ namespace ModMaker.Lua {
     /// <param name="index">The indexing object.</param>
     /// <param name="value">The value to set to.</param>
     /// <returns>The value for get or value if setting.</returns>
-    static ILuaValue _getSetIndex(Type targetType, object target, LuaMultiValue indicies,
-                                  ILuaValue value = null) {
+    static ILuaValue _getSetIndex(Type targetType, object? target, LuaMultiValue indicies,
+                                  ILuaValue? value = null) {
       // Arrays do not actually define an 'Item' method so we need to access the indexer directly.
       if (target is Array targetArray) {
         // Convert the arguments to long.
@@ -319,8 +322,8 @@ namespace ModMaker.Lua {
           return LuaValueBase.CreateValue(targetArray.GetValue(args));
         } else {
           // Convert to the array type.
-          Type arrayType = targetArray.GetType().GetElementType();
-          object valueObj = DynamicInvoke(
+          Type arrayType = targetArray.GetType().GetElementType()!;
+          object? valueObj = DynamicInvoke(
               ReflectionMembers.ILuaValue.As.MakeGenericMethod(arrayType), value, null);
 
           targetArray.SetValue(valueObj, args);
@@ -346,10 +349,10 @@ namespace ModMaker.Lua {
       if (index < 0) {
         throw new InvalidOperationException(
             "Unable to find a visible indexer that matches the provided arguments for type '" +
-            target.GetType() + "'.");
+            targetType + "'.");
       }
 
-      object[] values = OverloadSelector.ConvertArguments(indicies, choices[index]);
+      object?[] values = OverloadSelector.ConvertArguments(indicies, choices[index]);
       if (value == null) {
         return LuaValueBase.CreateValue(DynamicInvoke(methods[index], target, values));
       } else {

@@ -20,6 +20,8 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   /// <summary>
   /// A static class that contains several helper methods.

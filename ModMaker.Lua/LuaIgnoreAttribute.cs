@@ -16,6 +16,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 
+#nullable enable
+
 namespace ModMaker.Lua {
   /// <summary>
   /// Attach to an type definition or member to control visibility to Lua code. If this is placed on
@@ -70,9 +72,9 @@ namespace ModMaker.Lua {
     /// Gets or sets the members that Lua has access to.  If this is not null, then a visible member
     /// MUST be in this array.
     /// </summary>
-    public string[] AccessMembers { get; set; }
+    public string[]? AccessMembers { get; set; }
     /// <summary>
-    /// Gets or sets the members that Lua does not have access to.  Can be null.
+    /// Gets or sets the members that Lua does not have access to.
     /// </summary>
     public string[] IgnoreMembers { get; set; }
     /// <summary>
@@ -84,7 +86,7 @@ namespace ModMaker.Lua {
     /// Gets or sets the type that this class should behave as if it is. If it is null, then it is
     /// ignored.  The attached type must derive from or implement this type.
     /// </summary>
-    public Type BehavesAs { get; set; }
+    public Type? BehavesAs { get; set; }
 
     /// <summary>
     /// Creates a new instance of LuaIgnoreAttribute where all members are not visible to Lua.
@@ -98,12 +100,8 @@ namespace ModMaker.Lua {
     /// <param name="behavesAs">The type that the variable should behave as, cannot be null.</param>
     /// <exception cref="System.ArgumentNullException">If behavesAs is null.</exception>
     public LuaIgnoreAttribute(Type behavesAs) {
-      if (behavesAs == null) {
-        throw new ArgumentNullException(nameof(behavesAs));
-      }
-
       AccessMembers = null;
-      IgnoreMembers = null;
+      IgnoreMembers = Array.Empty<string>();
       DefinedOnly = false;
       BehavesAs = behavesAs;
     }
@@ -116,7 +114,7 @@ namespace ModMaker.Lua {
     /// </param>
     public LuaIgnoreAttribute(bool allInvisible) {
       AccessMembers = allInvisible ? new string[0] : null;
-      IgnoreMembers = null;
+      IgnoreMembers = Array.Empty<string>();
       DefinedOnly = false;
       BehavesAs = null;
     }
@@ -150,28 +148,19 @@ namespace ModMaker.Lua {
     /// attached type must derive from or implement this type.
     /// </param>
     /// <returns>True if the member is visible, otherwise false.</returns>
-    public static bool IsMemberVisible(Type backing, string member, string[] access,
-                                       string[] ignore, bool definedOnly, Type behavesAs) {
-      if (backing == null) {
-        throw new ArgumentNullException(nameof(backing));
-      }
-
-      if (member == null) {
-        throw new ArgumentNullException(nameof(member));
-      }
+    public static bool IsMemberVisible(Type backing, string member, string[]? access,
+                                       string[] ignore, bool definedOnly, Type? behavesAs) {
 
       if (access != null) {
         if (!access.Contains(member)) {
           return false;
         }
       }
-      if (ignore != null) {
-        if (ignore.Contains(member)) {
-          return false;
-        }
+      if (ignore.Contains(member)) {
+        return false;
       }
 
-      Func<MemberInfo, bool> visibleMember = (m) =>
+      bool visibleMember(MemberInfo m) =>
           m.Name == member &&
           m.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0;
       if (behavesAs != null) {

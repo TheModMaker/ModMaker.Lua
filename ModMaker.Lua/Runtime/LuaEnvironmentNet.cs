@@ -41,7 +41,7 @@ namespace ModMaker.Lua.Runtime {
           t1 == typeof(UInt16) || t1 == typeof(UInt32) || t1 == typeof(UInt64) ||
           t1 == typeof(Byte) || t1 == typeof(Decimal)) {
         result = Helpers.DynamicInvoke(
-            typeof(Convert).GetMethod("To" + t1.Name, new[] { typeof(double) }),
+            typeof(Convert).GetMethod("To" + t1.Name, new[] { typeof(double) })!,
             null, new object[] { Value });
         return true;
       }

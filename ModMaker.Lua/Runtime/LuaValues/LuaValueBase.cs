@@ -113,7 +113,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           value = Helpers.DynamicInvoke(m, null, new[] { value });
         }
 
-        return (T)value;
+        return (T)value!;
       } else if (typeof(T) == typeof(object)) {
         return (T)(object)this;
       } else {

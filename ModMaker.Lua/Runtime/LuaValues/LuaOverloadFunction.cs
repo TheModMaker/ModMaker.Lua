@@ -94,7 +94,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
 
       // Invoke the selected method
-      object retObj = Helpers.DynamicInvoke(method.Item1, method.Item2, realArgs);
+      object? retObj = Helpers.DynamicInvoke(method.Item1, method.Item2, realArgs);
 
       // Restore by-reference variables.
       int min = Math.Min(realArgs.Length, args.Count);
@@ -111,7 +111,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (method.Item1.IsDefined(typeof(MultipleReturnAttribute), true)) {
         if (typeof(IEnumerable).IsAssignableFrom(returnType)) {
           // TODO: Support restricted variables.
-          IEnumerable tempE = (IEnumerable)retObj;
+          IEnumerable tempE = (IEnumerable)retObj!;
           return LuaMultiValue.CreateMultiValueFromObj(tempE.Cast<object>().ToArray());
         } else {
           throw new InvalidOperationException(
