@@ -97,6 +97,10 @@ namespace ModMaker.Lua.Parser {
     /// Gets the name of the current file, used for throwing exceptions.
     /// </summary>
     public string Name { get; private set; }
+    /// <summary>
+    /// Gets the last token that was read.  This ignores peeks.
+    /// </summary>
+    public Token Previous { get; private set; }
 
     /// <summary>
     /// Creates a new Lexer object that will read from the given input.
@@ -117,10 +121,11 @@ namespace ModMaker.Lua.Parser {
     /// <returns>The token that was read.</returns>
     public Token Read() {
       if (_peek.Count > 0) {
-        return _peek.Pop();
+        Previous = _peek.Pop();
       } else {
-        return _internalRead();
+        Previous = _internalRead();
       }
+      return Previous;
     }
     /// <summary>
     /// Reads a single token but does not progress the input.

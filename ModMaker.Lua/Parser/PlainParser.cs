@@ -98,7 +98,7 @@ namespace ModMaker.Lua.Parser {
           var ret = _readReturn(input);
           return new BlockItem(statements.ToArray()) {
             Return = ret,
-            Debug = _makeDebug(input, debug, ret.Debug),
+            Debug = _makeDebug(input, debug),
           };
         } else if (cur.Type == TokenType.Semicolon) {
           input.Expect(TokenType.Semicolon);
@@ -122,12 +122,9 @@ namespace ModMaker.Lua.Parser {
       }
 
       // Only gets here if this is the global function
-      DebugInfo debugInfo = statements.Count == 0
-          ? _makeDebug(input, debug)
-          : _makeDebug(input, debug, statements[statements.Count - 1].Debug);
       return new BlockItem(statements.ToArray()) {
         Return = includeReturn ? new ReturnItem() : null,
-        Debug = debugInfo,
+        Debug = _makeDebug(input, debug),
       };
     }
 
@@ -140,7 +137,7 @@ namespace ModMaker.Lua.Parser {
       Token debug = input.Expect(TokenType.Local);
       if (input.PeekType(TokenType.Function)) {
         FuncDefItem ret = _readFunctionHelper(input, canName: true, local: true);
-        ret.Debug = _makeDebug(input, debug, ret.Debug);
+        ret.Debug = _makeDebug(input, debug);
         return ret;
       } else {
         Token name = input.Expect(TokenType.Identifier);
@@ -158,28 +155,23 @@ namespace ModMaker.Lua.Parser {
       var implements = new List<string>();
 
       string className;
-      Token end;
       if (input.PeekType(TokenType.StringLiteral)) {
-        end = input.Expect(TokenType.StringLiteral);
-        className = end.Value;
+        className = input.Expect(TokenType.StringLiteral).Value;
         if (input.ReadIfType(TokenType.BeginParen)) {
           do {
             Token name = input.Expect(TokenType.Identifier);
             implements.Add(name.Value);
           } while (input.ReadIfType(TokenType.Comma));
-          end = input.Expect(TokenType.EndParen);
+          input.Expect(TokenType.EndParen);
         }
       } else {
-        end = input.Expect(TokenType.Identifier);
-        className = end.Value;
+        className = input.Expect(TokenType.Identifier).Value;
         if (input.PeekType(TokenType.Colon)) {
           do {
             input.Read();  // Skip the ':' or ','.  Simply include the '.' in the name.
-            end = input.Expect(TokenType.Identifier);
-            string name = end.Value;
+            string name = input.Expect(TokenType.Identifier).Value;
             while (input.ReadIfType(TokenType.Indexer)) {
-              end = input.Expect(TokenType.Identifier);
-              name += "." + end.Value;
+              name += "." + input.Expect(TokenType.Identifier).Value;
             }
             implements.Add(name);
           } while (input.PeekType(TokenType.Comma));
@@ -187,7 +179,7 @@ namespace ModMaker.Lua.Parser {
       }
 
       return new ClassDefItem(className, implements.ToArray()) {
-        Debug = _makeDebug(input, debug, end),
+        Debug = _makeDebug(input, debug),
       };
     }
     /// <summary>
@@ -212,8 +204,7 @@ namespace ModMaker.Lua.Parser {
       }
 
       return new ReturnItem(values.ToArray()) {
-        Debug = values.Count == 0 ? _makeDebug(input, debug)
-                                  : _makeDebug(input, debug, values[values.Count - 1].Debug),
+        Debug = _makeDebug(input, debug),
         IsLastExpressionSingle = isParentheses,
       };
     }
@@ -250,7 +241,7 @@ namespace ModMaker.Lua.Parser {
         var block = _readBlock(input);
         Token end = input.Expect(TokenType.End);
         return new ForNumItem(nameItem, start, limit, step, block) {
-          Debug = _makeDebug(input, debug, end),
+          Debug = _makeDebug(input, debug),
           ForDebug = _makeDebug(input, debug, do_),
           EndDebug = _makeDebug(input, end),
         };
@@ -276,7 +267,7 @@ namespace ModMaker.Lua.Parser {
         var block = _readBlock(input);
         Token end = input.Expect(TokenType.End);
         return new ForGenItem(names.ToArray(), exps.ToArray(), block) {
-          Debug = _makeDebug(input, debug, end),
+          Debug = _makeDebug(input, debug),
           ForDebug = _makeDebug(input, debug, do_),
           EndDebug = _makeDebug(input, end),
         };
@@ -313,9 +304,9 @@ namespace ModMaker.Lua.Parser {
       }
       Token end = input.Expect(TokenType.End);
       return new IfItem(exp, block, elseIfs.ToArray(), elseBlock) {
-        Debug = _makeDebug(input, debug, end),
+        Debug = _makeDebug(input, debug),
         IfDebug = _makeDebug(input, debug, firstThen),
-        ElseDebug = elseToken.Type == TokenType.Else ? _makeDebug(input, elseToken)
+        ElseDebug = elseToken.Type == TokenType.Else ? _makeDebug(input, elseToken, elseToken)
                                                      : new DebugInfo(),
         EndDebug = _makeDebug(input, end),
       };
@@ -331,9 +322,9 @@ namespace ModMaker.Lua.Parser {
       Token repeat = input.Expect(TokenType.Until);
       var exp = _readExp(input, out _);
       return new RepeatItem(exp, block) {
-        Debug = _makeDebug(input, debug, exp.Debug),
-        RepeatDebug = _makeDebug(input, debug),
-        UntilDebug = _makeDebug(input, repeat, exp.Debug),
+        Debug = _makeDebug(input, debug),
+        RepeatDebug = _makeDebug(input, debug, debug),
+        UntilDebug = _makeDebug(input, repeat),
       };
     }
     /// <summary>
@@ -344,8 +335,8 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseStatement _readLabel(Lexer input) {
       Token debug = input.Expect(TokenType.Label);
       Token label = input.Expect(TokenType.Identifier);
-      Token end = input.Expect(TokenType.Label);
-      return new LabelItem(label.Value) { Debug = _makeDebug(input, debug, end) };
+      input.Expect(TokenType.Label);
+      return new LabelItem(label.Value) { Debug = _makeDebug(input, debug) };
     }
     /// <summary>
     /// Reads a break statement from the input.
@@ -364,7 +355,7 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseStatement _readGoto(Lexer input) {
       Token debug = input.Expect(TokenType.Goto);
       Token name = input.Expect(TokenType.Identifier);
-      return new GotoItem(name.Value) { Debug = _makeDebug(input, debug, name) };
+      return new GotoItem(name.Value) { Debug = _makeDebug(input, debug) };
     }
     /// <summary>
     /// Reads a do statement from the input.
@@ -389,9 +380,9 @@ namespace ModMaker.Lua.Parser {
       var block = _readBlock(input);
       Token end = input.Expect(TokenType.End);
       return new WhileItem(exp, block) {
-        Debug = _makeDebug(input, debug, end),
+        Debug = _makeDebug(input, debug),
         WhileDebug = _makeDebug(input, debug, do_),
-        EndDebug = _makeDebug(input, end),
+        EndDebug = _makeDebug(input, end, end),
       };
     }
 
@@ -437,10 +428,8 @@ namespace ModMaker.Lua.Parser {
         input.Expect(TokenType.Assign);
       }
 
-      DebugInfo endDebug =
-          exps.Count == 0 ? names[names.Count - 1].Debug : exps[exps.Count - 1].Debug;
       return new AssignmentItem(names.ToArray(), exps.ToArray()) {
-        Debug = _makeDebug(input, debug, endDebug),
+        Debug = _makeDebug(input, debug),
         Local = local,
         IsLastExpressionSingle = isParentheses,
       };
@@ -467,13 +456,13 @@ namespace ModMaker.Lua.Parser {
         if (input.ReadIfType(TokenType.BeginBracket)) {
           isParentheses = false;
           IParseExp temp = _readExp(input, out _);
-          ret = new IndexerItem(ret, temp) { Debug = _makeDebug(input, debug, temp.Debug) };
+          ret = new IndexerItem(ret, temp) { Debug = _makeDebug(input, debug) };
           input.Expect(TokenType.EndBracket);
         } else if (input.ReadIfType(TokenType.Indexer)) {
           isParentheses = false;
           Token token = input.Expect(TokenType.Identifier);
           var name = new LiteralItem(token.Value) { Debug = _makeDebug(input, token) };
-          ret = new IndexerItem(ret, name) { Debug = _makeDebug(input, debug, token) };
+          ret = new IndexerItem(ret, name) { Debug = _makeDebug(input, debug) };
         } else {
           string? instName = null;
           if (input.ReadIfType(TokenType.Colon)) {
@@ -482,18 +471,15 @@ namespace ModMaker.Lua.Parser {
 
           bool isLastSingle = false;
           var args = new List<FuncCallItem.ArgumentInfo>();
-          DebugInfo debugInfo;
           if (input.PeekType(TokenType.BeginTable)) {
             IParseExp table = _readTable(input);
             args.Add(new FuncCallItem.ArgumentInfo(table, false));
-            debugInfo = _makeDebug(input, debug, table.Debug);
           } else if (input.PeekType(TokenType.StringLiteral)) {
             Token token = input.Expect(TokenType.StringLiteral);
             args.Add(new FuncCallItem.ArgumentInfo(new LiteralItem(token.Value) {
                                                      Debug = _makeDebug(input, token),
                                                    },
                                                    false));
-            debugInfo = _makeDebug(input, debug, token);
           } else if (input.ReadIfType(TokenType.BeginParen)) {
             if (!input.PeekType(TokenType.EndParen)) {
               do {
@@ -511,14 +497,13 @@ namespace ModMaker.Lua.Parser {
                 }
               } while (input.ReadIfType(TokenType.Comma));
             }
-            Token end = input.Expect(TokenType.EndParen);
-            debugInfo = _makeDebug(input, debug, end);
+            input.Expect(TokenType.EndParen);
           } else {
             break;
           }
           isParentheses = false;
           ret = new FuncCallItem(ret, args.ToArray()) {
-            Debug = debugInfo,
+            Debug = _makeDebug(input, debug),
             InstanceName = instName,
             IsLastArgSingle = isLastSingle,
           };
@@ -535,7 +520,7 @@ namespace ModMaker.Lua.Parser {
     protected virtual IParseExp _readExp(Lexer input, out bool isParentheses, int precedence = -1) {
       Token debug = input.Peek();
       IParseExp ret;
-      var unOpType = _getUnaryOperationType(input.Peek().Type);
+      var unOpType = _getUnaryOperationType(debug.Type);
       isParentheses = false;
       if (unOpType != UnaryOperationType.Unknown) {
         input.Read();
@@ -584,7 +569,7 @@ namespace ModMaker.Lua.Parser {
         int extra = _isRightAssociative(binOpType) ? 0 : 1;
         IParseExp other = _readExp(input, out _, newPrecedence + extra);
         ret = new BinOpItem(ret, binOpType, other) {
-          Debug = _makeDebug(input, debug, other.Debug),
+          Debug = _makeDebug(input, debug),
         };
         isParentheses = false;
       }
@@ -609,7 +594,7 @@ namespace ModMaker.Lua.Parser {
         while (input.ReadIfType(TokenType.Indexer)) {
           temp = input.Expect(TokenType.Identifier);
           var literal = new LiteralItem(temp.Value) { Debug = _makeDebug(input, temp) };
-          name = new IndexerItem(name, literal) { Debug = _makeDebug(input, debug, temp) };
+          name = new IndexerItem(name, literal) { Debug = _makeDebug(input, debug) };
         }
 
         if (input.ReadIfType(TokenType.Colon)) {
@@ -638,11 +623,11 @@ namespace ModMaker.Lua.Parser {
       }
       input.Expect(TokenType.EndParen);
       BlockItem chunk = _readBlock(input);
-      Token end = input.Expect(TokenType.End);
+      input.Expect(TokenType.End);
       chunk.Return ??= new ReturnItem();
 
       return new FuncDefItem(args.ToArray(), chunk) {
-        Debug = _makeDebug(input, debug, end),
+        Debug = _makeDebug(input, debug),
         InstanceName = instName,
         Prefix = name,
         Local = local,
@@ -686,8 +671,8 @@ namespace ModMaker.Lua.Parser {
           break;
         }
       }
-      Token end = input.Expect(TokenType.EndTable);
-      return new TableItem(values.ToArray()) { Debug = _makeDebug(input, debug, end) };
+      input.Expect(TokenType.EndTable);
+      return new TableItem(values.ToArray()) { Debug = _makeDebug(input, debug) };
     }
 
     #endregion
@@ -797,22 +782,14 @@ namespace ModMaker.Lua.Parser {
     /// <summary>
     /// Creates a DebugInfo based on the given Token.
     /// </summary>
+    /// <param name="lexer">The input reader to use.</param>
     /// <param name="token">The token to use.</param>
-    /// <param name="end">The end token to use; if not given, just uses start token.</param>
+    /// <param name="end">The end of the debug info, or null to use the current read pos.</param>
     /// <returns>The new DebugInfo instance.</returns>
     protected static DebugInfo _makeDebug(Lexer lexer, Token token, Token? end = null) {
-      long endPos = end == null ? token.EndPos : end.Value.EndPos;
-      long endLine = end == null ? token.EndLine : end.Value.EndLine;
-      return new DebugInfo(lexer.Name, token.StartPos, token.StartLine, endPos, endLine);
-    }
-    /// <summary>
-    /// Creates a DebugInfo based on the given Token and DebugInfo.
-    /// </summary>
-    /// <param name="token">The token to use.</param>
-    /// <param name="end">The end DebugInfo.</param>
-    /// <returns>The new DebugInfo instance.</returns>
-    protected static DebugInfo _makeDebug(Lexer lexer, Token token, DebugInfo end) {
-      return new DebugInfo(lexer.Name, token.StartPos, token.StartLine, end.EndPos, end.EndLine);
+      end ??= lexer.Previous;
+      return new DebugInfo(lexer.Name, token.StartPos, token.StartLine, end.Value.EndPos,
+                           end.Value.EndLine);
     }
 
     #endregion
