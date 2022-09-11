@@ -88,9 +88,9 @@ namespace UnitTests.Runtime {
       object inst = cls.CreateInstance();
       Assert.IsNotNull(inst);
 
-      FieldInfo field = inst.GetType().GetField("field");
+      FieldInfo field = inst.GetType().GetField("field")!;
       Assert.IsNotNull(inst.GetType().GetField("field"));
-      object value = field.GetValue(inst);
+      object? value = field.GetValue(inst);
       Assert.AreEqual((double)123, value);
     }
 

@@ -68,7 +68,7 @@ namespace UnitTests {
 
     delegate void TestDelegate(ref int x);
 #if NETCOREAPP3_1_OR_GREATER
-    static void _withNotNull([NotNull] object? _) { }
+    static void _withNotNull([NotNull] object? _) { _ = new object(); }
 #endif
     static void _withParams(params string[] _) { }
     static void _withParamsNullableRef(params string?[] _) { }

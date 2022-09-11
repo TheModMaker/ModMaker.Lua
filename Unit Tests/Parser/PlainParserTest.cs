@@ -23,32 +23,32 @@ using NUnit.Framework;
 namespace UnitTests.Parser {
   [TestFixture]
   public class PlainParserTest {
-    IParseItem _parseBlock(string input, string name = null) {
+    static IParseItem _parseBlock(string input, string name = "") {
       PlainParser target = new PlainParser();
       var encoding = Encoding.UTF8;
       var stream = new MemoryStream(encoding.GetBytes(input));
       return target.Parse(stream, encoding, name);
     }
 
-    IParseItem _parseStatement(string input) {
+    static IParseItem _parseStatement(string input) {
       var block = _parseBlock(input) as BlockItem;
       Assert.IsNotNull(block);
-      Assert.AreEqual(1, block.Children.Length);
+      Assert.AreEqual(1, block!.Children.Length);
       return block.Children[0];
     }
 
-    IParseItem _parseExpression(string input) {
+    static IParseItem _parseExpression(string input) {
       var stmt = _parseStatement("local x = " + input) as AssignmentItem;
       Assert.IsNotNull(stmt);
-      Assert.AreEqual(1, stmt.Expressions.Length);
+      Assert.AreEqual(1, stmt!.Expressions.Length);
       return stmt.Expressions[0];
     }
 
-    void _checkSyntaxError(string input, Token token) {
+    static void _checkSyntaxError(string input, Token token) {
       var err = Assert.Throws<CompilerException>(() => _parseBlock(input));
-      var debug = new DebugInfo(null, token.StartPos, token.StartLine,
+      var debug = new DebugInfo("", token.StartPos, token.StartLine,
                                 token.StartPos + token.Value.Length, token.StartLine);
-      Assert.AreEqual(debug, err.Errors[0].Debug);
+      Assert.AreEqual(debug, err!.Errors[0].Debug);
     }
 
     #region DebugInfo
@@ -638,7 +638,7 @@ namespace UnitTests.Parser {
     [Test]
     public void Table_MultipleErrors() {
       var e = Assert.Throws<CompilerException>(() => _parseBlock("{1=2, 2=3}"));
-      Assert.AreEqual(3, e.Errors.Length);
+      Assert.AreEqual(3, e!.Errors.Length);
       Assert.AreEqual(MessageId.TableKeyMustBeName, e.Errors[0].ID);
       Assert.AreEqual(2, e.Errors[0].Debug.StartPos);
       Assert.AreEqual(MessageId.TableKeyMustBeName, e.Errors[1].ID);

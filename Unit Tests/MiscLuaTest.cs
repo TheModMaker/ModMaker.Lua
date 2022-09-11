@@ -23,7 +23,7 @@ namespace UnitTests {
     [Test]
     public void ReflectionIsOpaque() {
       Func<Type> getType = () => typeof(string);
-      Func<MethodInfo> getMethod = () => typeof(string).GetMethod(nameof(string.Clone));
+      Func<MethodInfo?> getMethod = () => typeof(string).GetMethod(nameof(string.Clone));
       Func<object> getObj = () => new object();
       _lua.Register(getType, "getType");
       _lua.Register(getMethod, "getMethod");

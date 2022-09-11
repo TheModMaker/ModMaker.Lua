@@ -40,11 +40,11 @@ namespace UnitTests.Parser {
   }
 
   static class ParseItemEquals {
-    public static void CheckEquals(object expected, object actual, bool checkDebug = false) {
+    public static void CheckEquals(object? expected, object? actual, bool checkDebug = false) {
       _checkEquals(expected, actual, checkDebug, "$");
     }
 
-    static void _checkEquals(object expected, object actual, bool checkDebug, string path) {
+    static void _checkEquals(object? expected, object? actual, bool checkDebug, string path) {
       // Skip these properties since they should be different and don't affect the AST itself.
       ISet<string> ignoredProperties = new HashSet<string>() {
           "Break", "Target", "FunctionInformation",
@@ -83,7 +83,7 @@ namespace UnitTests.Parser {
       } else if (type.GetInterfaces().Contains(typeof(IEnumerable)) && type != typeof(string)) {
         // If this is a collection, iterate over each list.
         var expectedIter = ((IEnumerable)expected).GetEnumerator();
-        var actualIter = ((IEnumerable)actual).GetEnumerator();
+        var actualIter = ((IEnumerable)actual!).GetEnumerator();
         int i = 0;
         while (true) {
           bool expectedMove = expectedIter.MoveNext();
@@ -311,9 +311,9 @@ namespace UnitTests.Parser {
       _checkError(".Fields[1].Key", () => ParseItemEquals.CheckEquals(expected, actual));
     }
 
-    void _checkError(string path, TestDelegate act) {
+    static void _checkError(string path, TestDelegate act) {
       var e = Assert.Throws<AssertionException>(act);
-      if (!e.Message.Contains(path)) {
+      if (!e!.Message.Contains(path)) {
         throw e;
       }
     }

@@ -28,10 +28,10 @@ namespace UnitTests {
     public virtual void SetUp() {
       _lua = new Lua();
       _lua.Register((Action<string>)Assert.Fail, "fail");
-      _lua.Register((Action<object, object, string>)_assertEquals, "assertEquals");
+      _lua.Register((Action<object?, object?, string>)_assertEquals, "assertEquals");
       _lua.Register((Action<bool, string>)_assertTrue, "assertTrue");
       _lua.Register((Action<bool, string>)_assertFalse, "assertFalse");
-      _lua.Register((Action<object, string>)_assertNotNull, "assertNotNull");
+      _lua.Register((Action<object?, string>)_assertNotNull, "assertNotNull");
       _lua.Register((Action<double, double, string>)_assertEqualsDelta, "assertEqualsDelta");
       _lua.Register((Action<string, ILuaValue>)_assertThrows, "assertThrows");
     }
@@ -39,13 +39,13 @@ namespace UnitTests {
     /// <summary>
     /// Gets the current Lua instance.
     /// </summary>
-    protected Lua _lua { get; private set; }
+    protected Lua _lua { get; private set; } = new Lua();
 
-    static void _assertNotNull(object actual, string message) {
+    static void _assertNotNull(object? actual, string message) {
       Assert.IsNotNull(actual, message);
     }
 
-    static void _assertEquals(object expected, object actual, string message) {
+    static void _assertEquals(object? expected, object? actual, string message) {
       Assert.AreEqual(expected, actual, message);
     }
 

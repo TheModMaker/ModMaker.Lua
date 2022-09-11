@@ -21,7 +21,7 @@ namespace UnitTests.Runtime {
   [TestFixture]
   class DelegateBuilderTest {
     class MockFunction : LuaFunction {
-      public LuaMultiValue LastCall = null;
+      public LuaMultiValue? LastCall = null;
       public LuaMultiValue Return = new LuaMultiValue();
 
       public MockFunction() : base("") { }
@@ -48,7 +48,7 @@ namespace UnitTests.Runtime {
       Assert.IsNotNull(act);
       act();
       Assert.IsNotNull(func.LastCall);
-      Assert.AreEqual(0, func.LastCall.Count);
+      Assert.AreEqual(0, func.LastCall!.Count);
     }
 
     [Test]
@@ -60,7 +60,7 @@ namespace UnitTests.Runtime {
       Assert.IsNotNull(act);
       act(3, "foo");
       Assert.IsNotNull(func.LastCall);
-      Assert.AreEqual(2, func.LastCall.Count);
+      Assert.AreEqual(2, func.LastCall!.Count);
       Assert.AreEqual(LuaNumber.Create(3), func.LastCall[0]);
       Assert.AreEqual(new LuaString("foo"), func.LastCall[1]);
     }
