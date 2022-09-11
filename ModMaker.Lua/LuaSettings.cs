@@ -66,26 +66,6 @@ namespace ModMaker.Lua {
   }
 
   /// <summary>
-  /// Defines what types Lua has access to when defining a new type.
-  /// </summary>
-  public enum LuaClassAccess {
-    /// <summary>
-    /// Lua can only derive from types that are registered.
-    /// </summary>
-    Registered,
-    /// <summary>
-    /// Lua can derive from types that are registered and defined in the
-    /// .NET framework.
-    /// </summary>
-    System,
-    /// <summary>
-    /// Lua can derive from any type that is defined in
-    /// CurrentDomain.GetAssemblies().
-    /// </summary>
-    All,
-  }
-
-  /// <summary>
   /// The event args for an exit event.
   /// </summary>
   public sealed class ExitEventArgs : EventArgs {
@@ -104,7 +84,6 @@ namespace ModMaker.Lua {
   /// </summary>
   public sealed class LuaSettings {
     EventHandler<ExitEventArgs>? _onquit;
-    LuaClassAccess _access;
     LuaLibraries _libs;
     Encoding? _enc;
     Stream? _in;
@@ -128,7 +107,6 @@ namespace ModMaker.Lua {
       _readonly = false;
       _onquit = null;
       _libs = LuaLibraries.All;
-      _access = LuaClassAccess.Registered;
       _in = stdin;
       _out = stdout;
 #if DEBUG
@@ -145,7 +123,6 @@ namespace ModMaker.Lua {
       _readonly = true;
       _onquit = copy._onquit;
       _libs = copy._libs;
-      _access = _checkAccess(copy._access);
       _enc = copy._enc;
       _in = copy._in;
       _out = copy._out;
@@ -170,16 +147,6 @@ namespace ModMaker.Lua {
       set {
         _checkReadonly();
         _libs = value;
-      }
-    }
-    /// <summary>
-    /// Gets or sets which types Lua defined classes can derive from.
-    /// </summary>
-    public LuaClassAccess ClassAccess {
-      get { return _access; }
-      set {
-        _checkReadonly();
-        _access = value;
       }
     }
     /// <summary>
@@ -264,22 +231,6 @@ namespace ModMaker.Lua {
     void _checkReadonly() {
       if (_readonly) {
         throw new InvalidOperationException(Resources.ReadonlySettings);
-      }
-    }
-    /// <summary>
-    /// Ensures that the LuaClassAccess is really one of the enumerated values. If it is invalid, it
-    /// will use the default (Registered).
-    /// </summary>
-    /// <param name="access">The value to check.</param>
-    /// <returns>A valid LuaClassAccess choice.</returns>
-    static LuaClassAccess _checkAccess(LuaClassAccess access) {
-      switch (access) {
-        case LuaClassAccess.System:
-          return LuaClassAccess.System;
-        case LuaClassAccess.All:
-          return LuaClassAccess.All;
-        default:
-          return LuaClassAccess.Registered;
       }
     }
   }

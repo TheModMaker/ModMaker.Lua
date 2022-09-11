@@ -715,22 +715,23 @@ namespace UnitTests.Parser {
     [Test]
     public void Class_OldStyle() {
       ParseItemEquals.CheckEquals(
-          new ClassDefItem("Foo", new[] { "Bar", "Baz" }),
+          new ClassDefItem(new NameItem("Foo"), new[] { new NameItem("Bar"), new NameItem("Baz") }),
           _parseStatement("class \"Foo\" (Bar, Baz)"));
     }
 
     [Test]
     public void Class_NewStyle() {
       ParseItemEquals.CheckEquals(
-          new ClassDefItem("Foo", new[] { "Bar", "Baz" }),
+          new ClassDefItem(new NameItem("Foo"), new[] { new NameItem("Bar"), new NameItem("Baz") }),
           _parseStatement("class Foo : Bar, Baz"));
     }
 
     [Test]
     public void Class_NewStyleWithIndexer() {
       ParseItemEquals.CheckEquals(
-          new ClassDefItem("Foo", new[] { "Bar.Baz.Cat" }),
-          _parseStatement("class Foo : Bar.Baz.Cat"));
+          new ClassDefItem(new NameItem("Foo"),
+                           new[] { new IndexerItem(new NameItem("Bar"), new LiteralItem("Baz")) }),
+          _parseStatement("class Foo : Bar.Baz"));
     }
 
     [Test]
@@ -741,7 +742,6 @@ namespace UnitTests.Parser {
       _checkSyntaxError("class Foo : Foo.", new Token(TokenType.None, "", 17, 1));
       _checkSyntaxError("class Foo : Foo.123", new Token(TokenType.NumberLiteral, "123", 17, 1));
       _checkSyntaxError("class 123", new Token(TokenType.NumberLiteral, "123", 7, 1));
-      _checkSyntaxError("class \"Foo\" (\"a\")", new Token(TokenType.StringLiteral, "a", 14, 1));
       _checkSyntaxError("class \"Foo\" (A,)", new Token(TokenType.EndParen, ")", 16, 1));
       _checkSyntaxError("class \"Foo\" (A, B C)", new Token(TokenType.Identifier, "C", 19, 1));
     }

@@ -152,28 +152,29 @@ namespace ModMaker.Lua.Parser {
     /// <returns>The object that was read.</returns>
     protected virtual IParseStatement _readClass(Lexer input) {
       Token debug = input.Expect(TokenType.Class);
-      var implements = new List<string>();
+      var implements = new List<IParseExp>();
 
-      string className;
+      NameItem className;
       if (input.PeekType(TokenType.StringLiteral)) {
-        className = input.Expect(TokenType.StringLiteral).Value;
+        // class "foo"
+        // class "foo" (a, b, c)
+        Token name = input.Expect(TokenType.StringLiteral);
+        className = new NameItem(name.Value) { Debug = _makeDebug(input, name) };
         if (input.ReadIfType(TokenType.BeginParen)) {
           do {
-            Token name = input.Expect(TokenType.Identifier);
-            implements.Add(name.Value);
+            implements.Add(_readExp(input, out _));
           } while (input.ReadIfType(TokenType.Comma));
           input.Expect(TokenType.EndParen);
         }
       } else {
-        className = input.Expect(TokenType.Identifier).Value;
+        // class foo
+        // class foo : a, b, c
+        Token name = input.Expect(TokenType.Identifier);
+        className = new NameItem(name.Value) { Debug = _makeDebug(input, name) };
         if (input.PeekType(TokenType.Colon)) {
           do {
-            input.Read();  // Skip the ':' or ','.  Simply include the '.' in the name.
-            string name = input.Expect(TokenType.Identifier).Value;
-            while (input.ReadIfType(TokenType.Indexer)) {
-              name += "." + input.Expect(TokenType.Identifier).Value;
-            }
-            implements.Add(name);
+            input.Read();  // Skip the ':' or ','
+            implements.Add(_readExp(input, out _));
           } while (input.PeekType(TokenType.Comma));
         }
       }

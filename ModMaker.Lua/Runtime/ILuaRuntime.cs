@@ -45,12 +45,5 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="method">The method to call.</param>
     /// <returns>The new Lua thread object.</returns>
     ILuaThread CreateThread(ILuaValue method);
-    /// <summary>
-    /// Called when the code encounters the 'class' keyword.  Defines a LuaClass object with the
-    /// given name.
-    /// </summary>
-    /// <param name="impl">The types that the class will derive.</param>
-    /// <param name="name">The name of the class.</param>
-    void CreateClassValue(string[] impl, string name);
   }
 }

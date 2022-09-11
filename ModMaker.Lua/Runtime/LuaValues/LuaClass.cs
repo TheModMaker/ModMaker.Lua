@@ -31,6 +31,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public Type Type { get; private set; }
 
+    public override object? GetValue() {
+      return Type;
+    }
     public override string ToString() {
       return Type.ToString();
     }
@@ -95,6 +98,45 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       Interfaces = new ReadOnlyCollection<Type>(inter);
 
       _data = new ItemData(env, name, @base, inter);
+    }
+
+    /// <summary>
+    /// Creates a new LuaClass instance from the given Lua values.
+    /// </summary>
+    /// <param name="name">The name of the resulting type.</param>
+    /// <param name="types">The type instances to derive from or implement.</param>
+    /// <param name="e">The current Lua environment.</param>
+    /// <returns>A new LuaClass instance.</returns>
+    public static LuaClass Create(string name, ILuaValue[] values, ILuaEnvironment e) {
+      var interfaces = new List<Type>();
+      Type? @base = null;
+
+      foreach (var item in values) {
+        var type = item.GetValue() as Type;
+        if (type == null) {
+          throw new InvalidOperationException("A type can only derive from a Type");
+        }
+        if (type.IsInterface) {
+          interfaces.Add(type);
+        } else {
+          // Allow non-public in the flags since we want protected too, but fail if the constructor
+          // is private or internal ("Assembly").
+          const BindingFlags flags =
+              BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+          var ctor = type.GetConstructor(flags, null, Array.Empty<Type>(), null);
+          if (ctor == null || ctor.GetCustomAttribute<LuaIgnoreAttribute>() != null ||
+              ctor.IsPrivate || ctor.IsAssembly) {
+            throw new InvalidOperationException(
+                "Base classes must have a visible public empty constructor");
+          }
+
+          if (@base == null)
+            @base = type;
+          else
+            throw new InvalidOperationException("A type can only have one concrete base class");
+        }
+      }
+      return new LuaClass(name, @base, interfaces.ToArray(), e);
     }
 
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }

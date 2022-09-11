@@ -131,7 +131,6 @@ namespace ModMaker.Lua.Compiler {
 
       public static MethodInfo GenericLoop;
       public static MethodInfo CreateThread;
-      public static MethodInfo CreateClassValue;
     }
 
     [ReflectFieldsFor(typeof(Runtime.LuaValues.LuaMultiValue))]
@@ -156,6 +155,11 @@ namespace ModMaker.Lua.Compiler {
     [ReflectFieldsFor(typeof(Runtime.LuaValues.LuaTable))]
     public static class LuaTable {
       public static ConstructorInfo Constructor;
+    }
+
+    [ReflectFieldsFor(typeof(Runtime.LuaValues.LuaClass))]
+    public static class LuaClass {
+      public static MethodInfo Create;
     }
 
     [ReflectFieldsFor(typeof(Runtime.LuaValues.LuaDefinedFunction))]

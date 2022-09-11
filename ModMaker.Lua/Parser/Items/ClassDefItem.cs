@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     /// <param name="name">The name of the class.</param>
     /// <param name="implements">The types that it implements.</param>
-    public ClassDefItem(string name, string[] implements) {
+    public ClassDefItem(NameItem name, IParseExp[] implements) {
       Name = name;
       Implements = implements;
     }
@@ -30,11 +30,11 @@ namespace ModMaker.Lua.Parser.Items {
     /// <summary>
     /// Gets or sets the name of the class.
     /// </summary>
-    public string Name { get; set; }
+    public NameItem Name { get; set; }
     /// <summary>
     /// Gets the types that this class implements.
     /// </summary>
-    public string[] Implements { get; set; }
+    public IParseExp[] Implements { get; set; }
 
     public DebugInfo Debug { get; set; }
 

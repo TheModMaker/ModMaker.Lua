@@ -61,7 +61,10 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ClassDefItem target) {
-      // Do nothing.
+      foreach (var item in target.Implements) {
+        item.Accept(this);
+      }
+      target.Name.Accept(this);
       return target;
     }
     public IParseItem Visit(ForGenItem target) {

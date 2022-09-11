@@ -119,24 +119,26 @@ namespace ModMaker.Lua.Compiler {
       ILGenerator gen = _compiler.CurrentGenerator;
       _compiler.MarkSequencePoint(target.Debug);
 
-      // string[] loc = new string[{implements.Count}];
-      LocalBuilder loc = _compiler.CreateArray(typeof(string), target.Implements.Length);
+      // ILuaValue[] loc = new ILuaValue[{implements.Count}];
+      LocalBuilder loc = _compiler.CreateArray(typeof(ILuaValue), target.Implements.Length);
 
       int i = 0;
       foreach (var item in target.Implements) {
         // loc[{i}] = {implements[i]};
         gen.Emit(OpCodes.Ldloc, loc);
         gen.Emit(OpCodes.Ldc_I4, (i++));
-        gen.Emit(OpCodes.Ldstr, item);
-        gen.Emit(OpCodes.Stelem, typeof(string));
+        item.Accept(this);
+        gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
       }
 
-      // E.Runtime.CreateClassValue(loc, {name});
-      gen.Emit(OpCodes.Ldarg_1);
-      gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaEnvironment.get_Runtime);
+      // {target.Name} = LuaClass.Create({name}, loc, E);
+      var field = _compiler.FindVariable(target.Name);
+      field.StartSet();
+      gen.Emit(OpCodes.Ldstr, target.Name.Name);
       gen.Emit(OpCodes.Ldloc, loc);
-      gen.Emit(OpCodes.Ldstr, target.Name);
-      gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaRuntime.CreateClassValue);
+      gen.Emit(OpCodes.Ldarg_1);
+      gen.Emit(OpCodes.Call, ReflectionMembers.LuaClass.Create);
+      field.EndSet();
       _compiler.RemoveTemporary(loc);
 
       return target;
