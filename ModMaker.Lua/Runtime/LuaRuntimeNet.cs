@@ -20,6 +20,8 @@ using System.Reflection;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the default Lua runtime.  This class is in charge of resolving operators and
@@ -42,22 +44,13 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     public bool UseThreadPool { get; set; }
     public ILuaThread CurrentThread {
-      get { return _threadPool.Search(Thread.CurrentThread.ManagedThreadId); }
+      get { return _threadPool.Search(Environment.CurrentManagedThreadId); }
     }
 
     public virtual IEnumerable<LuaMultiValue> GenericLoop(ILuaEnvironment env,
                                                            LuaMultiValue args) {
-      // TODO: Replace this.
-      if (args == null) {
-        throw new ArgumentNullException(nameof(args));
-      }
-
-      if (env == null) {
-        throw new ArgumentNullException(nameof(env));
-      }
-
       ILuaValue target = args[0];
-      object temp = target.GetValue();
+      object? temp = target.GetValue();
       if (temp is IEnumerable<LuaMultiValue> enumT) {
         foreach (var item in enumT) {
           yield return item;
@@ -72,7 +65,7 @@ namespace ModMaker.Lua.Runtime {
 
         while (true) {
           var ret = target.Invoke(LuaNil.Nil, false, new LuaMultiValue(s, var));
-          if (ret == null || ret[0] == null || ret[0] == LuaNil.Nil) {
+          if (ret[0] == LuaNil.Nil) {
             yield break;
           }
 
@@ -90,7 +83,7 @@ namespace ModMaker.Lua.Runtime {
       return _threadPool.Create(method);
     }
     public void CreateClassValue(string[] impl, string name) {
-      Type b = null;
+      Type? @base = null;
       List<Type> inter = new List<Type>();
       foreach (var item in impl) {
         // Get the types that this Lua code can access according to the settings.
@@ -101,13 +94,13 @@ namespace ModMaker.Lua.Runtime {
           var allowed =
               Resources.Whitelist.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
           access = _env.GlobalsTable.Where(k => k.Value is LuaType)
-              .Select(k => (k.Value as LuaType).Type);
+              .Select(k => ((LuaType)k.Value).Type);
           access = access.Concat(AppDomain.CurrentDomain.GetAssemblies()
               .Where(a => allowed.Contains(a.GetName().GetPublicKey().ToStringBase16()))
               .SelectMany(a => a.GetTypes()));
         } else {
           access = _env.GlobalsTable.Where(k => k.Value is LuaType)
-              .Select(k => (k.Value as LuaType).Type);
+              .Select(k => ((LuaType)k.Value).Type);
         }
 
         // Get the types that match the given name.
@@ -129,19 +122,19 @@ namespace ModMaker.Lua.Runtime {
 
         if (type.IsClass) {
           // if the type is a class, it will be the base class
-          if (b == null) {
+          if (@base == null) {
             if (type.IsSealed) {
               throw new InvalidOperationException("Cannot derive from a sealed class.");
             }
 
             const BindingFlags flags =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-            if (type.GetConstructor(flags, null, new Type[0], null) == null) {
+            if (type.GetConstructor(flags, null, Array.Empty<Type>(), null) == null) {
               throw new InvalidOperationException(
                   "Cannot derive from a type without an empty constructor.");
             }
 
-            b = type;
+            @base = type;
           } else {
             throw new InvalidOperationException("Can only derive from a single base class.");
           }
@@ -153,7 +146,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       // create and register the LuaClass object.
-      LuaClass c = new LuaClass(name, b, inter.ToArray(), _env);
+      LuaClass c = new LuaClass(name, @base, inter.ToArray(), _env);
       _env.GlobalsTable.SetItemRaw(new LuaString(name), c);
     }
   }

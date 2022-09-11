@@ -20,6 +20,8 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// A helper that creates Delegate types that call a LuaFunction object.
@@ -32,7 +34,7 @@ namespace ModMaker.Lua.Runtime {
       public readonly Type ReturnType;
 
       public readonly MethodBuilder Builder;
-      public MethodInfo Method;
+      public MethodInfo? Method;
 
       public Item(TypeBuilder builder, MethodInfo method) {
         var param = method.GetParameters();
@@ -84,7 +86,7 @@ namespace ModMaker.Lua.Runtime {
     /// <returns>The new Delegate object.</returns>
     public Delegate CreateDelegate(Type type, LuaFunction function) {
       Item item = _getItem(type);
-      return Delegate.CreateDelegate(type, function, item.Method);
+      return Delegate.CreateDelegate(type, function, item.Method!);
     }
     /// <summary>
     /// Creates a new Delegate that calls the given LuaFunction.
@@ -96,7 +98,7 @@ namespace ModMaker.Lua.Runtime {
     }
 
     Item _getItem(Type type) {
-      MethodInfo invoke = type.GetMethod("Invoke");
+      MethodInfo invoke = type.GetMethod("Invoke")!;
       foreach (Item item in _items) {
         if (item.Matches(invoke)) {
           return item;
@@ -121,7 +123,7 @@ namespace ModMaker.Lua.Runtime {
         gen.Emit(OpCodes.Ldc_I4, i);
         gen.Emit(OpCodes.Ldarg, i + 1);
         if (t.IsByRef) {
-          t = t.GetElementType();
+          t = t.GetElementType()!;
           gen.Emit(OpCodes.Ldobj, t);
         }
         if (t.IsValueType)
@@ -152,7 +154,7 @@ namespace ModMaker.Lua.Runtime {
       }
       gen.Emit(OpCodes.Ret);
 
-      item.Method = tb.CreateType().GetMethod("Invoke", BindingFlags.Static | BindingFlags.Public);
+      item.Method = tb.CreateType()!.GetMethod("Invoke", BindingFlags.Static | BindingFlags.Public);
       return item;
     }
   }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the environment that Lua operates in.  This type is the same as ILuaEnvironment, but

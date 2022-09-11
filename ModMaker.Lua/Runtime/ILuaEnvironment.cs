@@ -16,6 +16,8 @@ using System;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the environment that Lua operates in.  It is suggested that the type that implements
@@ -68,18 +70,12 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="method">The delegate to register.</param>
     /// <param name="name">The name of the delegate.</param>
-    /// <exception cref="System.ArgumentException">If there is already an
-    /// object registered with that name.</exception>
-    /// <exception cref="System.ArgumentNullException">If d or name is null.</exception>
     void RegisterDelegate(Delegate method, string name);
     /// <summary>
     /// Registers a type with the globals table.
     /// </summary>
     /// <param name="type">The type to register.</param>
     /// <param name="name">The name of the type.</param>
-    /// <exception cref="System.ArgumentException">If there is already an
-    /// object registered with that name.</exception>
-    /// <exception cref="System.ArgumentNullException">If t or name is null.</exception>
     void RegisterType(Type type, string name);
   }
 }

@@ -16,6 +16,8 @@ using System;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines a helper thread used for LuaThread objects.  This will execute multiple LuaThread
@@ -57,8 +59,7 @@ namespace ModMaker.Lua.Runtime {
     public WorkerThread(ThreadPool owner) {
       _status = Status.Waiting;
       _owner = owner;
-      _backing = new Thread(_execute);
-      _backing.IsBackground = true;
+      _backing = new Thread(_execute) { IsBackground = true };
       _backing.Start();
     }
     ~WorkerThread() {
@@ -68,7 +69,7 @@ namespace ModMaker.Lua.Runtime {
     /// <summary>
     /// Gets the current target of the thread.
     /// </summary>
-    public LuaThread Target { get; private set; }
+    public LuaThread? Target { get; private set; }
     /// <summary>
     /// Gets the ID for the worker thread.
     /// </summary>
@@ -108,7 +109,7 @@ namespace ModMaker.Lua.Runtime {
             return;
           }
 
-          Target._do();
+          Target!._do();
 
           _status = Status.Waiting;
           _owner._doneWorking(this);

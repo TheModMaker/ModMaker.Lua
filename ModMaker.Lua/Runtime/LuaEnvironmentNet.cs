@@ -20,6 +20,8 @@ using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// A dynamic object that is used to convert implicitly to numeric types.
@@ -32,7 +34,7 @@ namespace ModMaker.Lua.Runtime {
       Value = value;
     }
 
-    public override bool TryConvert(ConvertBinder binder, out object result) {
+    public override bool TryConvert(ConvertBinder binder, out object? result) {
       Type t1 = binder.Type;
       if (t1 == typeof(SByte) || t1 == typeof(Int16) || t1 == typeof(Int32) ||
           t1 == typeof(Int64) || t1 == typeof(Single) || t1 == typeof(Double) ||
@@ -60,22 +62,13 @@ namespace ModMaker.Lua.Runtime {
   /// </summary>
   [LuaIgnore]
   public class LuaEnvironmentNet : DynamicObject, ILuaEnvironmentNet {
-    IModuleBinder _modules;
-    ILuaTable _globals;
-    ICodeCompiler _compiler;
-    IParser _parser;
-    ILuaRuntime _runtime;
-
     /// <summary>
     /// Creates a new LuaEnvironment without initializing the state, for use with a derived type.
     /// </summary>
     protected LuaEnvironmentNet() {
       Settings = new LuaSettings().AsReadOnly();
-      _compiler = new CodeCompiler(Settings);
-      _parser = new PlainParser();
-      _runtime = new LuaRuntimeNet(this);
-      _globals = new LuaValues.LuaTable();
-      _modules = new ModuleBinder();
+      CodeCompiler = new CodeCompiler(Settings);
+      Runtime = new LuaRuntimeNet(this);
     }
     /// <summary>
     /// Creates a new environment with the given settings.
@@ -83,17 +76,9 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="settings">The settings to give the Environment.</param>
     /// <exception cref="System.ArgumentNullException">If settings is null.</exception>
     public LuaEnvironmentNet(LuaSettings settings) {
-      if (settings == null) {
-        throw new ArgumentNullException(nameof(settings));
-      }
-
       Settings = settings.AsReadOnly();
-
-      _globals = new LuaTable();
-      _runtime = new LuaRuntimeNet(this);
-      _compiler = new CodeCompiler(Settings);
-      _parser = new PlainParser();
-      _modules = new ModuleBinder();
+      CodeCompiler = new CodeCompiler(Settings);
+      Runtime = new LuaRuntimeNet(this);
 
       // initialize the global variables.
       LuaStaticLibraries.Initialize(this);
@@ -132,87 +117,22 @@ namespace ModMaker.Lua.Runtime {
     }
 
     public virtual ILuaValue this[string name] {
-      get {
-        return _globals.GetIndex(new LuaString(name));
-      }
-      set {
-        _globals.SetIndex(new LuaString(name), value);
-      }
+      get { return GlobalsTable.GetIndex(new LuaString(name)); }
+      set { GlobalsTable.SetIndex(new LuaString(name), value); }
     }
 
     public LuaSettings Settings { get; protected set; }
-    public ILuaRuntime Runtime {
-      get { return _runtime; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        lock (this) {
-          _runtime = value;
-        }
-      }
-    }
-    public ILuaTable GlobalsTable {
-      get { return _globals; }
-      protected set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        lock (this) {
-          _globals = value;
-        }
-      }
-    }
-    public ICodeCompiler CodeCompiler {
-      get { return _compiler; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        lock (this) {
-          _compiler = value;
-        }
-      }
-    }
-    public IParser Parser {
-      get { return _parser; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        lock (this) {
-          _parser = value;
-        }
-      }
-    }
-    public IModuleBinder ModuleBinder {
-      get { return _modules; }
-      set {
-        if (value == null) {
-          throw new ArgumentNullException(nameof(value));
-        }
-
-        _modules = value;
-      }
-    }
+    public ILuaRuntime Runtime { get; set; }
+    public ILuaTable GlobalsTable { get; set; } = new LuaTable();
+    public ICodeCompiler CodeCompiler { get; set; }
+    public IParser Parser { get; set; } = new PlainParser();
+    public IModuleBinder ModuleBinder { get; set; } = new ModuleBinder();
 
     public virtual void RegisterDelegate(Delegate d, string name) {
-      if (d == null) {
-        throw new ArgumentNullException(nameof(d));
-      }
-
-      if (name == null) {
-        throw new ArgumentNullException(nameof(name));
-      }
-
       lock (this) {
         object o = GlobalsTable.GetItemRaw(new LuaString(name));
         if (o != LuaNil.Nil) {
-          LuaOverloadFunction meth = o as LuaOverloadFunction;
+          LuaOverloadFunction? meth = o as LuaOverloadFunction;
           if (meth == null) {
             throw new ArgumentException(string.Format(Resources.AlreadyRegistered, name));
           }
@@ -226,14 +146,6 @@ namespace ModMaker.Lua.Runtime {
       }
     }
     public virtual void RegisterType(Type t, string name) {
-      if (t == null) {
-        throw new ArgumentNullException(nameof(t));
-      }
-
-      if (name == null) {
-        throw new ArgumentNullException(nameof(name));
-      }
-
       lock (this) {
         var n = new LuaString(name);
         ILuaValue o = GlobalsTable.GetItemRaw(n);
@@ -248,19 +160,19 @@ namespace ModMaker.Lua.Runtime {
     public override IEnumerable<string> GetDynamicMemberNames() {
       foreach (var item in GlobalsTable) {
         if (item.Key.ValueType == LuaValueType.String) {
-          yield return (string)item.Key.GetValue();
+          yield return (string)item.Key.GetValue()!;
         }
       }
     }
-    public override bool TryConvert(ConvertBinder binder, out object result) {
+    public override bool TryConvert(ConvertBinder binder, out object? result) {
       if (typeof(ILuaEnvironment) == binder.Type) {
         result = this;
         return true;
       }
       return base.TryConvert(binder, out result);
     }
-    public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result) {
-      if (indexes != null && indexes.Length == 1) {
+    public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object? result) {
+      if (indexes.Length == 1) {
         ILuaValue o;
         lock (this) {
           o = GlobalsTable.GetItemRaw(LuaValueBase.CreateValue(indexes[0]));
@@ -277,8 +189,8 @@ namespace ModMaker.Lua.Runtime {
         return base.TryGetIndex(binder, indexes, out result);
       }
     }
-    public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value) {
-      if (indexes != null && indexes.Length == 1) {
+    public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object? value) {
+      if (indexes.Length == 1) {
         lock (this) {
           GlobalsTable.SetItemRaw(
               LuaValueBase.CreateValue(indexes[0]), LuaValueBase.CreateValue(value));
@@ -288,7 +200,7 @@ namespace ModMaker.Lua.Runtime {
         return base.TrySetIndex(binder, indexes, value);
       }
     }
-    public override bool TryGetMember(GetMemberBinder binder, out object result) {
+    public override bool TryGetMember(GetMemberBinder binder, out object? result) {
       ILuaValue o;
       lock (this) {
         o = GlobalsTable.GetItemRaw(new LuaString(binder.Name));
@@ -302,7 +214,7 @@ namespace ModMaker.Lua.Runtime {
 
       return true;
     }
-    public override bool TrySetMember(SetMemberBinder binder, object value) {
+    public override bool TrySetMember(SetMemberBinder binder, object? value) {
       lock (this) {
         GlobalsTable.SetItemRaw(new LuaString(binder.Name), LuaValueBase.CreateValue(value));
       }

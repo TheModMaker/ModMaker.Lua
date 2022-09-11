@@ -15,6 +15,8 @@
 using System.Collections.Generic;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the default thread pool.  This reduces the number of threads created by this
@@ -45,14 +47,13 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="action">The method to invoke.</param>
     /// <returns>A new LuaThread object that will invoke the given method.</returns>
-    /// <exception cref="System.ArgumentNullException">If action is null.</exception>
     public ILuaThread Create(ILuaValue action) {
       lock (_lock) {
         _resizePool();
         WorkerThread thread = _waitingThreads.Dequeue();
 
         thread.DoWork(action);
-        return thread.Target;
+        return thread.Target!;
       }
     }
     /// <summary>
