@@ -93,7 +93,7 @@ namespace ModMaker.Lua.Runtime {
       try {
         using FileStream fs = File.Open(path, FileMode.Open);
         var item = env.Parser.Parse(fs, env.Settings.Encoding, path);
-        return env.CodeCompiler.Compile(env, item, null).Single();
+        return env.CodeCompiler.Compile(env, item, "").Single();
       } catch (IOException ex) {
         exceptions.Add(ex);
         return null;

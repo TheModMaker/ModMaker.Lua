@@ -99,7 +99,7 @@ namespace ModMaker.Lua {
     /// <param name="path">The path to the file.</param>
     /// <param name="args">The arguments to pass.</param>
     /// <returns>The values returned from the file.</returns>
-    public object[] DoFile(string path, params object[] args) {
+    public object?[] DoFile(string path, params object[] args) {
       var ret = CompileFile(path);
       return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
@@ -111,7 +111,7 @@ namespace ModMaker.Lua {
     /// <param name="stream">The stream to read the file from.</param>
     /// <param name="args">The arguments to pass.</param>
     /// <returns>The values returned from the file.</returns>
-    public object[] DoFile(Stream stream, params object[] args) {
+    public object?[] DoFile(Stream stream, params object[] args) {
       var ret = CompileFile(stream);
       return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())
@@ -123,7 +123,7 @@ namespace ModMaker.Lua {
     /// <param name="chunk">The chunk to execute.</param>
     /// <param name="args">The arguments to pass.</param>
     /// <returns>The values returned from the file.</returns>
-    public object[] DoText(string chunk, params object[] args) {
+    public object?[] DoText(string chunk, params object[] args) {
       var ret = CompileText(chunk);
       return ret.Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args))
           .Select(v => v.GetValue())

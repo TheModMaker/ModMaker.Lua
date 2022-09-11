@@ -21,6 +21,8 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   class LuaType : LuaValueBase {
     public LuaType(Type type) {
@@ -43,10 +45,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
-      if (args == null) {
-        args = new LuaMultiValue();
-      }
-
       ConstructorInfo[] ctors = Type.GetConstructors()
           .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
           .ToArray();
@@ -59,7 +57,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return LuaMultiValue.CreateMultiValueFromObj(value);
     }
 
-    public override bool Equals(ILuaValue other) {
+    public override bool Equals(ILuaValue? other) {
       return other is LuaType temp && temp.Type == Type;
     }
 
@@ -78,8 +76,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// invoked, it creates a new instance.
   /// </summary>
   public sealed class LuaClass : LuaValueBase {
-    Type _created;
-    ILuaValue _ctor;
+    Type? _created;
+    ILuaValue? _ctor;
     readonly ItemData _data;
     readonly List<Item> _items;
 
@@ -90,11 +88,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="base">The base class of the class; or null.</param>
     /// <param name="interfaces">The interfaces that are inherited; or null.</param>
     /// <param name="env">The current environment.</param>
-    internal LuaClass(string name, Type @base, Type[] interfaces, ILuaEnvironment env) {
-      if (interfaces == null) {
-        interfaces = new Type[0];
-      }
-
+    internal LuaClass(string name, Type? @base, Type[] interfaces, ILuaEnvironment env) {
       Name = name;
       BaseType = @base;
       _items = new List<Item>();
@@ -118,7 +112,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <summary>
     /// Gets the base type of the class.
     /// </summary>
-    public Type BaseType { get; }
+    public Type? BaseType { get; }
     /// <summary>
     /// Gets the interfaces that the class implements.
     /// </summary>
@@ -157,7 +151,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
       }
 
-      _invokeConstructor(_data.CtorGen, _data.EnvField);
+      _invokeConstructor(_data.CtorGen);
 
       _created = _data.TB.CreateType();
     }
@@ -168,14 +162,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="args">Any arguments to pass to the constructor.</param>
     /// <returns>An instance of the type.</returns>
     public object CreateInstance(params ILuaValue[] args) {
-      if (_created == null) {
-        CreateType();
-      }
-
-      var instArgs = new object[] {
-        _data.MethodArgs.ToArray(), _data.Constants.ToArray(), Environment, args, _ctor
-      };
-      return Activator.CreateInstance(_created, instArgs, new object[0]);
+      CreateType();
+      var instArgs =
+          new object?[] {_data.MethodArgs.ToArray(), _data.Constants.ToArray(), args, _ctor};
+      return Activator.CreateInstance(_created!, instArgs, Array.Empty<object>())!;
     }
     /// <summary>
     /// Creates an instance of the given type with the given arguments.  Calls CreateType if it has
@@ -187,10 +177,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </typeparam>
     /// <returns>An instance of the type.</returns>
     public T CreateInstance<T>(params ILuaValue[] args) {
-      if (_created == null) {
-        CreateType();
-      }
-
+      CreateType();
       if (!typeof(T).IsAssignableFrom(_created)) {
         throw new ArgumentException(string.Format(Resources.CurrentDoesNotDerive, typeof(T)));
       }
@@ -217,9 +204,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// The local variable (of type ILuaMultiValue) that contains the arguments to pass to the
     /// method.
     /// </param>
-    /// <param name="env">The field that holds the environment.</param>
     static void _callFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField,
-                                    LocalBuilder arguments, FieldBuilder env) {
+                                    LocalBuilder arguments) {
       //$PUSH this.{methodField}.Invoke(LuaValueBase.CreateValue(this), true, arguments);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, methodField);
@@ -230,7 +216,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
 
       // Convert and push result if the return type is not null.
-      if (returnType != null && returnType != typeof(void)) {
+      if (returnType != typeof(void)) {
         // return $POP.As<{returnType}>();
         gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.As.MakeGenericMethod(returnType));
       } else {
@@ -266,12 +252,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Adds the code to invoke the constructor.
     /// </summary>
     /// <param name="ctorgen">The generator to add the code to.</param>
-    static void _invokeConstructor(ILGenerator ctorgen, FieldBuilder env) {
+    static void _invokeConstructor(ILGenerator ctorgen) {
       // call the Lua defined constructor method.
 
       // if(ctor == null) goto end;
       Label end = ctorgen.DefineLabel();
-      ctorgen.Emit(OpCodes.Ldarg, 5);
+      ctorgen.Emit(OpCodes.Ldarg, 4);
       ctorgen.Emit(OpCodes.Brfalse, end);
 
       // ILuaValue target = LuaValueBase.CreateValue(this);
@@ -282,12 +268,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       // LuaMultiValue args = new LuaMultiValue(ctorArgs);
       LocalBuilder args = ctorgen.DeclareLocal(typeof(LuaMultiValue));
-      ctorgen.Emit(OpCodes.Ldarg, 4);
+      ctorgen.Emit(OpCodes.Ldarg, 3);
       ctorgen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
       ctorgen.Emit(OpCodes.Stloc, args);
 
       // ctor.Invoke(target, true, args);
-      ctorgen.Emit(OpCodes.Ldarg, 5);
+      ctorgen.Emit(OpCodes.Ldarg, 4);
       ctorgen.Emit(OpCodes.Ldloc, target);
       ctorgen.Emit(OpCodes.Ldc_I4_1);
       ctorgen.Emit(OpCodes.Ldloc, args);
@@ -315,7 +301,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
 
       public override void SetIndex(ILuaValue index, ILuaValue value) {
-        string name = index.GetValue() as string;
+        string? name = index.GetValue() as string;
         if (name == null) {
           throw new InvalidOperationException(
               string.Format(Resources.BadIndexType, "class definition", "string"));
@@ -324,8 +310,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         // find the members with the given name.
         var members = _type.GetMembers(BindingFlags.DeclaredOnly | BindingFlags.Public |
                                        BindingFlags.Instance)
-                          .Where(m => m.Name == name).ToArray();
-        if (members == null || members.Length == 0) {
+                          .Where(m => m.Name == name)
+                          .ToArray();
+        if (members.Length == 0) {
           throw new InvalidOperationException(string.Format(Resources.NoMemberFound, _type, name));
         }
 
@@ -340,17 +327,17 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             throw new InvalidOperationException(string.Format(Resources.MustBeFunction, name));
           }
 
-          Item item = _parent._createItem(name, new[] { members[0] });
+          Item item = _createItem(name, new[] { members[0] });
           item.Assign(value);
           _parent._items.Add(item);
         } else if (members[0].MemberType == MemberTypes.Property) {
-          Item item = _parent._createItem(name, members);
+          Item item = _createItem(name, members);
           item.Assign(value);
           _parent._items.Add(item);
         }
       }
 
-      public override bool Equals(ILuaValue other) {
+      public override bool Equals(ILuaValue? other) {
         var temp = other as LuaClassItem;
         return temp != null && temp._parent == _parent && temp._type == _type;
       }
@@ -365,7 +352,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override ILuaValue GetIndex(ILuaValue index) {
-      string n = index.GetValue() as string;
+      string? n = index.GetValue() as string;
       if (n == null) {
         throw new InvalidOperationException(
             string.Format(Resources.BadIndexType, "class definition", "string"));
@@ -397,7 +384,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
 
       // Try to find an existing element.
-      Item i = _items.Where(ii => ii.Name == name).FirstOrDefault();
+      Item? i = _items.Where(ii => ii.Name == name).FirstOrDefault();
       if (i == null) {
         // Check for the member in the base class.
         if (BaseType != null) {
@@ -409,8 +396,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
         // Check for the member in interfaces.
         if (i == null) {
-          Type inter = null;
-          MemberInfo[] mems = null;
+          Type? inter = null;
+          MemberInfo[]? mems = null;
           foreach (var item in Interfaces) {
             var temp = item.GetMember(name);
             if (temp != null && temp.Length > 0) {
@@ -429,9 +416,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         }
 
         // If still not found, create a new field.
-        if (i == null) {
-          i = new FieldItem(name);
-        }
+        i ??= new FieldItem(name);
 
         _items.Add(i);
       }
@@ -444,7 +429,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="name">The name of the member.</param>
     /// <param name="members">The members that are found.</param>
     /// <returns>A new item for the member.</returns>
-    Item _createItem(string name, MemberInfo[] members) {
+    static Item _createItem(string name, MemberInfo[] members) {
       if (members[0].MemberType == MemberTypes.Property) {
         return new PropertyItem(name, members[0]);
       } else if (members[0].MemberType == MemberTypes.Method) {
@@ -472,7 +457,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Contains data used to generate an item.
     /// </summary>
     sealed class ItemData {
-      public ItemData(ILuaEnvironment env, string name, Type baseType, Type[] interfaces) {
+      public ItemData(ILuaEnvironment env, string name, Type? baseType, Type[] interfaces) {
         MethodArgs = new List<ILuaValue>();
         Methods = new List<MethodInfo>();
         Constants = new List<ILuaValue>();
@@ -488,13 +473,12 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         TB = mb.DefineType(
             name, TypeAttributes.Class | TypeAttributes.BeforeFieldInit | TypeAttributes.Public,
             baseType, interfaces);
-        EnvField = TB.DefineField("$Env", typeof(ILuaEnvironment), FieldAttributes.Private);
 
-        // public ctor(ILuaValue[] methods, ILuaValue[] initialValues, LuaEnvironment E,
-        //             ILuaValue[] ctorArgs, ILuaValue ctor);
+        // public ctor(ILuaValue[] methods, ILuaValue[] initialValues, ILuaValue[] ctorArgs,
+        //             ILuaValue ctor);
         {
-          var temp = new[] { typeof(ILuaValue[]), typeof(ILuaValue[]), typeof(ILuaEnvironment),
-                             typeof(ILuaValue[]), typeof(ILuaValue) };
+          var temp = new[] { typeof(ILuaValue[]), typeof(ILuaValue[]),  typeof(ILuaValue[]),
+                             typeof(ILuaValue) };
           ConstructorBuilder ctor = TB.DefineConstructor(
               MethodAttributes.Public | MethodAttributes.HideBySig, CallingConventions.Standard,
               temp);
@@ -505,12 +489,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
           CtorGen.Emit(
               OpCodes.Call,
-              (baseType ?? typeof(object)).GetConstructor(flags, null, new Type[0], null));
-
-          // this.$Env = E
-          CtorGen.Emit(OpCodes.Ldarg_0);
-          CtorGen.Emit(OpCodes.Ldarg_3);
-          CtorGen.Emit(OpCodes.Stfld, EnvField);
+              (baseType ?? typeof(object)).GetConstructor(flags, null, Array.Empty<Type>(), null)!);
         }
       }
 
@@ -520,7 +499,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       public HashSet<string> Names;
       public ILGenerator CtorGen;
       public TypeBuilder TB;
-      public FieldBuilder EnvField;
       public ILuaEnvironment Env;
       public int FID;
       public AssemblyBuilder AB;
@@ -552,7 +530,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       /// </summary>
       /// <param name="method">The method to store in the field.</param>
       /// <returns>The field that contains the method.</returns>
-      protected FieldBuilder _addMethodArg(ItemData data, ILuaValue method) {
+      protected static FieldBuilder _addMethodArg(ItemData data, ILuaValue method) {
         FieldBuilder field = data.TB.DefineField("<>_field_" + data.FID++, typeof(ILuaValue),
                                                  FieldAttributes.Private);
 
@@ -573,7 +551,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// A class item that is a method.
     /// </summary>
     sealed class MethodItem : Item {
-      public ILuaValue Method;
+      public ILuaValue? Method;
       public MethodInfo BoundTo;
 
       public MethodItem(string name, MemberInfo member) : base(name) {
@@ -590,6 +568,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         Method = value;
       }
       public override void Generate(ItemData data) {
+        if (Method == null)
+          throw new InvalidOperationException($"Class member {Name} not assigned a value");
+
         var field = _addMethodArg(data, Method);
 
         // Define a non-conflict named method that will back the given method.
@@ -627,7 +608,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
         gen.Emit(OpCodes.Stloc, args);
 
-        _callFieldAndReturn(gen, BoundTo.ReturnType, field, args, data.EnvField);
+        _callFieldAndReturn(gen, BoundTo.ReturnType, field, args);
 
         data.TB.DefineMethodOverride(meth, BoundTo);
         data.Methods.Add(BoundTo);
@@ -637,10 +618,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// A class item that is a property.
     /// </summary>
     sealed class PropertyItem : Item {
-      public ILuaValue Default;
+      public ILuaValue? Default;
       public Type Type;
-      public ILuaValue Method, MethodSet;
-      public MethodInfo BoundTo, BoundSet;
+      public ILuaValue? Method, MethodSet;
+      public MethodInfo? BoundTo, BoundSet;
       readonly PropertyInfo _prop;
 
       public PropertyItem(string name, MemberInfo member) : base(name) {
@@ -658,7 +639,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           // Set the 'get' method for the item
           var item = value.GetIndex(new LuaString("get"));
           if (item != null && item != LuaNil.Nil) {
-            MethodInfo m = _prop.GetGetMethod(true);
+            MethodInfo? m = _prop.GetGetMethod(true);
             if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) &&
                               !m.Attributes.HasFlag(MethodAttributes.Virtual))) {
               throw new InvalidOperationException(
@@ -676,7 +657,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           // Set the 'set' method for the item
           item = value.GetIndex(new LuaString("set"));
           if (item != null && item != LuaNil.Nil) {
-            MethodInfo m = _prop.GetSetMethod(true);
+            MethodInfo? m = _prop.GetSetMethod(true);
             if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) &&
                               !m.Attributes.HasFlag(MethodAttributes.Virtual))) {
               throw new InvalidOperationException(
@@ -692,7 +673,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             MethodSet = item;
           }
         } else {
-          MethodInfo m = _prop.GetGetMethod(true);
+          MethodInfo? m = _prop.GetGetMethod(true);
           if (m == null || (!m.Attributes.HasFlag(MethodAttributes.Abstract) &&
                             !m.Attributes.HasFlag(MethodAttributes.Virtual))) {
             throw new InvalidOperationException(
@@ -749,7 +730,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
             gen.Emit(OpCodes.Stloc, loc);
 
-            _callFieldAndReturn(gen, BoundTo.ReturnType, field, loc, data.EnvField);
+            _callFieldAndReturn(gen, BoundTo.ReturnType, field, loc);
           }
 
           data.TB.DefineMethodOverride(m, BoundTo);
@@ -788,7 +769,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.CreateMultiValueFromObj);
             gen.Emit(OpCodes.Stloc, args);
 
-            _callFieldAndReturn(gen, null, field, args, data.EnvField);
+            _callFieldAndReturn(gen, typeof(void), field, args);
           }
 
           data.TB.DefineMethodOverride(m, BoundSet);
@@ -800,8 +781,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// A class item that is a field.
     /// </summary>
     sealed class FieldItem : Item {
-      public Type Type;
-      public ILuaValue Default;
+      public Type? Type;
+      public ILuaValue? Default;
 
       public FieldItem(string name) : base(name) {
         Type = null;
@@ -821,13 +802,15 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           }
 
           if (Type == null) {
-            object temp = value?.GetValue();
-            Type = temp == null ? typeof(object) : temp.GetType();
+            Type = value?.GetValue()?.GetType() ?? typeof(object);
           }
           Default = value;
         }
       }
       public override void Generate(ItemData data) {
+        if (Type == null)
+          throw new InvalidOperationException($"Class member {Name} not assigned a value");
+
         string name = Name;
         if (data.Names.Contains(name)) {
           name = name + "_" + (data.FID++);
@@ -851,7 +834,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     #endregion
 
-    public override bool Equals(ILuaValue other) {
+    public override bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);
     }
 

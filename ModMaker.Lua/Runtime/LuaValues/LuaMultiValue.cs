@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Linq;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines multiple LuaValues.  This is used to pass arguments and get results from functions.
@@ -27,7 +29,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <summary>
     /// Contains an empty multi-value object.
     /// </summary>
-    public static LuaMultiValue Empty = new LuaMultiValue(new ILuaValue[0]);
+    public static readonly LuaMultiValue Empty = new LuaMultiValue(Array.Empty<ILuaValue>());
 
     /// <summary>
     /// Creates a new multi-value from the given objects.  Each object is first converted
@@ -35,7 +37,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="values">The values to store.</param>
     /// <returns>A new multi-value object.</returns>
-    public static LuaMultiValue CreateMultiValueFromObj(params object[] args) {
+    public static LuaMultiValue CreateMultiValueFromObj(params object?[] args) {
       var temp = args.Select(o => CreateValue(o)).ToArray();
       return new LuaMultiValue(temp);
     }
@@ -81,20 +83,20 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
     public int Count { get; }
 
-    public override bool Equals(ILuaValue other) {
-      return Equals((object)other);
+    public override bool Equals(ILuaValue? other) {
+      return Equals((object?)other);
     }
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       return _values[0].Equals(obj);
     }
     public override int GetHashCode() {
       return _values[0].GetHashCode();
     }
-    public override int CompareTo(ILuaValue other) {
-      return _values[0].CompareTo(other);
+    public override int CompareTo(ILuaValue? other) {
+      return _values[0].CompareTo(other!);
     }
 
-    public override object GetValue() {
+    public override object? GetValue() {
       return _values[0].GetValue();
     }
     public override double? AsDouble() {

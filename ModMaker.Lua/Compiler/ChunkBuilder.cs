@@ -428,7 +428,7 @@ namespace ModMaker.Lua.Compiler {
           });
       var gen = mb.GetILGenerator();
       _curNest = new NestInfo(
-          _curNest, gen, function.FunctionInformation.CapturedLocals,
+          _curNest, gen, function.FunctionInformation!.CapturedLocals,
           function.FunctionInformation.HasNested, function.FunctionInformation.CapturesParent);
 
       // if this is an instance method, create a BaseAccessor object to help types.

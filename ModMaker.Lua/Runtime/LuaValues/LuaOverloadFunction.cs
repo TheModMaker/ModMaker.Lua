@@ -18,15 +18,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a method that contains several user-defined methods and choses the method to invoke
   /// based on runtime types of the arguments and does any needed conversion so it will work.
   /// </summary>
   public class LuaOverloadFunction : LuaFunction {
-    readonly List<Tuple<MethodInfo, object>> _methods;
+    readonly List<Tuple<MethodInfo, object?>> _methods;
     readonly List<OverloadSelector.Choice> _choices;
-    Tuple<MethodInfo, object> _defaultMethod = null;
+    readonly Tuple<MethodInfo, object?>? _defaultMethod = null;
     // TODO: Add a constructor that accepts Delegate[].
 
     /// <summary>
@@ -40,7 +42,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <exception cref="System.ArgumentException">If the length of methods
     /// is not equal to that of targets.</exception>
     public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods,
-                               IEnumerable<object> targets) : base(name) {
+                               IEnumerable<object?> targets) : base(name) {
       _methods = methods.Zip(targets, Tuple.Create).ToList();
       for (int i = 0; i < _methods.Count; i++) {
         var param = _methods[i].Item1.GetParameters();
@@ -59,7 +61,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="d">The delegate to add.</param>
     public void AddOverload(Delegate d) {
-      _methods.Add(new Tuple<MethodInfo, object>(d.Method, d.Target));
+      _methods.Add(new Tuple<MethodInfo, object?>(d.Method, d.Target));
       _choices.Add(new OverloadSelector.Choice(d.Method));
     }
 
@@ -78,8 +80,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public override LuaMultiValue Invoke(ILuaValue self, bool methodCall, LuaMultiValue args) {
       int index = OverloadSelector.FindOverload(_choices.ToArray(), args);
-      object[] realArgs;
-      Tuple<MethodInfo, object> method;
+      object?[] realArgs;
+      Tuple<MethodInfo, object?> method;
       if (index >= 0) {
         method = _methods[index];
         realArgs = OverloadSelector.ConvertArguments(args, _choices[index]);

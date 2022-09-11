@@ -16,6 +16,8 @@ using System;
 using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines a value that is stored in Lua.  This is a wrapper around a value.
@@ -41,7 +43,7 @@ namespace ModMaker.Lua.Runtime {
     /// this.
     /// </summary>
     /// <returns>The value for this object.</returns>
-    object GetValue();
+    object? GetValue();
     /// <summary>
     /// Converts the given value to a number, or returns null.
     /// </summary>

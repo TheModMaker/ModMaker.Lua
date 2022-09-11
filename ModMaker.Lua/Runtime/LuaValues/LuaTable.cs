@@ -16,6 +16,8 @@ using System.Collections;
 using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a table in Lua.  This acts as a dictionary of key-value pairs.
@@ -31,64 +33,16 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public override LuaValueType ValueType { get { return LuaValueType.Table; } }
 
-    public ILuaTable MetaTable { get; set; }
+    public ILuaTable? MetaTable { get; set; }
     public ILuaValue this[ILuaValue index] {
-      get { return _get(index); }
-      set { _set(index, value); }
-    }
-
-    /// <summary>
-    /// Helper function, gets the value at the given index.  Uses meta-methods if needed.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <returns>The value at the given index.</returns>
-    ILuaValue _get(ILuaValue index) {
-      index ??= LuaNil.Nil;
-
-      ILuaValue ret;
-      if (!_values.TryGetValue(index, out ret) && MetaTable != null) {
-        var method = MetaTable.GetItemRaw(_index);
-        if (method != null) {
-          if (method.ValueType == LuaValueType.Function) {
-            return method.Invoke(this, true, new LuaMultiValue(index)).Single();
-          } else {
-            return method.GetIndex(index);
-          }
-        }
-      }
-
-      return ret ?? LuaNil.Nil;
-    }
-    /// <summary>
-    /// Helper function, sets the value at the given index.  Uses meta-methods if needed.
-    /// </summary>
-    /// <param name="index">The index to use.</param>
-    /// <param name="value">The value to set to.</param>
-    void _set(ILuaValue index, ILuaValue value) {
-      index ??= LuaNil.Nil;
-      value ??= LuaNil.Nil;
-
-      ILuaValue ret;
-      if (!_values.TryGetValue(index, out ret) && MetaTable != null) {
-        var method = MetaTable.GetItemRaw(_newindex);
-        if (method != null && method != LuaNil.Nil) {
-          if (method.ValueType == LuaValueType.Function) {
-            method.Invoke(this, true, new LuaMultiValue(index, value));
-          } else {
-            method.SetIndex(index, value);
-          }
-
-          return;
-        }
-      }
-
-      SetItemRaw(index, value);
+      get { return GetIndex(index); }
+      set { SetIndex(index, value); }
     }
 
     public override ILuaValue Length() {
       if (MetaTable != null) {
         ILuaValue meth = MetaTable.GetItemRaw(_len);
-        if (meth != null) {
+        if (meth != LuaNil.Nil) {
           var ret = meth.Invoke(this, true, LuaMultiValue.Empty);
           return ret[0];
         }
@@ -106,21 +60,41 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override ILuaValue GetIndex(ILuaValue index) {
-      return _get(index);
+      ILuaValue? ret;
+      if (!_values.TryGetValue(index, out ret) && MetaTable != null) {
+        var method = MetaTable.GetItemRaw(_index);
+        if (method != LuaNil.Nil) {
+          if (method.ValueType == LuaValueType.Function) {
+            return method.Invoke(this, true, new LuaMultiValue(index)).Single();
+          } else {
+            return method.GetIndex(index);
+          }
+        }
+      }
+
+      return ret ?? LuaNil.Nil;
     }
     public override void SetIndex(ILuaValue index, ILuaValue value) {
-      _set(index, value);
+      if (!_values.TryGetValue(index, out _) && MetaTable != null) {
+        var method = MetaTable.GetItemRaw(_newindex);
+        if (method != LuaNil.Nil) {
+          if (method.ValueType == LuaValueType.Function) {
+            method.Invoke(this, true, new LuaMultiValue(index, value));
+          } else {
+            method.SetIndex(index, value);
+          }
+
+          return;
+        }
+      }
+
+      SetItemRaw(index, value);
     }
 
     public ILuaValue GetItemRaw(ILuaValue index) {
-      index ??= LuaNil.Nil;
-
-      return _values.TryGetValue(index, out ILuaValue ret) && ret != null ? ret : LuaNil.Nil;
+      return _values.TryGetValue(index, out ILuaValue? ret) ? ret : LuaNil.Nil;
     }
     public void SetItemRaw(ILuaValue index, ILuaValue value) {
-      index ??= LuaNil.Nil;
-      value ??= LuaNil.Nil;
-
       if (value == LuaNil.Nil) {
         if (_values.ContainsKey(index)) {
           _values.Remove(index);
@@ -144,10 +118,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return self.ArithmeticFrom(type, this);
     }
 
-    public override bool Equals(ILuaValue other) {
+    public override bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);
     }
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       return ReferenceEquals(this, obj);
     }
     public override int GetHashCode() {

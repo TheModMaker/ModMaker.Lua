@@ -18,6 +18,8 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a thread in Lua.  Cannot be created in C#, use the coroutine library in Lua to create
@@ -26,13 +28,13 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   public sealed class LuaThread : LuaValueBase, ILuaThread {
     static readonly Dictionary<int, WeakReference<LuaThread>> _threads =
         new Dictionary<int, WeakReference<LuaThread>>();
-    readonly ILuaValue _method = null;
-    readonly Thread _backing;
+    readonly ILuaValue? _method = null;
+    readonly Thread? _backing;
     readonly object _handle = new object();
     readonly bool _releaseBacking = false;
     readonly int _threadId;
-    ExceptionDispatchInfo _exception = null;
-    LuaMultiValue _args = null;
+    ExceptionDispatchInfo? _exception = null;
+    LuaMultiValue? _args = null;
 
     private LuaThread(int threadId) {
       Status = LuaThreadStatus.Running;
@@ -40,7 +42,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _threadId = threadId;
       _threads[threadId] = new WeakReference<LuaThread>(this);
     }
-    internal LuaThread(ILuaValue method, Thread thread = null) {
+    internal LuaThread(ILuaValue method, Thread? thread = null) {
       Status = LuaThreadStatus.Suspended;
       IsLua = true;
       _method = method;
@@ -54,13 +56,13 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
     ~LuaThread() {
       _threads.Remove(_threadId);
-      if (_releaseBacking)
+      if (_releaseBacking && _backing != null)
         _backing.Abort();
     }
 
     public static LuaThread Search(int threadId) {
-      if (_threads.TryGetValue(threadId, out WeakReference<LuaThread> thread) &&
-          thread.TryGetTarget(out LuaThread existing)) {
+      if (_threads.TryGetValue(threadId, out WeakReference<LuaThread>? thread) &&
+          thread.TryGetTarget(out LuaThread? existing)) {
         return existing;
       }
 
@@ -69,7 +71,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public override LuaValueType ValueType { get { return LuaValueType.Thread; } }
 
-    public event EventHandler<YieldEventArgs> OnYield;
+    public event EventHandler<YieldEventArgs>? OnYield;
     public LuaThreadStatus Status { get; private set; }
     public bool IsLua { get; }
 
@@ -86,9 +88,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           throw new InvalidOperationException("Cannot resume a dead thread.");
         }
 
-        args ??= new LuaMultiValue();
         _args = args;
-        LuaThread suspended = Search(Thread.CurrentThread.ManagedThreadId);
+        LuaThread suspended = Search(Environment.CurrentManagedThreadId);
         suspended.Status = LuaThreadStatus.Normal;
         Status = LuaThreadStatus.Running;
 
@@ -102,7 +103,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           _exception.Throw();
         }
 
-        LuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue? ret = Interlocked.Exchange(ref _args, null);
         return ret ?? new LuaMultiValue();
       }
     }
@@ -125,7 +126,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           return e.ReturnArguments;
         }
 
-        args ??= new LuaMultiValue();
         _args = args;
         Status = LuaThreadStatus.Suspended;
 
@@ -134,7 +134,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           Monitor.Wait(_handle);
         }
 
-        LuaMultiValue ret = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue? ret = Interlocked.Exchange(ref _args, null);
         return ret ?? new LuaMultiValue();
       }
     }
@@ -146,10 +146,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return self.ArithmeticFrom(type, this);
     }
 
-    public override bool Equals(ILuaValue other) {
+    public override bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);
     }
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       return ReferenceEquals(this, obj);
     }
     public override int GetHashCode() {
@@ -172,8 +172,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
           }
         }
 
-        LuaMultiValue args = Interlocked.Exchange(ref _args, null);
-        LuaMultiValue ret = _method.Invoke(LuaNil.Nil, false, args);
+        LuaMultiValue? args = Interlocked.Exchange(ref _args, null);
+        LuaMultiValue ret = _method!.Invoke(LuaNil.Nil, false, args ?? LuaMultiValue.Empty);
 
         lock (_handle) {
           _args = ret;

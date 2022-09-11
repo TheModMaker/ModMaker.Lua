@@ -129,6 +129,22 @@ namespace UnitTests.Runtime {
         assertEquals(123, inst.field, 'constructor set field')
       ");
     }
+
+    [Test]
+    public void NoBaseClass_CanDefineLuaConstructorWithArgs() {
+      _lua.DoText(@"
+        class Foobar
+
+        function Foobar:__ctor(val)
+          self.field = val
+        end
+        Foobar.field = int
+
+
+        local inst = Foobar(123)
+        assertEquals(123, inst.field, 'constructor set field')
+      ");
+    }
     #endregion
 
     #region BaseClass

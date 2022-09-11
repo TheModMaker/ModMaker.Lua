@@ -14,6 +14,8 @@
 
 using System.Collections.Generic;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// An interface for a table in Lua.  This acts like a dictionary of objects to objects.  This is
@@ -24,7 +26,7 @@ namespace ModMaker.Lua.Runtime {
     /// <summary>
     /// Gets or sets the metatable for the table.
     /// </summary>
-    ILuaTable MetaTable { get; set; }
+    ILuaTable? MetaTable { get; set; }
 
     /// <summary>
     /// Gets the item at the specified key without invoking any metamethods.

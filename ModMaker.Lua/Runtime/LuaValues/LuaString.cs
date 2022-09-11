@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a LuaValue that is a string.
@@ -24,7 +26,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <summary>
     /// Contains a dictionary from operation types to strings.
     /// </summary>
-    internal static Dictionary<BinaryOperationType, LuaString> _metamethods =
+    internal static readonly Dictionary<BinaryOperationType, LuaString> _metamethods =
         new Dictionary<BinaryOperationType, LuaString>() {
             { BinaryOperationType.Add, new LuaString("__add") },
             { BinaryOperationType.Subtract, new LuaString("__sub") },
@@ -57,7 +59,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Converts the current string to a number, or returns null.
     /// </summary>
     /// <returns>The value as a number, or null.</returns>
-    public LuaNumber ToNumber() {
+    public LuaNumber? ToNumber() {
       if (double.TryParse(Value, out double d)) {
         return LuaNumber.Create(d);
       } else {

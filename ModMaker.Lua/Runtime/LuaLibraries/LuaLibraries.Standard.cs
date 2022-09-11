@@ -128,7 +128,7 @@ namespace ModMaker.Lua.Runtime {
           return LuaNil.Nil;
         }
 
-        ILuaTable meta = ((ILuaTable)value).MetaTable;
+        ILuaTable? meta = ((ILuaTable)value).MetaTable;
         if (meta != null) {
           ILuaValue method = meta.GetItemRaw(_metamethod);
           if (method != null && method != LuaNil.Nil) {
@@ -140,7 +140,7 @@ namespace ModMaker.Lua.Runtime {
       }
       [MultipleReturn]
       static object[] ipairs(ILuaTable table) {
-        ILuaTable meta = table.MetaTable;
+        ILuaTable? meta = table.MetaTable;
         if (meta != null) {
           ILuaValue method = meta.GetItemRaw(_ipairs);
           if (method != null && method != LuaNil.Nil) {
@@ -169,7 +169,7 @@ namespace ModMaker.Lua.Runtime {
       }
       [MultipleReturn]
       static object[] pairs(ILuaTable table) {
-        ILuaTable meta = table.MetaTable;
+        ILuaTable? meta = table.MetaTable;
         if (meta != null) {
           ILuaValue p = meta.GetItemRaw(_pairs);
           if (p != null && p != LuaNil.Nil) {

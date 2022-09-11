@@ -16,6 +16,8 @@ using System;
 using System.Dynamic;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a method in Lua.  This can be a function that is defined in Lua, a framework method
@@ -27,7 +29,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// info.
   /// </remarks>
   public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor {
-    static DelegateBuilder _builder = new DelegateBuilder();
+    static readonly DelegateBuilder _builder = new DelegateBuilder();
 
     /// <summary>
     /// Creates a new LuaFunction.
@@ -44,16 +46,16 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public abstract LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args);
 
-    public bool Equals(ILuaValue other) {
+    public bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);
     }
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       return ReferenceEquals(this, obj);
     }
     public override int GetHashCode() {
       return base.GetHashCode();
     }
-    public int CompareTo(ILuaValue other) {
+    public int CompareTo(ILuaValue? other) {
       if (Equals(other)) {
         return 0;
       } else {
@@ -66,7 +68,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     LuaValueType ILuaValue.ValueType { get { return LuaValueType.Function; } }
     bool ILuaValue.IsTrue { get { return true; } }
 
-    object ILuaValue.GetValue() {
+    object? ILuaValue.GetValue() {
       return this;
     }
     double? ILuaValue.AsDouble() {
@@ -171,37 +173,28 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="type">The type of operation to perform.</param>
     /// <param name="other">The other value to use.</param>
     /// <returns>The result of the operation.</returns>
-    ILuaValue _defaultArithmetic(BinaryOperationType type, ILuaValue other) {
-      switch (type) {
-        case BinaryOperationType.Concat:
-          return new LuaString(ToString() + other.ToString());
-        case BinaryOperationType.Gt:
-          return LuaBoolean.Create(CompareTo(other) > 0);
-        case BinaryOperationType.Lt:
-          return LuaBoolean.Create(CompareTo(other) < 0);
-        case BinaryOperationType.Gte:
-          return LuaBoolean.Create(CompareTo(other) >= 0);
-        case BinaryOperationType.Lte:
-          return LuaBoolean.Create(CompareTo(other) <= 0);
-        case BinaryOperationType.Equals:
-          return LuaBoolean.Create(Equals(other));
-        case BinaryOperationType.NotEquals:
-          return LuaBoolean.Create(!Equals(other));
-        case BinaryOperationType.And:
-          return other;
-        case BinaryOperationType.Or:
-          return this;
-        default:
-          return null;
-      }
+    ILuaValue? _defaultArithmetic(BinaryOperationType type, ILuaValue other) {
+      return type switch {
+        BinaryOperationType.Concat => new LuaString(ToString() + other.ToString()),
+        BinaryOperationType.Gt => LuaBoolean.Create(CompareTo(other) > 0),
+        BinaryOperationType.Lt => LuaBoolean.Create(CompareTo(other) < 0),
+        BinaryOperationType.Gte => LuaBoolean.Create(CompareTo(other) >= 0),
+        BinaryOperationType.Lte => LuaBoolean.Create(CompareTo(other) <= 0),
+        BinaryOperationType.Equals => LuaBoolean.Create(Equals(other)),
+        BinaryOperationType.NotEquals => LuaBoolean.Create(!Equals(other)),
+        BinaryOperationType.And => other,
+        BinaryOperationType.Or => this,
+        _ => null,
+      };
     }
 
     #endregion
 
     #region DynamicObject overrides
 
-    public override bool TryInvoke(InvokeBinder binder, object[] args, out object result) {
-      var ret = Invoke(LuaNil.Nil, false, LuaMultiValue.CreateMultiValueFromObj(args));
+    public override bool TryInvoke(InvokeBinder binder, object?[]? args, out object? result) {
+      var ret = Invoke(LuaNil.Nil, false,
+                       LuaMultiValue.CreateMultiValueFromObj(args ?? Array.Empty<object>()));
       result = ret.GetValue();
       return true;
     }

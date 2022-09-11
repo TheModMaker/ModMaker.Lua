@@ -132,7 +132,7 @@ namespace ModMaker.Lua.Runtime {
 
           if (obj != null) {
             if (obj.ValueType == LuaValueType.String) {
-              Stream s = File.OpenRead((string)obj.GetValue());
+              Stream s = File.OpenRead((string)obj.GetValue()!);
               _input = s;
             } else if (obj.ValueType == LuaValueType.Table) {
               Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
@@ -254,7 +254,7 @@ namespace ModMaker.Lua.Runtime {
           ILuaValue obj = args[0];
           if (obj != LuaNil.Nil) {
             if (obj.ValueType == LuaValueType.String) {
-              Stream s = File.OpenRead((string)obj.GetValue());
+              Stream s = File.OpenRead((string)obj.GetValue()!);
               _output = s;
             } else if (obj.ValueType == LuaValueType.Table) {
               Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
@@ -395,7 +395,7 @@ namespace ModMaker.Lua.Runtime {
         List<int> v = new List<int>();
 
         foreach (var item in args) {
-          object obj = item.GetValue();
+          object? obj = item.GetValue();
           if (obj is double d) {
             if (d < 0) {
               throw new ArgumentOutOfRangeException(
@@ -433,7 +433,7 @@ namespace ModMaker.Lua.Runtime {
               ret.Add(s.EndOfStream ? (ILuaValue)LuaNil.Nil : new LuaString(s.ReadLine() + "\n"));
               break;
             case -3:
-              ret.Add(s.EndOfStream ? (ILuaValue)LuaNil.Nil : new LuaString(s.ReadLine()));
+              ret.Add(s.EndOfStream ? (ILuaValue)LuaNil.Nil : new LuaString(s.ReadLine()!));
               break;
             case -2:
               ret.Add(s.EndOfStream ? (ILuaValue)LuaNil.Nil : new LuaString(s.ReadToEnd()));

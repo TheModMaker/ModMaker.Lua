@@ -15,6 +15,8 @@
 using System;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   public sealed class LuaUserData<T> : LuaValueBase<T> {
     // TODO: Implement LuaUserData.
@@ -23,24 +25,19 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Creates a new LuaUserData that wraps the given value.
     /// </summary>
     /// <param name="data">The data it wraps.</param>
-    public LuaUserData(T data) : base(data) { }
+    public LuaUserData(T data) : base(data) {
+      if (data == null)
+        throw new ArgumentNullException(nameof(data));
+    }
 
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
-    public override bool IsTrue { get { return Value != null && Value as bool? != false; } }
+    public override bool IsTrue { get { return true; } }
 
     public override ILuaValue GetIndex(ILuaValue index) {
-      if (Value == null) {
-        throw new InvalidOperationException(Errors.CannotIndex(LuaValueType.Nil));
-      }
-
-      return Helpers.GetSetMember(Value.GetType(), Value, index);
+      return Helpers.GetSetMember(Value!.GetType(), Value, index);
     }
     public override void SetIndex(ILuaValue index, ILuaValue value) {
-      if (Value == null) {
-        throw new InvalidOperationException(Errors.CannotIndex(LuaValueType.Nil));
-      }
-
-      Helpers.GetSetMember(Value.GetType(), Value, index, value);
+      Helpers.GetSetMember(Value!.GetType(), Value, index, value);
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
@@ -85,34 +82,21 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="type">The type of operation.</param>
     /// <returns>The name of the operation (e.g. op_Addition).</returns>
     static string _getOperationName(BinaryOperationType type) {
-      switch (type) {
-        case BinaryOperationType.Add:
-          return "op_Addition";
-        case BinaryOperationType.Subtract:
-          return "op_Subtraction";
-        case BinaryOperationType.Multiply:
-          return "op_Multiply";
-        case BinaryOperationType.Divide:
-          return "op_Division";
-        case BinaryOperationType.Power:
-          return "op_Power";
-        case BinaryOperationType.Modulo:
-          return "op_Modulo";
-        case BinaryOperationType.Gt:
-          return "op_GreaterThan";
-        case BinaryOperationType.Lt:
-          return "op_LessThan";
-        case BinaryOperationType.Gte:
-          return "op_GreaterThanOrEqual";
-        case BinaryOperationType.Lte:
-          return "op_LessThanOrEqual";
-        case BinaryOperationType.Equals:
-          return "op_Equality";
-        case BinaryOperationType.NotEquals:
-          return "op_Inequality";
-        default:
-          return "";
-      }
+      return type switch {
+        BinaryOperationType.Add => "op_Addition",
+        BinaryOperationType.Subtract => "op_Subtraction",
+        BinaryOperationType.Multiply => "op_Multiply",
+        BinaryOperationType.Divide => "op_Division",
+        BinaryOperationType.Power => "op_Power",
+        BinaryOperationType.Modulo => "op_Modulo",
+        BinaryOperationType.Gt => "op_GreaterThan",
+        BinaryOperationType.Lt => "op_LessThan",
+        BinaryOperationType.Gte => "op_GreaterThanOrEqual",
+        BinaryOperationType.Lte => "op_LessThanOrEqual",
+        BinaryOperationType.Equals => "op_Equality",
+        BinaryOperationType.NotEquals => "op_Inequality",
+        _ => "",
+      };
     }
   }
 }

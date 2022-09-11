@@ -14,6 +14,8 @@
 
 using System;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// A global Lua function for a chunk of code.
@@ -39,7 +41,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     }
 
     public override LuaMultiValue Invoke(ILuaValue target, bool memberCall, LuaMultiValue args) {
-      ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, new[] { _env });
+      ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, new[] { _env })!;
       return method.Invoke(LuaNil.Nil, false, args);
     }
   }

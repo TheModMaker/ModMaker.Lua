@@ -15,6 +15,8 @@
 using System;
 using ModMaker.Lua.Runtime.LuaValues;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Determines the state of a Lua thread.
@@ -51,7 +53,7 @@ namespace ModMaker.Lua.Runtime {
     internal YieldEventArgs(LuaMultiValue args) {
       Arguments = args;
       RejectYield = false;
-      ReturnArguments = null;
+      ReturnArguments = LuaMultiValue.Empty;
     }
 
     /// <summary>
@@ -97,12 +99,6 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="args">The arguments to pass to the thread.</param>
     /// <returns>The values returned from the thread.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the thread is running or dead -or- if this is not a Lua thread.
-    /// </exception>
-    /// <exception cref="System.Reflection.TargetInvocationException">
-    /// If the thread throws an exception.
-    /// </exception>
     LuaMultiValue Resume(LuaMultiValue args);
     /// <summary>
     /// Must be called from the thread that is managed by this instance.  This suspends the
@@ -111,9 +107,6 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="args">The arguments to return from Resume.</param>
     /// <returns>The objects passed to Resume.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the thread is not already running -or- if this is not a Lua thread.
-    /// </exception>
     LuaMultiValue Yield(LuaMultiValue args);
   }
 }

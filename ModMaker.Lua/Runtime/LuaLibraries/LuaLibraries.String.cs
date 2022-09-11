@@ -192,7 +192,7 @@ namespace ModMaker.Lua.Runtime {
           _max = max;
 
           if (value.ValueType == LuaValueType.String) {
-            _string = (string)value.GetValue();
+            _string = (string)value.GetValue()!;
           } else if (value.ValueType == LuaValueType.Table) {
             _table = (ILuaTable)value;
           } else if (value.ValueType == LuaValueType.Function) {

@@ -18,6 +18,8 @@ using System.Diagnostics;
 using System.Reflection;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a base class for the standard LuaValue's.  This uses the visitor pattern to pick the
@@ -35,7 +37,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="value">The value to wrap.</param>
     /// <returns>A new LuaValue object.</returns>
-    public static ILuaValue CreateValue(object value) {
+    public static ILuaValue CreateValue(object? value) {
       if (value == null) {
         return LuaNil.Nil;
       }
@@ -63,15 +65,15 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         return LuaNumber.Create(Convert.ToDouble(value));
       } else {
         return (ILuaValue)Activator.CreateInstance(
-            typeof(LuaUserData<>).MakeGenericType(value.GetType()), value);
+            typeof(LuaUserData<>).MakeGenericType(value.GetType()), value)!;
       }
     }
 
-    public abstract bool Equals(ILuaValue other);
-    public override bool Equals(object obj) {
+    public abstract bool Equals(ILuaValue? other);
+    public override bool Equals(object? obj) {
       return obj is ILuaValue value && Equals(value);
     }
-    public virtual int CompareTo(ILuaValue other) {
+    public virtual int CompareTo(ILuaValue? other) {
       if (Equals(other)) {
         return 0;
       } else {
@@ -82,7 +84,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return base.GetHashCode();
     }
 
-    public virtual object GetValue() {
+    public virtual object? GetValue() {
       return this;
     }
     public virtual double? AsDouble() {
@@ -94,18 +96,18 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         return (T)(object)this;
       }
 
-      object value = GetValue();
+      object? value = GetValue();
       if (value == null) {
         bool isNullable = typeof(T).IsGenericType &&
                           typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>);
         if (typeof(T).IsValueType && !isNullable) {
           throw new InvalidCastException(string.Format(Resources.BadCast, "null", typeof(T)));
         } else {
-          return (T)value;
+          return (T)value!;
         }
       }
 
-      if (OverloadSelector.TypesCompatible(value.GetType(), typeof(T), out MethodInfo m)) {
+      if (OverloadSelector.TypesCompatible(value.GetType(), typeof(T), out MethodInfo? m)) {
         // Cast the object if needed.
         if (m != null) {
           value = Helpers.DynamicInvoke(m, null, new[] { value });
@@ -138,13 +140,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="type">The type of operation to perform.</param>
     /// <param name="other">The other value to use.</param>
     /// <returns>The result of the operation.</returns>
-    /// <exception cref="System.InvalidOperationException">
-    /// If the operation cannot be performed with the given values.
-    /// </exception>
-    /// <exception cref="System.InvalidArgumentException">
-    /// If the argument is an invalid value.
-    /// </exception>
-    protected ILuaValue _arithmeticBase(BinaryOperationType type, ILuaValue other) {
+    protected ILuaValue? _arithmeticBase(BinaryOperationType type, ILuaValue other) {
       // Attempt to use a meta-method.
       var ret = _attemptMetamethod(type, this, other);
       if (ret != null) {
@@ -171,29 +167,19 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="type">The type of operation to perform.</param>
     /// <param name="other">The other value to use.</param>
     /// <returns>The result of the operation.</returns>
-    private ILuaValue _defaultArithmetic(BinaryOperationType type, ILuaValue other) {
-      switch (type) {
-        case BinaryOperationType.Concat:
-          return new LuaString(this.ToString() + other.ToString());
-        case BinaryOperationType.Gt:
-          return LuaBoolean.Create(CompareTo(other) > 0);
-        case BinaryOperationType.Lt:
-          return LuaBoolean.Create(CompareTo(other) < 0);
-        case BinaryOperationType.Gte:
-          return LuaBoolean.Create(CompareTo(other) >= 0);
-        case BinaryOperationType.Lte:
-          return LuaBoolean.Create(CompareTo(other) <= 0);
-        case BinaryOperationType.Equals:
-          return LuaBoolean.Create(Equals(other));
-        case BinaryOperationType.NotEquals:
-          return LuaBoolean.Create(!Equals(other));
-        case BinaryOperationType.And:
-          return !IsTrue ? this : other;
-        case BinaryOperationType.Or:
-          return IsTrue ? this : other;
-        default:
-          return null;
-      }
+    private ILuaValue? _defaultArithmetic(BinaryOperationType type, ILuaValue other) {
+      return type switch {
+        BinaryOperationType.Concat => new LuaString(this.ToString() + other.ToString()),
+        BinaryOperationType.Gt => LuaBoolean.Create(CompareTo(other) > 0),
+        BinaryOperationType.Lt => LuaBoolean.Create(CompareTo(other) < 0),
+        BinaryOperationType.Gte => LuaBoolean.Create(CompareTo(other) >= 0),
+        BinaryOperationType.Lte => LuaBoolean.Create(CompareTo(other) <= 0),
+        BinaryOperationType.Equals => LuaBoolean.Create(Equals(other)),
+        BinaryOperationType.NotEquals => LuaBoolean.Create(!Equals(other)),
+        BinaryOperationType.And => !IsTrue ? this : other,
+        BinaryOperationType.Or => IsTrue ? this : other,
+        _ => null,
+      };
     }
 
     /// <summary>
@@ -202,22 +188,22 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="type">The type of operation.</param>
     /// <param name="other">The other value.</param>
     /// <returns>The result of the meta-method, or null if not found.</returns>
-    internal static ILuaValue _attemptMetamethod(BinaryOperationType type, ILuaValue self,
-                                                 ILuaValue other) {
+    internal static ILuaValue? _attemptMetamethod(BinaryOperationType type, ILuaValue self,
+                                                  ILuaValue other) {
       if (type == BinaryOperationType.And || type == BinaryOperationType.Or) {
         return null;
       }
 
       // Search the first object.
-      ILuaValue ret = null;
+      ILuaValue? ret = null;
       var self2 = self as ILuaTable;
       if (self2 != null && self2.MetaTable != null) {
         var t = self2.MetaTable.GetItemRaw(LuaString._metamethods[type]);
-        if (t != null) {
+        if (t != LuaNil.Nil) {
           ret = t.Invoke(LuaNil.Nil, false, new LuaMultiValue(self, other));
         } else if (type == BinaryOperationType.Lte || type == BinaryOperationType.Gt) {
           t = self2.MetaTable.GetItemRaw(LuaString._metamethods[BinaryOperationType.Lt]);
-          if (t != null) {
+          if (t != LuaNil.Nil) {
             ret = t.Invoke(LuaNil.Nil, false, new LuaMultiValue(other, self)).Not();
           }
         }
@@ -227,11 +213,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       var other2 = other as ILuaTable;
       if (ret == null && other2 != null && other2.MetaTable != null) {
         var t = other2.MetaTable.GetItemRaw(LuaString._metamethods[type]);
-        if (t != null) {
+        if (t != LuaNil.Nil) {
           ret = t.Invoke(LuaNil.Nil, true, new LuaMultiValue(self, other));
         } else if (type == BinaryOperationType.Lte || type == BinaryOperationType.Gt) {
           t = other2.MetaTable.GetItemRaw(LuaString._metamethods[BinaryOperationType.Lt]);
-          if (t != null) {
+          if (t != LuaNil.Nil) {
             ret = t.Invoke(LuaNil.Nil, true, new LuaMultiValue(other, self)).Not();
           }
         }
@@ -326,22 +312,22 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public T Value { get; }
 
-    public override object GetValue() {
+    public override object? GetValue() {
       return Value;
     }
 
-    public override bool Equals(ILuaValue other) {
+    public override bool Equals(ILuaValue? other) {
       return other != null && other.GetType() == GetType() &&
           Equals(Value, ((LuaValueBase<T>)other).Value);
     }
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
       if (obj is ILuaValue value) {
         return Equals(value);
       } else {
         return Equals(Value, obj);
       }
     }
-    public override int CompareTo(ILuaValue other) {
+    public override int CompareTo(ILuaValue? other) {
       if (other is LuaValueBase<T> temp && other.GetType() == GetType()) {
         var comp = Comparer<T>.Default;
         return comp.Compare(Value, temp.Value);
@@ -356,7 +342,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (Value == null) {
         return "nil";
       } else {
-        return Value.ToString();
+        return Value.ToString()!;
       }
     }
   }

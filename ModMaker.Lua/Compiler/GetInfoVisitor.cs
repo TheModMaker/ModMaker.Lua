@@ -110,7 +110,7 @@ namespace ModMaker.Lua.Compiler {
     }
     public IParseItem Visit(FuncDefItem target) {
       if (target.Local) {
-        _tree.DefineLocal(new[] { (NameItem)target.Prefix });
+        _tree.DefineLocal(new[] { (NameItem)target.Prefix! });
       }
 
       using (_tree.DefineFunc()) {

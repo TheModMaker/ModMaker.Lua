@@ -15,6 +15,8 @@
 using System;
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a LuaValue that is a number (double).
@@ -58,40 +60,24 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaNumber self) {
       // Cannot use DefaultArithmetic since self and this are swapped.
-      switch (type) {
-        case BinaryOperationType.Add:
-          return Create(self.Value + Value);
-        case BinaryOperationType.Subtract:
-          return Create(self.Value - Value);
-        case BinaryOperationType.Multiply:
-          return Create(self.Value * Value);
-        case BinaryOperationType.Divide:
-          return Create(self.Value / Value);
-        case BinaryOperationType.Power:
-          return Create(Math.Pow(self.Value, Value));
-        case BinaryOperationType.Modulo:
-          return Create(self.Value - Math.Floor(self.Value / Value) * Value);
-        case BinaryOperationType.Concat:
-          return new LuaString(self.ToString() + ToString());
-        case BinaryOperationType.Gt:
-          return LuaBoolean.Create(self.CompareTo(this) > 0);
-        case BinaryOperationType.Lt:
-          return LuaBoolean.Create(self.CompareTo(this) < 0);
-        case BinaryOperationType.Gte:
-          return LuaBoolean.Create(self.CompareTo(this) >= 0);
-        case BinaryOperationType.Lte:
-          return LuaBoolean.Create(self.CompareTo(this) <= 0);
-        case BinaryOperationType.Equals:
-          return LuaBoolean.Create(self.Equals(this));
-        case BinaryOperationType.NotEquals:
-          return LuaBoolean.Create(!self.Equals(this));
-        case BinaryOperationType.And:
-          return !self.IsTrue ? self : this;
-        case BinaryOperationType.Or:
-          return self.IsTrue ? self : this;
-        default:
-          throw new ArgumentException(Resources.BadBinOp);
-      }
+      return type switch {
+        BinaryOperationType.Add => Create(self.Value + Value),
+        BinaryOperationType.Subtract => Create(self.Value - Value),
+        BinaryOperationType.Multiply => Create(self.Value * Value),
+        BinaryOperationType.Divide => Create(self.Value / Value),
+        BinaryOperationType.Power => Create(Math.Pow(self.Value, Value)),
+        BinaryOperationType.Modulo => Create(self.Value - Math.Floor(self.Value / Value) * Value),
+        BinaryOperationType.Concat => new LuaString(self.ToString() + ToString()),
+        BinaryOperationType.Gt => LuaBoolean.Create(self.CompareTo(this) > 0),
+        BinaryOperationType.Lt => LuaBoolean.Create(self.CompareTo(this) < 0),
+        BinaryOperationType.Gte => LuaBoolean.Create(self.CompareTo(this) >= 0),
+        BinaryOperationType.Lte => LuaBoolean.Create(self.CompareTo(this) <= 0),
+        BinaryOperationType.Equals => LuaBoolean.Create(self.Equals(this)),
+        BinaryOperationType.NotEquals => LuaBoolean.Create(!self.Equals(this)),
+        BinaryOperationType.And => !self.IsTrue ? self : this,
+        BinaryOperationType.Or => self.IsTrue ? self : this,
+        _ => throw new ArgumentException(Resources.BadBinOp),
+      };
     }
     public override ILuaValue Arithmetic(BinaryOperationType type, LuaString self) {
       var t = self.ToNumber();

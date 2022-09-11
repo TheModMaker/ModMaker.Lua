@@ -14,11 +14,13 @@
 
 using ModMaker.Lua.Parser.Items;
 
+#nullable enable
+
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a LuaValue that is a nil.
   /// </summary>
-  public sealed class LuaNil : LuaValueBase<object> {
+  public sealed class LuaNil : LuaValueBase<object?> {
     /// <summary>
     /// Contains the LuaNil value.
     /// </summary>
