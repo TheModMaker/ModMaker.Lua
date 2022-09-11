@@ -20,8 +20,6 @@ using System.Reflection;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the default Lua runtime.  This class is in charge of resolving operators and

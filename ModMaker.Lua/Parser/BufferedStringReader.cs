@@ -18,8 +18,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// This reads from an input Stream and outputs strings from it.  This maintains an internal

@@ -15,8 +15,6 @@
 using System;
 using System.Reflection;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// A method that is defined in Lua.  This simply passes the arguments to the Lua function.

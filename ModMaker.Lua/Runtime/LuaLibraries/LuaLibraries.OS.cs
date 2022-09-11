@@ -21,8 +21,6 @@ using System.Text;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class OS {

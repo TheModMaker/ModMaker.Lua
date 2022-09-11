@@ -15,8 +15,6 @@
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// This object is in charge of compiling code into invokable objects.  It will compile an

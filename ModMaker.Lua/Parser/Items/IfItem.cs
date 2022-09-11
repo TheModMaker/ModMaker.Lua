@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that is a conditional statement.  It contains a main block, an optional

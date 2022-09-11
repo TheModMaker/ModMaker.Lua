@@ -20,8 +20,6 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// A helper that creates Delegate types that call a LuaFunction object.

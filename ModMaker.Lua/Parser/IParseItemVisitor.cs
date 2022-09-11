@@ -14,8 +14,6 @@
 
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// A visitor object used to select a specific method based on the runtime type of the IParseItem.

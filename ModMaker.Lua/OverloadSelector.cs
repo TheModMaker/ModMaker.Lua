@@ -21,8 +21,6 @@ using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua {
   /// <summary>
   /// A helper to select which overload to pick when calling an overloaded function.

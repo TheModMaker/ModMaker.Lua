@@ -23,8 +23,6 @@ using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// Helps build a chunk by managing nested types and scopes.  Also generates some code to load

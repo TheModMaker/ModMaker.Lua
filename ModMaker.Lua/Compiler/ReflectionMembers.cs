@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-#nullable enable
-
 // Non-null fields are initialized with reflection, so the compiler doesn't know they are set.
 #pragma warning disable 8618
 // Fields sometimes need to match C# internals, so may violate style.

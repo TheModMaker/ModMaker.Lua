@@ -15,8 +15,6 @@
 using System;
 using ModMaker.Lua.Parser;
 
-#nullable enable
-
 namespace ModMaker.Lua {
   public enum MessageLevel : byte {
     /// <summary>

@@ -16,8 +16,6 @@ using System;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the environment that Lua operates in.  It is suggested that the type that implements

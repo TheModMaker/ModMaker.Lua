@@ -14,8 +14,6 @@
 
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// An interface for a table in Lua.  This acts like a dictionary of objects to objects.  This is

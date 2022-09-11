@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines how Lua looks for external modules.  When 'require' is called from Lua, it calls

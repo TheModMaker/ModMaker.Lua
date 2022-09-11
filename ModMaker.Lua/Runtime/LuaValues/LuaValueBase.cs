@@ -18,8 +18,6 @@ using System.Diagnostics;
 using System.Reflection;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a base class for the standard LuaValue's.  This uses the visitor pattern to pick the

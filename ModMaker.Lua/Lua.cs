@@ -22,8 +22,6 @@ using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 [assembly: InternalsVisibleTo("Unit Tests")]
 
 namespace ModMaker.Lua {

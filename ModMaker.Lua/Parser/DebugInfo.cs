@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   public struct DebugInfo {
     public DebugInfo(string path, long startPos, long startLine, long endPos, long endLine) {

@@ -16,8 +16,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   [SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "Names match Lua versions")]
   static partial class LuaStaticLibraries {

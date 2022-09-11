@@ -15,8 +15,6 @@
 using System;
 using System.Collections.Generic;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a table definition expression.

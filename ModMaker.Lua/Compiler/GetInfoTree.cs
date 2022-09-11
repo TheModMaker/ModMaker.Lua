@@ -17,8 +17,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// A helper class for GetInfoVisitor.  This is a tree structure that holds local variables and

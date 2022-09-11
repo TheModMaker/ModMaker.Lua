@@ -21,8 +21,6 @@ using System.Reflection.Emit;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   class LuaType : LuaValueBase {
     public LuaType(Type type) {

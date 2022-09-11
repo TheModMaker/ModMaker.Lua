@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Module {

@@ -16,8 +16,6 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// Defines a lexer that accepts a TextElementEnumerator and produces a stream of token for use in

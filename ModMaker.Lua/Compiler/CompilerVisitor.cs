@@ -20,8 +20,6 @@ using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// Defines a visitor object that helps compile code with CodeCompiler.

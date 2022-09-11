@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a goto statement.

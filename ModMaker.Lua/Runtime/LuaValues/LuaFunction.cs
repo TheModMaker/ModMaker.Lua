@@ -16,8 +16,6 @@ using System;
 using System.Dynamic;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a method in Lua.  This can be a function that is defined in Lua, a framework method

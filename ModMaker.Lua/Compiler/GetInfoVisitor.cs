@@ -16,8 +16,6 @@ using System.Linq;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// A visitor that resolves gotos and breaks and also get capture information about function

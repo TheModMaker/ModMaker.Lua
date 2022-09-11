@@ -21,8 +21,6 @@ using System.Linq;
 using System.Text;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 #if NET48
 // .NET 4.8 doesn't have NotNullWhen, so we get these false-positive warnings for null values.
 #pragma warning disable 8602, 8603, 8604

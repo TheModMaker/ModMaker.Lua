@@ -22,8 +22,6 @@ using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua {
   /// <summary>
   /// A static class that contains several helper methods.

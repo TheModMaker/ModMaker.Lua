@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// A global Lua function for a chunk of code.

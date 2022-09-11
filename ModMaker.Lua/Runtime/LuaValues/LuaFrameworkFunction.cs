@@ -14,8 +14,6 @@
 
 using System.Linq;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// One of the methods that are defined by this framework.  The methods will subclass this type.

@@ -18,8 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines multiple LuaValues.  This is used to pass arguments and get results from functions.

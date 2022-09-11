@@ -20,8 +20,6 @@ using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// A dynamic object that is used to convert implicitly to numeric types.

@@ -18,8 +18,6 @@ using System.Linq;
 using System.Text;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// Defines a default parser.  This parses Lua code into an IParseItem tree. This can be extended

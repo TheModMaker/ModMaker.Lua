@@ -14,8 +14,6 @@
 
 using System.Diagnostics;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines a parse item that represents a name in an expression.

@@ -21,8 +21,6 @@ using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Compiler {
   /// <summary>
   /// Defines an ICodeCompiler to compile the IParseItem tree into IL code.

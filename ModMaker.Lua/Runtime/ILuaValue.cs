@@ -16,8 +16,6 @@ using System;
 using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines a value that is stored in Lua.  This is a wrapper around a value.

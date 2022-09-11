@@ -15,8 +15,6 @@
 using System.Collections.Generic;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the behavior of Lua code.  These are helper methods that are called from within the

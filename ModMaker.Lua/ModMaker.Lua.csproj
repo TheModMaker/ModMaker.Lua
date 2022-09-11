@@ -10,6 +10,7 @@
     <Authors>Jacob Trimble</Authors>
     <Copyright>Copyright 2012 Jacob Trimble</Copyright>
     <RepositoryUrl>https://github.com/TheModMaker/ModMaker.Lua</RepositoryUrl>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

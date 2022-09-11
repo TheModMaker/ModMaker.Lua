@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// Defines possible types of tokens.

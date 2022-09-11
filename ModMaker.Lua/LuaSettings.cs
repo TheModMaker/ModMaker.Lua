@@ -16,8 +16,6 @@ using System;
 using System.IO;
 using System.Text;
 
-#nullable enable
-
 namespace ModMaker.Lua {
   /// <summary>
   /// Defines which libraries the Lua code will have access to. Use Bitwise-Or to use multiple.

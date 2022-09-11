@@ -15,8 +15,6 @@
 using System;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   public sealed class LuaUserData<T> : LuaValueBase<T> {
     // TODO: Implement LuaUserData.

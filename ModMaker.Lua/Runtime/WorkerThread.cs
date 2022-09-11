@@ -16,8 +16,6 @@ using System;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines a helper thread used for LuaThread objects.  This will execute multiple LuaThread

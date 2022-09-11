@@ -18,8 +18,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a method that contains several user-defined methods and choses the method to invoke

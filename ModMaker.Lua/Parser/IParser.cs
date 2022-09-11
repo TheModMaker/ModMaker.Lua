@@ -15,8 +15,6 @@
 using System.IO;
 using System.Text;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser {
   /// <summary>
   /// This object is in charge of parsing input into an object tree.  This will take a Stream object

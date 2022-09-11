@@ -15,8 +15,6 @@
 using System;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a LuaValue that is a number (double).

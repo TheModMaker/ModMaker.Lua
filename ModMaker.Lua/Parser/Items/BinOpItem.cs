@@ -14,8 +14,6 @@
 
 using System;
 
-#nullable enable
-
 namespace ModMaker.Lua.Parser.Items {
   /// <summary>
   /// Defines the type of a binary expression.

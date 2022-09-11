@@ -18,8 +18,6 @@ using System.Runtime.ExceptionServices;
 using System.Threading;
 using ModMaker.Lua.Parser.Items;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime.LuaValues {
   /// <summary>
   /// Defines a thread in Lua.  Cannot be created in C#, use the coroutine library in Lua to create

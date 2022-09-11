@@ -15,8 +15,6 @@
 using System.Collections.Generic;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Defines the default thread pool.  This reduces the number of threads created by this

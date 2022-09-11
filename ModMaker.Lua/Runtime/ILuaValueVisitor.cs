@@ -15,8 +15,6 @@
 using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// A visitor used to visit LuaValue's.

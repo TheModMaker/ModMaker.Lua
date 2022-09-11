@@ -15,8 +15,6 @@
 using System;
 using ModMaker.Lua.Runtime.LuaValues;
 
-#nullable enable
-
 namespace ModMaker.Lua.Runtime {
   /// <summary>
   /// Determines the state of a Lua thread.
