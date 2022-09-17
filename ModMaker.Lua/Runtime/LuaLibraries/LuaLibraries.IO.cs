@@ -72,7 +72,7 @@ namespace ModMaker.Lua.Runtime {
           _ops = ops;
         }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (_stream == null) {
             return LuaMultiValue.Empty;
           }
@@ -95,7 +95,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class close : LuaFrameworkFunction {
         public close(ILuaEnvironment env) : base(env, "io.close") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (!_getStream(args[0],kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
             return ret;
 
@@ -110,7 +110,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class flush : LuaFrameworkFunction {
         public flush(ILuaEnvironment env) : base(env, "io.flush") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (!_getStream(args[0], kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
             return ret;
 
@@ -125,7 +125,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class input : LuaFrameworkFunction {
         public input(ILuaEnvironment env) : base(env, "io.input") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           ILuaValue obj = args[0];
 
           if (obj != null) {
@@ -157,7 +157,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class lines : LuaFrameworkFunction {
         public lines(ILuaEnvironment env) : base(env, "io.lines") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           Stream? s;
           bool close;
           int start;
@@ -179,7 +179,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class open : LuaFrameworkFunction {
         public open(ILuaEnvironment env) : base(env, "io.open") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           string? s = args[0].GetValue() as string;
           string? mode = args[1].GetValue() as string;
           FileMode fileMode;
@@ -248,7 +248,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class output : LuaFrameworkFunction {
         public output(ILuaEnvironment env) : base(env, "io.output") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           ILuaValue obj = args[0];
           if (obj != LuaNil.Nil) {
             if (obj.ValueType == LuaValueType.String) {
@@ -278,7 +278,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class read : LuaFrameworkFunction {
         public read(ILuaEnvironment env) : base(env, "io.read") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (!_getStream(args[0], kInput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
             return ret;
           int start = s == _input ? 0 : 1;
@@ -290,7 +290,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class seek : LuaFrameworkFunction {
         public seek(ILuaEnvironment env) : base(env, "io.seek") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (!_getStream(args[0], kInput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
             return ret;
           SeekOrigin origin = SeekOrigin.Current;
@@ -334,7 +334,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class tmpfile : LuaFrameworkFunction {
         public tmpfile(ILuaEnvironment env) : base(env, "io.tmpfile") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           string str = Path.GetTempFileName();
           Stream s = File.Open(str, FileMode.OpenOrCreate, FileAccess.ReadWrite);
           return new LuaMultiValue(_createFile(s, _environment));
@@ -343,7 +343,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class type : LuaFrameworkFunction {
         public type(ILuaEnvironment env) : base(env, "io.type") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           ILuaValue obj = args[0];
 
           if (obj.GetValue() is Stream) {
@@ -359,7 +359,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class write : LuaFrameworkFunction {
         public write(ILuaEnvironment env) : base(env, "io.write") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (!_getStream(args[0], kOutput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
             return ret;
           int start = s == _output ? 0 : 1;
@@ -508,7 +508,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class dofile : LuaFrameworkFunction {
         public dofile(ILuaEnvironment env) : base(env, "io.dofile") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting one argument to function 'dofile'.");
           }
@@ -526,13 +526,13 @@ namespace ModMaker.Lua.Runtime {
           string chunk = File.ReadAllText(file);
           var parsed = _environment.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
           var r = _environment.CodeCompiler.Compile(_environment, parsed, "");
-          return r.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
+          return r.Invoke(LuaMultiValue.Empty);
         }
       }
       sealed class load : LuaFrameworkFunction {
         public load(ILuaEnvironment env) : base(env, "io.load") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'load'.");
           }
@@ -543,7 +543,7 @@ namespace ModMaker.Lua.Runtime {
           if (ld.ValueType == LuaValueType.Function) {
             chunk = "";
             while (true) {
-              var ret = ld.Invoke(LuaNil.Nil, false, LuaMultiValue.Empty);
+              var ret = ld.Invoke(LuaMultiValue.Empty);
               if (ret[0].ValueType == LuaValueType.String) {
                 if (string.IsNullOrEmpty(ret[0].GetValue() as string)) {
                   break;
@@ -571,7 +571,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class loadfile : LuaFrameworkFunction {
         public loadfile(ILuaEnvironment env) : base(env, "io.loadfile") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'loadfile'.");
           }

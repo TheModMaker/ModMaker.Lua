@@ -225,7 +225,7 @@ namespace ModMaker.Lua.Runtime {
           } else if (_method != null) {
             var groups = match.Groups.Cast<Group>().Skip(1).Select(c => c.Value).ToArray();
             var args = LuaMultiValue.CreateMultiValueFromObj(groups);
-            LuaMultiValue obj = _method.Invoke(LuaNil.Nil, false, args);
+            LuaMultiValue obj = _method.Invoke(args);
             if (obj != null && obj.Count > 0) {
               ILuaValue value = obj[0];
               if (value != null && value.IsTrue) {

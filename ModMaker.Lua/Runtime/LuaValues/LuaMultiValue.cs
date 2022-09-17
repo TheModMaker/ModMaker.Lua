@@ -127,8 +127,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {
       return _values[0].Arithmetic(type, other);
     }
-    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
-      return _values[0].Invoke(self, memberCall, args);
+    public override LuaMultiValue Invoke(LuaMultiValue args) {
+      return _values[0].Invoke(args);
     }
     public override ILuaValue GetIndex(ILuaValue index) {
       return _values[0].GetIndex(index);

@@ -73,11 +73,9 @@ namespace ModMaker.Lua.Runtime {
     /// <summary>
     /// Invokes the object with the given arguments.
     /// </summary>
-    /// <param name="self">The object being called on.</param>
-    /// <param name="memberCall">Whether the call was using member call notation (:).</param>
     /// <param name="args">The arguments for the call.</param>
     /// <returns>The return values from the invocation.</returns>
-    LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args);
+    LuaMultiValue Invoke(LuaMultiValue args);
 
     /// <summary>
     /// Performs a binary arithmetic operation and returns the result.

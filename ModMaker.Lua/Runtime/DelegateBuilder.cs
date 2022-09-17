@@ -135,11 +135,9 @@ namespace ModMaker.Lua.Runtime {
       gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.CreateMultiValueFromObj);
       gen.Emit(OpCodes.Stloc, args);
 
-      // LuaMultiValue ret = arg0.Invoke(LuaNil.Nil, false, args);
+      // LuaMultiValue ret = arg0.Invoke(args);
       var ret = gen.DeclareLocal(typeof(LuaMultiValue));
       gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Ldsfld, ReflectionMembers.LuaNil.Nil);
-      gen.Emit(OpCodes.Ldc_I4_0);
       gen.Emit(OpCodes.Ldloc, args);
       gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
       gen.Emit(OpCodes.Stloc, ret);

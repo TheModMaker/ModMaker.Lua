@@ -42,7 +42,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     public string Name { get; }
 
-    public abstract LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args);
+    public abstract LuaMultiValue Invoke(LuaMultiValue args);
 
     public bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);
@@ -191,8 +191,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     #region DynamicObject overrides
 
     public override bool TryInvoke(InvokeBinder binder, object?[]? args, out object? result) {
-      var ret = Invoke(LuaNil.Nil, false,
-                       LuaMultiValue.CreateMultiValueFromObj(args ?? Array.Empty<object>()));
+      var ret = Invoke(LuaMultiValue.CreateMultiValueFromObj(args ?? Array.Empty<object>()));
       result = ret.GetValue();
       return true;
     }

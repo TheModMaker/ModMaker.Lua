@@ -110,7 +110,7 @@ namespace ModMaker.Lua.Runtime {
           if (meta != null) {
             var m = meta.GetItemRaw(_tostring);
             if (m != null && m.ValueType == LuaValueType.Function) {
-              var result = m.Invoke(value, true, LuaMultiValue.Empty);
+              var result = m.Invoke(new LuaMultiValue(value));
               return result[0].ToString()!;
             }
           }
@@ -142,7 +142,7 @@ namespace ModMaker.Lua.Runtime {
         if (meta != null) {
           ILuaValue method = meta.GetItemRaw(_ipairs);
           if (method != null && method != LuaNil.Nil) {
-            var ret = method.Invoke(table, true, LuaMultiValue.Empty);
+            var ret = method.Invoke(new LuaMultiValue(table));
             // The runtime will correctly expand the results (because the multi-value
             // is at the end).
             return new object[] { ret.AdjustResults(3) };
@@ -171,7 +171,7 @@ namespace ModMaker.Lua.Runtime {
         if (meta != null) {
           ILuaValue p = meta.GetItemRaw(_pairs);
           if (p != null && p != LuaNil.Nil) {
-            var ret = p.Invoke(table, true, LuaMultiValue.Empty);
+            var ret = p.Invoke(new LuaMultiValue(table));
             return new object[] { ret.AdjustResults(3) };
           }
         }
@@ -238,7 +238,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class pcall : LuaFrameworkFunction {
         public pcall(ILuaEnvironment env) : base(env, "pcall") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
           }
@@ -246,7 +246,7 @@ namespace ModMaker.Lua.Runtime {
           ILuaValue func = args[0];
           if (func.ValueType == LuaValueType.Function) {
             try {
-              var ret = func.Invoke(LuaNil.Nil, false, new LuaMultiValue(args.Skip(1).ToArray()));
+              var ret = func.Invoke(new LuaMultiValue(args.Skip(1).ToArray()));
               return new LuaMultiValue(new ILuaValue[] { LuaBoolean.True }.Concat(ret).ToArray());
             } catch (ThreadAbortException) {
               throw;
@@ -263,7 +263,7 @@ namespace ModMaker.Lua.Runtime {
       sealed class print : LuaFrameworkFunction {
         public print(ILuaEnvironment env) : base(env, "print") { }
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+        public override LuaMultiValue Invoke(LuaMultiValue args) {
           StringBuilder str = new StringBuilder();
           if (args != null) {
             for (int i = 0; i < args.Count; i++) {

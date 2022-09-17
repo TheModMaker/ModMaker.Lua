@@ -126,7 +126,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public virtual void SetIndex(ILuaValue index, ILuaValue value) {
       throw new InvalidOperationException(Errors.CannotIndex(this.ValueType));
     }
-    public virtual LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
+    public virtual LuaMultiValue Invoke(LuaMultiValue args) {
       throw new InvalidOperationException(Errors.CannotCall(ValueType));
     }
 
@@ -198,11 +198,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (self2 != null && self2.MetaTable != null) {
         var t = self2.MetaTable.GetItemRaw(LuaString._metamethods[type]);
         if (t != LuaNil.Nil) {
-          ret = t.Invoke(LuaNil.Nil, false, new LuaMultiValue(self, other));
+          ret = t.Invoke(new LuaMultiValue(self, other));
         } else if (type == BinaryOperationType.Lte || type == BinaryOperationType.Gt) {
           t = self2.MetaTable.GetItemRaw(LuaString._metamethods[BinaryOperationType.Lt]);
           if (t != LuaNil.Nil) {
-            ret = t.Invoke(LuaNil.Nil, false, new LuaMultiValue(other, self)).Not();
+            ret = t.Invoke(new LuaMultiValue(other, self)).Not();
           }
         }
       }
@@ -212,11 +212,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (ret == null && other2 != null && other2.MetaTable != null) {
         var t = other2.MetaTable.GetItemRaw(LuaString._metamethods[type]);
         if (t != LuaNil.Nil) {
-          ret = t.Invoke(LuaNil.Nil, true, new LuaMultiValue(self, other));
+          ret = t.Invoke(new LuaMultiValue(self, other));
         } else if (type == BinaryOperationType.Lte || type == BinaryOperationType.Gt) {
           t = other2.MetaTable.GetItemRaw(LuaString._metamethods[BinaryOperationType.Lt]);
           if (t != LuaNil.Nil) {
-            ret = t.Invoke(LuaNil.Nil, true, new LuaMultiValue(other, self)).Not();
+            ret = t.Invoke(new LuaMultiValue(other, self)).Not();
           }
         }
       }

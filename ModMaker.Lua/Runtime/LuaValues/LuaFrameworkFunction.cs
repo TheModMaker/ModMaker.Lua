@@ -32,20 +32,5 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Gets the current environment.
     /// </summary>
     protected ILuaEnvironment _environment { get; }
-
-    /// <summary>
-    /// Does the actual work of invoking the method.
-    /// </summary>
-    /// <param name="args">The arguments that were passed to the method, never null.</param>
-    /// <returns>The values returned by this method.</returns>
-    protected abstract LuaMultiValue _invokeInternal(LuaMultiValue args);
-
-    public override LuaMultiValue Invoke(ILuaValue target, bool methodCall, LuaMultiValue args) {
-      if (methodCall) {
-        args = new LuaMultiValue(new[] { target }.Concat(args).ToArray());
-      }
-
-      return _invokeInternal(args);
-    }
   }
 }

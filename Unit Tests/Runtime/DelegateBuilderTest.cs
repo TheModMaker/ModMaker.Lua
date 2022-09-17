@@ -26,7 +26,7 @@ namespace UnitTests.Runtime {
 
       public MockFunction() : base("") { }
 
-      public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
+      public override LuaMultiValue Invoke(LuaMultiValue args) {
         Assert.IsNull(LastCall);
         Assert.IsNotNull(args);
         LastCall = args;

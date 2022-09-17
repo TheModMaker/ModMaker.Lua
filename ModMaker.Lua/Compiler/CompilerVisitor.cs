@@ -30,27 +30,6 @@ namespace ModMaker.Lua.Compiler {
         new Dictionary<LabelItem, Label>(new ReferenceEqualsComparer<LabelItem>());
 
     /// <summary>
-    /// A Helper used for compiling function call.  This is used to fake the prefix in an indexer
-    /// item.  This simply reads from the prefix local.
-    /// </summary>
-    sealed class IndexerHelper : IParseExp {
-      readonly ILGenerator _gen;
-      readonly LocalBuilder _prefix;
-
-      public IndexerHelper(ILGenerator gen, LocalBuilder prefix) {
-        _gen = gen;
-        _prefix = prefix;
-      }
-
-      public DebugInfo Debug { get; set; }
-
-      public IParseItem Accept(IParseItemVisitor visitor) {
-        _gen.Emit(OpCodes.Ldloc, _prefix);
-        return this;
-      }
-    }
-
-    /// <summary>
     /// Creates a new instance of CompilerVisitor.
     /// </summary>
     /// <param name="compiler">The creating object used to help generate code.</param>
@@ -382,50 +361,43 @@ namespace ModMaker.Lua.Compiler {
         _compiler.MarkSequencePoint(target.Debug);
       }
 
-      /* add 'self' if instance call */
-      if (target.InstanceName != null) {
+      // Resolve function and self (if needed)
+      bool addSelf = target.InstanceName != null;
+      if (addSelf) {
         // self = {Prefix};
         target.Prefix.Accept(this);
         gen.Emit(OpCodes.Stloc, self);
 
         // f = self.GetIndex(LuaValueBase.CreateValue({InstanceName}));
         gen.Emit(OpCodes.Ldloc, self);
-        gen.Emit(OpCodes.Ldstr, target.InstanceName);
+        gen.Emit(OpCodes.Ldstr, target.InstanceName!);
         gen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
         gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.GetIndex);
         gen.Emit(OpCodes.Stloc, f);
-      } else if (target.Prefix is IndexerItem item) {
-        // self = {Prefix};
-        item.Prefix.Accept(this);
-        gen.Emit(OpCodes.Stloc, self);
-
-        // Store the old value to restore later, add a dummy.
-        var tempPrefix = item.Prefix;
-        item.Prefix = new IndexerHelper(gen, self);
-
-        // f = {Prefix};
-        target.Prefix.Accept(this);
-        gen.Emit(OpCodes.Stloc, f);
-
-        // Restore the old value
-        item.Prefix = tempPrefix;
       } else {
-        // self = LuaNil.Nil;
-        gen.Emit(OpCodes.Ldnull);
-        gen.Emit(OpCodes.Ldfld, ReflectionMembers.LuaNil.Nil);
-        gen.Emit(OpCodes.Stloc, self);
-
         // f = {Prefix};
         target.Prefix.Accept(this);
         gen.Emit(OpCodes.Stloc, f);
       }
 
       // var args = new ILuaValue[...];
-      LocalBuilder args = _compiler.CreateArray(typeof(ILuaValue), target.Arguments.Length);
+      LocalBuilder args = _compiler.CreateArray(typeof(ILuaValue),
+                                                target.Arguments.Length + (addSelf ? 1 : 0));
+      if (addSelf) {
+        // args[0] = self;
+        gen.Emit(OpCodes.Ldloc, args);
+        gen.Emit(OpCodes.Ldc_I4_0);
+        gen.Emit(OpCodes.Ldloc, self);
+        gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
+      }
       for (int i = 0; i < target.Arguments.Length; i++) {
         // args[i] = {item};
         gen.Emit(OpCodes.Ldloc, args);
         gen.Emit(OpCodes.Ldc_I4, i);
+        if (addSelf) {
+          gen.Emit(OpCodes.Ldc_I4_1);
+          gen.Emit(OpCodes.Add);
+        }
         target.Arguments[i].Expression.Accept(this);
         if (i + 1 == target.Arguments.Length && target.IsLastArgSingle) {
           gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Single);
@@ -441,10 +413,8 @@ namespace ModMaker.Lua.Compiler {
       gen.Emit(OpCodes.Stloc, rargs);
       _compiler.RemoveTemporary(args);
 
-      //! push f.Invoke(self, {!!InstanceName}, rargs);
+      //! push f.Invoke(rargs);
       gen.Emit(OpCodes.Ldloc, f);
-      gen.Emit(OpCodes.Ldloc, self);
-      gen.Emit(target.InstanceName != null ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
       gen.Emit(OpCodes.Ldloc, rargs);
       if (target.IsTailCall) {
         gen.Emit(OpCodes.Tailcall);

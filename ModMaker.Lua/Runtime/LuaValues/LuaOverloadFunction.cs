@@ -36,9 +36,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="name">The name of the method, used for errors.</param>
     /// <param name="methods">The method choices, cannot be null.</param>
     /// <param name="targets">The targets for the methods, cannot be null.</param>
-    /// <exception cref="System.ArgumentNullException">If methods or targets is null.</exception>
-    /// <exception cref="System.ArgumentException">If the length of methods
-    /// is not equal to that of targets.</exception>
     public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods,
                                IEnumerable<object?> targets) : base(name) {
       _methods = methods.Zip(targets, Tuple.Create).ToList();
@@ -76,7 +73,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
                                      new[] { _methods[index].Item2 });
     }
 
-    public override LuaMultiValue Invoke(ILuaValue self, bool methodCall, LuaMultiValue args) {
+    public override LuaMultiValue Invoke(LuaMultiValue args) {
       int index = OverloadSelector.FindOverload(_choices.ToArray(), args);
       object?[] realArgs;
       Tuple<MethodInfo, object?> method;

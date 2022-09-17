@@ -45,7 +45,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return Helpers.GetSetMember(Type, null, index);
     }
 
-    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
+    public override LuaMultiValue Invoke(LuaMultiValue args) {
       ConstructorInfo[] ctors = Type.GetConstructors()
           .Where(c => c.GetCustomAttributes(typeof(LuaIgnoreAttribute), true).Length == 0)
           .ToArray();
@@ -246,12 +246,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </param>
     static void _callFieldAndReturn(ILGenerator gen, Type returnType, FieldBuilder methodField,
                                     LocalBuilder arguments) {
-      //$PUSH this.{methodField}.Invoke(LuaValueBase.CreateValue(this), true, arguments);
+      //$PUSH this.{methodField}.Invoke(arguments);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, methodField);
-      gen.Emit(OpCodes.Ldarg_0);
-      gen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
-      gen.Emit(OpCodes.Ldc_I4_1);
       gen.Emit(OpCodes.Ldloc, arguments);
       gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
 
@@ -300,22 +297,63 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       ctorgen.Emit(OpCodes.Ldarg, 4);
       ctorgen.Emit(OpCodes.Brfalse, end);
 
-      // ILuaValue target = LuaValueBase.CreateValue(this);
-      LocalBuilder target = ctorgen.DeclareLocal(typeof(ILuaValue));
+      // int argsSize = ctorArgs.Length;
+      LocalBuilder argsSize = ctorgen.DeclareLocal(typeof(int));
+      ctorgen.Emit(OpCodes.Ldarg, 3);
+      ctorgen.Emit(OpCodes.Ldlen);
+      ctorgen.Emit(OpCodes.Stloc, argsSize);
+
+      // ILuaValue[] argsArray = new ILuaValue[argsSize + 1];
+      LocalBuilder argsArray = ctorgen.DeclareLocal(typeof(ILuaValue[]));
+      ctorgen.Emit(OpCodes.Ldloc, argsSize);
+      ctorgen.Emit(OpCodes.Ldc_I4_1);
+      ctorgen.Emit(OpCodes.Add);
+      ctorgen.Emit(OpCodes.Newarr, typeof(ILuaValue));
+      ctorgen.Emit(OpCodes.Stloc, argsArray);
+
+      // argsArray[0] = LuaValueBase.CreateValue(this);
+      ctorgen.Emit(OpCodes.Ldloc, argsArray);
+      ctorgen.Emit(OpCodes.Ldc_I4_0);
       ctorgen.Emit(OpCodes.Ldarg_0);
       ctorgen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
-      ctorgen.Emit(OpCodes.Stloc, target);
+      ctorgen.Emit(OpCodes.Stelem, typeof(ILuaValue));
 
-      // LuaMultiValue args = new LuaMultiValue(ctorArgs);
-      LocalBuilder args = ctorgen.DeclareLocal(typeof(LuaMultiValue));
+      // for (int i = 0; i < argsSize; i++)
+      Label startLoop = ctorgen.DefineLabel();
+      Label endLoop = ctorgen.DefineLabel();
+      LocalBuilder i = ctorgen.DeclareLocal(typeof(int));
+      ctorgen.Emit(OpCodes.Ldc_I4_0);
+      ctorgen.Emit(OpCodes.Stloc, i);
+      ctorgen.MarkLabel(startLoop);
+      ctorgen.Emit(OpCodes.Ldloc, i);
+      ctorgen.Emit(OpCodes.Ldloc, argsSize);
+      ctorgen.Emit(OpCodes.Clt);
+      ctorgen.Emit(OpCodes.Brfalse, endLoop);
+      //   argsArray[i + 1] = ctorArgs[i];
+      ctorgen.Emit(OpCodes.Ldloc, argsArray);
+      ctorgen.Emit(OpCodes.Ldloc, i);
+      ctorgen.Emit(OpCodes.Ldc_I4_1);
+      ctorgen.Emit(OpCodes.Add);
       ctorgen.Emit(OpCodes.Ldarg, 3);
+      ctorgen.Emit(OpCodes.Ldloc, i);
+      ctorgen.Emit(OpCodes.Ldelem, typeof(ILuaValue));
+      ctorgen.Emit(OpCodes.Stelem, typeof(ILuaValue));
+      //   i++
+      ctorgen.Emit(OpCodes.Ldloc, i);
+      ctorgen.Emit(OpCodes.Ldc_I4_1);
+      ctorgen.Emit(OpCodes.Add);
+      ctorgen.Emit(OpCodes.Stloc, i);
+      ctorgen.Emit(OpCodes.Br, startLoop);
+      ctorgen.MarkLabel(endLoop);
+
+      // LuaMultiValue args = new LuaMultiValue(argsArray);
+      LocalBuilder args = ctorgen.DeclareLocal(typeof(LuaMultiValue));
+      ctorgen.Emit(OpCodes.Ldloc, argsArray);
       ctorgen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
       ctorgen.Emit(OpCodes.Stloc, args);
 
-      // ctor.Invoke(target, true, args);
+      // ctor.Invoke(args);
       ctorgen.Emit(OpCodes.Ldarg, 4);
-      ctorgen.Emit(OpCodes.Ldloc, target);
-      ctorgen.Emit(OpCodes.Ldc_I4_1);
       ctorgen.Emit(OpCodes.Ldloc, args);
       ctorgen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaValue.Invoke);
       ctorgen.Emit(OpCodes.Pop);
@@ -487,7 +525,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
     #endregion
 
-    public override LuaMultiValue Invoke(ILuaValue self, bool memberCall, LuaMultiValue args) {
+    public override LuaMultiValue Invoke(LuaMultiValue args) {
       return new LuaMultiValue(new LuaUserData<object>(CreateInstance(args.ToArray())));
     }
 
@@ -626,13 +664,20 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         var meth = Helpers.CloneMethod(data.TB, name, BoundTo);
         ILGenerator gen = meth.GetILGenerator();
 
-        // ILuaValue[] loc = new ILuaValue[{param.length}];
-        LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length);
+        // ILuaValue[] loc = new ILuaValue[{param.length} + 1];
+        LocalBuilder loc = gen.CreateArray(typeof(ILuaValue), param.Length + 1);
+
+        // loc[0] = LuaValueBase.CreateValue(this);
+        gen.Emit(OpCodes.Ldloc, loc);
+        gen.Emit(OpCodes.Ldc_I4_0);
+        gen.Emit(OpCodes.Ldarg_0);
+        gen.Emit(OpCodes.Call, ReflectionMembers.LuaValueBase.CreateValue);
+        gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
 
         for (int ind = 0; ind < param.Length; ind++) {
-          // loc[{ind}] = LuaValueBase.CreateValue(arg_{ind});
+          // loc[{ind} + 1] = LuaValueBase.CreateValue(arg_{ind});
           gen.Emit(OpCodes.Ldloc, loc);
-          gen.Emit(OpCodes.Ldc_I4, ind);
+          gen.Emit(OpCodes.Ldc_I4, ind + 1);
           gen.Emit(OpCodes.Ldarg, ind + 1);
           if (!param[ind].ParameterType.IsClass) {
             gen.Emit(OpCodes.Box, param[ind].ParameterType);

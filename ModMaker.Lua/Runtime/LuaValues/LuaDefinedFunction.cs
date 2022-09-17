@@ -24,13 +24,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <summary>
     /// A delegate for Lua defined functions.
     /// </summary>
-    /// <param name="target">The object that this was called on.</param>
-    /// <param name="memberCall">Whether the call used member call syntax (:).</param>
     /// <param name="env">The current environment.</param>
     /// <param name="args">The arguments to pass.</param>
     /// <returns>The values returned from Lua.</returns>
-    protected delegate LuaMultiValue LuaFunc(ILuaEnvironment env, LuaMultiValue args,
-                                             ILuaValue target, bool memberCall);
+    protected delegate LuaMultiValue LuaFunc(ILuaEnvironment env, LuaMultiValue args);
     /// <summary>
     /// The backing Lua defined method.
     /// </summary>
@@ -59,8 +56,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _env = env;
     }
 
-    public override LuaMultiValue Invoke(ILuaValue target, bool methodCall, LuaMultiValue args) {
-      return _method(_env, args, target, methodCall);
+    public override LuaMultiValue Invoke(LuaMultiValue args) {
+      return _method(_env, args);
     }
   }
 }

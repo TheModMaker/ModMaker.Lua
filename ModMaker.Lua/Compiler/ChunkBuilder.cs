@@ -338,19 +338,16 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="realMethod">The real method to call.</param>
     /// <param name="envField">The field that contains the environment.</param>
     static void _addInvoke(TypeBuilder tb, MethodBuilder realMethod, FieldBuilder envField) {
-      //// ILuaMultiValue Invoke(ILuaValue self, bool memberCall,  ILuaMultiValue args);
-      MethodBuilder mb = tb.DefineMethod(
-          nameof(ILuaValue.Invoke),
-          MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
-          typeof(LuaMultiValue),
-          new Type[] { typeof(ILuaValue), typeof(bool), typeof(LuaMultiValue) });
+      //// ILuaMultiValue Invoke(ILuaMultiValue args);
+      MethodBuilder mb = Helpers.CloneMethod(tb, nameof(ILuaValue.Invoke),
+                                             ReflectionMembers.ILuaValue.Invoke);
       var gen = mb.GetILGenerator();
 
       // return this.Invoke(this.Environment, args);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldarg_0);
       gen.Emit(OpCodes.Ldfld, envField);
-      gen.Emit(OpCodes.Ldarg, 3);
+      gen.Emit(OpCodes.Ldarg_1);
       gen.Emit(OpCodes.Callvirt, realMethod);
       gen.Emit(OpCodes.Ret);
     }
@@ -415,15 +412,12 @@ namespace ModMaker.Lua.Compiler {
         args = new[] { new NameItem("self") }.Concat(args).ToArray();
       }
 
-      // ILuaMultiValue function(ILuaEnvironment E, ILuaMultiValue args, ILuaValue target,
-      //                         bool memberCall);
+      // ILuaMultiValue function(ILuaEnvironment E, ILuaMultiValue args);
       funcName ??= "<>__" + (_mid++);
       string name = _curNest.Members.Contains(funcName) ? funcName + "_" + (_mid++) : funcName;
       MethodBuilder mb = _curNest.TypeDef!.DefineMethod(
           name, MethodAttributes.Public, typeof(LuaMultiValue),
-          new Type[] {
-              typeof(ILuaEnvironment), typeof(LuaMultiValue), typeof(ILuaValue), typeof(bool)
-          });
+          new Type[] {typeof(ILuaEnvironment), typeof(LuaMultiValue)});
       var gen = mb.GetILGenerator();
       _curNest = new NestInfo(
           _curNest, gen, function.FunctionInformation!.CapturedLocals,
@@ -435,40 +429,7 @@ namespace ModMaker.Lua.Compiler {
         //var field = curNest.DefineLocal(new NameItem("base"));
       }
 
-      // If this was an instance call, the first Lua argument is the 'target';
-      // otherwise the it is the zero'th index in args.
-      // int c = 0;
-      var c = gen.DeclareLocal(typeof(int));
-      if (args.Length > 0) {
-        var field = _curNest.DefineLocal(args[0]);
-        var end = gen.DefineLabel();
-        var else_ = gen.DefineLabel();
-
-        // if (!memberCall) c = 1;
-        // {field_0} = (memberCall ? target : args[0]);
-        field.StartSet();
-        gen.Emit(OpCodes.Ldarg, 4);
-        gen.Emit(OpCodes.Brfalse, else_);
-        gen.Emit(OpCodes.Ldarg_3);
-        gen.Emit(OpCodes.Br, end);
-        gen.MarkLabel(else_);
-        gen.Emit(OpCodes.Ldc_I4_1);
-        gen.Emit(OpCodes.Stloc, c);
-        gen.Emit(OpCodes.Ldarg_2);
-        if (args[0].Name != "...") {
-          gen.Emit(OpCodes.Ldc_I4_0);
-          gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.get_Item);
-        } else {
-          if (args.Length != 1) {
-            throw new InvalidOperationException(
-                "Variable arguments (...) only valid at end of argument list.");
-          }
-        }
-        gen.MarkLabel(end);
-        field.EndSet();
-      }
-
-      for (int i = 1; i < args.Length; i++) {
+      for (int i = 0; i < args.Length; i++) {
         var field = _curNest.DefineLocal(args[i]);
 
         if (args[i].Name == "...") {
@@ -488,12 +449,10 @@ namespace ModMaker.Lua.Compiler {
           gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
           field.EndSet();
         } else {
-          // {field} = args[{i - 1} + c];
+          // {field} = args[i];
           field.StartSet();
           gen.Emit(OpCodes.Ldarg_2);
-          gen.Emit(OpCodes.Ldc_I4, i - 1);
-          gen.Emit(OpCodes.Ldloc, c);
-          gen.Emit(OpCodes.Add);
+          gen.Emit(OpCodes.Ldc_I4, i);
           gen.Emit(OpCodes.Call, ReflectionMembers.LuaMultiValue.get_Item);
           field.EndSet();
         }
