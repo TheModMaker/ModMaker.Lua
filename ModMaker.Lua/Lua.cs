@@ -41,7 +41,7 @@ namespace ModMaker.Lua {
     /// <param name="settings">The settings to use.</param>
     public Lua(LuaSettings? settings) {
       ReflectionMembers.EnsureInitialized();
-      Environment = new LuaEnvironmentNet(
+      Environment = new LuaEnvironment(
           settings ?? new LuaSettings(Console.OpenStandardInput(), Console.OpenStandardOutput()));
     }
 

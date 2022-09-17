@@ -440,12 +440,8 @@ namespace ModMaker.Lua.Runtime {
               if (s.EndOfStream) {
                 ret.Add(LuaNil.Nil);
               } else {
-                double? d = NetHelpers.ReadNumber(s);
-                if (d.HasValue) {
-                  ret.Add(LuaNumber.Create(d.Value));
-                } else {
-                  ret.Add(LuaNil.Nil);
-                }
+                double d = Helpers.ReadNumber(s);
+                ret.Add(LuaNumber.Create(d));
               }
               break;
             default:

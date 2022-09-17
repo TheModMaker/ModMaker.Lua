@@ -14,9 +14,12 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Runtime;
@@ -27,15 +30,6 @@ namespace ModMaker.Lua {
   /// A static class that contains several helper methods.
   /// </summary>
   static class Helpers {
-    static readonly Action<Exception> _preserveStackTrace;
-
-    static Helpers() {
-      MethodInfo preserveStackTrace = typeof(Exception).GetMethod(
-          "InternalPreserveStackTrace", BindingFlags.Instance | BindingFlags.NonPublic)!;
-      _preserveStackTrace =
-          (Action<Exception>)Delegate.CreateDelegate(typeof(Action<Exception>), preserveStackTrace);
-    }
-
     /// <summary>
     /// Helper class that calls a given method when Dispose is called.
     /// </summary>
@@ -66,6 +60,7 @@ namespace ModMaker.Lua {
       return new DisposableHelper(act);
     }
 
+    // TODO: Merge these two functions.
     /// <summary>
     /// Parses the number in the given string.
     /// </summary>
@@ -105,6 +100,82 @@ namespace ModMaker.Lua {
         ret *= Math.Pow(exponent, mult * temp);
       }
       return ret;
+    }
+    /// <summary>
+    /// Reads a number from a text reader.
+    /// </summary>
+    /// <param name="input">The input to read from.</param>
+    /// <returns>The number read.</returns>
+    public static double ReadNumber(TextReader input) {
+      // TODO: Check whether this is used in the parser (move to ModMaker.Lua) and make this
+      // consistent with the spec.
+      StringBuilder build = new StringBuilder();
+
+      int c = input.Peek();
+      int l = c;
+      bool hex = false;
+      CultureInfo ci = CultureInfo.CurrentCulture;
+      if (c == '0') {
+        input.Read();
+        c = input.Peek();
+        if (c == 'x' || c == 'X') {
+          input.Read();
+          hex = true;
+        }
+      }
+
+      var sep = ci.NumberFormat.NumberDecimalSeparator[0];
+      while (c != -1 && (char.IsNumber((char)c) ||
+                         (hex && ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))) ||
+                         (!hex && (c == sep || c == '-' || (l != '.' && c == 'e'))))) {
+        input.Read();
+        build.Append((char)c);
+        l = c;
+        c = input.Peek();
+      }
+
+      return double.Parse(build.ToString(), ci);
+    }
+
+    /// <summary>
+    /// Creates an array of the given type and stores it in a returned local.
+    /// </summary>
+    /// <param name="gen">The generator to inject the code into.</param>
+    /// <param name="type">The type of the array.</param>
+    /// <param name="size">The size of the array.</param>
+    /// <returns>A local builder that now contains the array.</returns>
+    public static LocalBuilder CreateArray(this ILGenerator gen, Type type, int size) {
+      var ret = gen.DeclareLocal(type.MakeArrayType());
+      gen.Emit(OpCodes.Ldc_I4, size);
+      gen.Emit(OpCodes.Newarr, type);
+      gen.Emit(OpCodes.Stloc, ret);
+      return ret;
+    }
+
+    /// <summary>
+    /// Creates a new Method definition in the given Type that has the same definition as the given
+    /// method.
+    /// </summary>
+    /// <param name="name">The name of the new method.</param>
+    /// <param name="tb">The type to define the method.</param>
+    /// <param name="otherMethod">The other method definition.</param>
+    /// <returns>A new method clone.</returns>
+    public static MethodBuilder CloneMethod(TypeBuilder tb, string name, MethodInfo otherMethod) {
+      var attr = otherMethod.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.NewSlot);
+      var param = otherMethod.GetParameters();
+      Type[] paramType = new Type[param.Length];
+      Type[][] optional = new Type[param.Length][];
+      Type[][] required = new Type[param.Length][];
+      for (int i = 0; i < param.Length; i++) {
+        paramType[i] = param[i].ParameterType;
+        optional[i] = param[i].GetOptionalCustomModifiers();
+        required[i] = param[i].GetRequiredCustomModifiers();
+      }
+
+      return tb.DefineMethod(
+          name, attr, otherMethod.CallingConvention, otherMethod.ReturnType,
+          otherMethod.ReturnParameter.GetRequiredCustomModifiers(),
+          otherMethod.ReturnParameter.GetOptionalCustomModifiers(), paramType, required, optional);
     }
 
     /// <summary>

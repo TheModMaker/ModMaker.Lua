@@ -59,24 +59,21 @@ namespace ModMaker.Lua.Runtime {
   /// Defines the environment that Lua operates in.
   /// </summary>
   [LuaIgnore]
-  public class LuaEnvironmentNet : DynamicObject, ILuaEnvironmentNet {
+  public class LuaEnvironment : DynamicObject, ILuaEnvironment {
     /// <summary>
     /// Creates a new LuaEnvironment without initializing the state, for use with a derived type.
     /// </summary>
-    protected LuaEnvironmentNet() {
+    protected LuaEnvironment() {
       Settings = new LuaSettings().AsReadOnly();
       CodeCompiler = new CodeCompiler(Settings);
-      Runtime = new LuaRuntimeNet(this);
     }
     /// <summary>
     /// Creates a new environment with the given settings.
     /// </summary>
     /// <param name="settings">The settings to give the Environment.</param>
-    /// <exception cref="System.ArgumentNullException">If settings is null.</exception>
-    public LuaEnvironmentNet(LuaSettings settings) {
+    public LuaEnvironment(LuaSettings settings) {
       Settings = settings.AsReadOnly();
       CodeCompiler = new CodeCompiler(Settings);
-      Runtime = new LuaRuntimeNet(this);
 
       // initialize the global variables.
       LuaStaticLibraries.Initialize(this);
@@ -120,7 +117,7 @@ namespace ModMaker.Lua.Runtime {
     }
 
     public LuaSettings Settings { get; protected set; }
-    public ILuaRuntime Runtime { get; set; }
+    public ILuaRuntime Runtime { get; set; } = new LuaRuntime();
     public ILuaTable GlobalsTable { get; set; } = new LuaTable();
     public ICodeCompiler CodeCompiler { get; set; }
     public IParser Parser { get; set; } = new PlainParser();

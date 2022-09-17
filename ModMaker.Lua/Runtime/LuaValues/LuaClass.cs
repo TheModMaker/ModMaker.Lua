@@ -282,7 +282,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       data.Names.Add(name);
 
-      var meth = NetHelpers.CloneMethod(data.TB, name, method);
+      var meth = Helpers.CloneMethod(data.TB, name, method);
       ILGenerator gen = meth.GetILGenerator();
       gen.ThrowException(typeof(NotImplementedException));
 
@@ -623,7 +623,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
         // Define the new method.
         var param = BoundTo.GetParameters();
-        var meth = NetHelpers.CloneMethod(data.TB, name, BoundTo);
+        var meth = Helpers.CloneMethod(data.TB, name, BoundTo);
         ILGenerator gen = meth.GetILGenerator();
 
         // ILuaValue[] loc = new ILuaValue[{param.length}];

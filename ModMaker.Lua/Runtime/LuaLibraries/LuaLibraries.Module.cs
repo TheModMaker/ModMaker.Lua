@@ -20,10 +20,6 @@ namespace ModMaker.Lua.Runtime {
       readonly ILuaEnvironment _env;
 
       public Module(ILuaEnvironment env) {
-        if (!(env is ILuaEnvironmentNet)) {
-          throw new InvalidOperationException(
-              "'require' only works with the NET version of the environment.");
-        }
         _env = env;
       }
 
@@ -32,8 +28,7 @@ namespace ModMaker.Lua.Runtime {
       }
 
       ILuaValue require(string name) {
-        IModuleBinder bind = ((ILuaEnvironmentNet)_env).ModuleBinder;
-        return bind.Load(_env, name);
+        return _env.ModuleBinder.Load(_env, name);
       }
     }
   }

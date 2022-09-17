@@ -34,27 +34,26 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     LuaSettings Settings { get; }
     /// <summary>
-    /// Gets the globals table for the environment.  This can never return a null value.
+    /// Gets the globals table for the environment.
     /// </summary>
     ILuaTable GlobalsTable { get; }
     /// <summary>
-    /// Gets or sets the runtime that Lua code will execute in.  This framework assumes that the
-    /// value returned is never null.  Some implementations may support setting to null.
+    /// Gets or sets the runtime that Lua code will execute in.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
     ILuaRuntime Runtime { get; set; }
     /// <summary>
-    /// Gets or sets the code compiler for the environment.  This framework assumes that the value
-    /// returned is never null.  Some implementations may support setting to null.
+    /// Gets or sets the code compiler for the environment.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
     ICodeCompiler CodeCompiler { get; set; }
     /// <summary>
-    /// Gets or sets the parser for the environment.  This framework assumes that the value returned
-    /// is never null.  Some implementations may support setting to null.
+    /// Gets or sets the parser for the environment.
     /// </summary>
-    /// <exception cref="System.ArgumentNullException">If setting to a null value.</exception>
     IParser Parser { get; set; }
+
+    /// <summary>
+    /// Gets or sets the module binder for the environment.
+    /// </summary>
+    IModuleBinder ModuleBinder { get; set; }
 
     /// <summary>
     /// Gets or sets the global value with the specified name.

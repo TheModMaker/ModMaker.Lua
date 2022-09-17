@@ -15,9 +15,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
@@ -25,15 +22,13 @@ namespace ModMaker.Lua.Runtime {
   /// Defines the default Lua runtime.  This class is in charge of resolving operators and
   /// converting types.  This can be inherited to modify its behavior.
   /// </summary>
-  public class LuaRuntimeNet : ILuaRuntime {
-    readonly ILuaEnvironment _env;
+  public class LuaRuntime : ILuaRuntime {
     readonly ThreadPool _threadPool;
 
     /// <summary>
     /// Creates a new instance of the default LuaRuntime.
     /// </summary>
-    public LuaRuntimeNet(ILuaEnvironment env) {
-      _env = env;
+    public LuaRuntime() {
       _threadPool = new ThreadPool();
     }
 
