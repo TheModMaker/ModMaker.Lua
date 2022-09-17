@@ -94,10 +94,9 @@ namespace ModMaker.Lua.Compiler {
         }
       }
       /// <summary>
-      /// True if this nest captures variables from a parent nested function.  This does not apply
-      /// to parent nodes but to nested functions.
+      /// Contains the name items that are captured from the parent scope.
       /// </summary>
-      public bool CapturesParent;
+      public readonly ISet<NameItem> CapturedParents = new HashSet<NameItem>();
     }
 
     TreeNode _cur;
@@ -176,13 +175,15 @@ namespace ModMaker.Lua.Compiler {
             if (node.TrueLocals.TryGetValue(name.Name, out NameItem? boundItem)) {
               node.TrueLocals.Remove(name.Name);
               node.CapturedLocals.Add(name.Name, boundItem);
+            } else {
+              boundItem = node.CapturedLocals[name.Name];
             }
 
             // Update all the CapturesParent for any nodes between the current node and the node
             // that defines the local.
             TreeNode? cur2 = _cur;
             while (cur2 != null && cur2 != node) {
-              cur2.CapturesParent = true;
+              cur2.CapturedParents.Add(boundItem);
               cur2 = cur2.Parent;
             }
           }
@@ -214,7 +215,7 @@ namespace ModMaker.Lua.Compiler {
       _getNames(_cur, names);
 
       info.CapturedLocals = names.ToArray();
-      info.CapturesParent = _cur.CapturesParent;
+      info.CapturedParents = _cur.CapturedParents.ToArray();
       info.HasNested = _cur.HasNested;
 
       _cur = _cur.Parent!;

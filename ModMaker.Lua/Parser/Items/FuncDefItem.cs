@@ -20,8 +20,7 @@ namespace ModMaker.Lua.Parser.Items {
   /// </summary>
   public sealed class FuncDefItem : IParseStatement, IParseExp {
     /// <summary>
-    /// Defines information about a function definition.  This is used by GetInfoVisitor and the
-    /// compiler.  This manages captured variables and allows for smaller generated code.
+    /// Defines information about a function definition.
     /// </summary>
     public sealed class FunctionInfo {
       /// <summary>
@@ -33,11 +32,12 @@ namespace ModMaker.Lua.Parser.Items {
       /// Gets or sets whether this function has nested functions.
       /// </summary>
       public bool HasNested { get; set; } = false;
+
       /// <summary>
-      /// Gets or sets whether this function captures local variables
-      /// from the parent function.
+      /// Gets or sets an array of the local variables that are defined in parent scopes and
+      /// captured by this (or nested) functions.
       /// </summary>
-      public bool CapturesParent { get; set; } = false;
+      public NameItem[] CapturedParents { get; set; } = Array.Empty<NameItem>();
       /// <summary>
       /// Gets or sets an array of the local variables defined in this function that are captured by
       /// nested  functions.
@@ -77,6 +77,8 @@ namespace ModMaker.Lua.Parser.Items {
     public string? InstanceName { get; set; } = null;
     /// <summary>
     /// Gets or sets information about the function. To get this information, use GetInfoVisitor.
+    /// This is a cached value that represents the AST when it was collected.  If the AST was
+    /// mutated after that, this information may be inaccurate.
     /// </summary>
     public FunctionInfo? FunctionInformation { get; set; } = null;
 
