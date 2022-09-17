@@ -72,11 +72,15 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   }
 
   /// <summary>
-  /// A class that was defined in Lua.  This is created in ILuaRuntime.DefineClass.  When this
-  /// object is indexed in Lua, it will change the class that is defined.  When this is
-  /// invoked, it creates a new instance.
+  /// A class that was defined in Lua.  When this object is indexed in Lua, it will change the class
+  /// that is defined.  When this is invoked, it creates a new instance.
   /// </summary>
   public sealed class LuaClass : LuaValueBase {
+    /// <summary>
+    /// The name of the Lua function that will be invoked for the constructor.
+    /// </summary>
+    public const string ConstructorName = "__ctor";
+
     Type? _created;
     ILuaValue? _ctor;
     readonly ItemData _data;
@@ -88,8 +92,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="name">The simple name of the class.</param>
     /// <param name="base">The base class of the class; or null.</param>
     /// <param name="interfaces">The interfaces that are inherited; or null.</param>
-    /// <param name="env">The current environment.</param>
-    internal LuaClass(string name, Type? @base, Type[] interfaces, ILuaEnvironment env) {
+    LuaClass(string name, Type? @base, Type[] interfaces) {
       Name = name;
       BaseType = @base;
       _items = new List<Item>();
@@ -97,7 +100,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       var inter = interfaces.SelectMany(t => t.GetInterfaces()).Union(interfaces).ToArray();
       Interfaces = new ReadOnlyCollection<Type>(inter);
 
-      _data = new ItemData(env, name, @base, inter);
+      _data = new ItemData(name, @base, inter);
     }
 
     /// <summary>
@@ -105,9 +108,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     /// <param name="name">The name of the resulting type.</param>
     /// <param name="types">The type instances to derive from or implement.</param>
-    /// <param name="e">The current Lua environment.</param>
     /// <returns>A new LuaClass instance.</returns>
-    public static LuaClass Create(string name, ILuaValue[] values, ILuaEnvironment e) {
+    public static LuaClass Create(string name, ILuaValue[] values) {
       var interfaces = new List<Type>();
       Type? @base = null;
 
@@ -136,15 +138,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             throw new InvalidOperationException("A type can only have one concrete base class");
         }
       }
-      return new LuaClass(name, @base, interfaces.ToArray(), e);
+      return new LuaClass(name, @base, interfaces.ToArray());
     }
 
     public override LuaValueType ValueType { get { return LuaValueType.UserData; } }
 
-    /// <summary>
-    /// Gets the current environment.
-    /// </summary>
-    public ILuaEnvironment Environment { get { return _data.Env; } }
     /// <summary>
     /// Gets the simple name of the class.
     /// </summary>
@@ -451,7 +449,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
 
       // If this is the constructor, assign it.
-      if (name == "__ctor") {
+      if (name == ConstructorName) {
         if (value.ValueType == LuaValueType.Function) {
           _ctor = value;
         } else {
@@ -535,12 +533,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Contains data used to generate an item.
     /// </summary>
     sealed class ItemData {
-      public ItemData(ILuaEnvironment env, string name, Type? baseType, Type[] interfaces) {
+      public ItemData(string name, Type? baseType, Type[] interfaces) {
         MethodArgs = new List<ILuaValue>();
         Methods = new List<MethodInfo>();
         Constants = new List<ILuaValue>();
         Names = new HashSet<string>();
-        Env = env;
         FID = 0;
 
         // Create the type builder.
@@ -577,7 +574,6 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       public HashSet<string> Names;
       public ILGenerator CtorGen;
       public TypeBuilder TB;
-      public ILuaEnvironment Env;
       public int FID;
       public AssemblyBuilder AB;
     }

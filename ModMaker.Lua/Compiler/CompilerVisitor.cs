@@ -110,12 +110,11 @@ namespace ModMaker.Lua.Compiler {
         gen.Emit(OpCodes.Stelem, typeof(ILuaValue));
       }
 
-      // {target.Name} = LuaClass.Create({name}, loc, E);
+      // {target.Name} = LuaClass.Create({name}, loc);
       var field = _compiler.FindVariable(target.Name);
       field.StartSet();
       gen.Emit(OpCodes.Ldstr, target.Name.Name);
       gen.Emit(OpCodes.Ldloc, loc);
-      gen.Emit(OpCodes.Ldarg_1);
       gen.Emit(OpCodes.Call, ReflectionMembers.LuaClass.Create);
       field.EndSet();
       _compiler.RemoveTemporary(loc);
