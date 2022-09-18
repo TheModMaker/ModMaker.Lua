@@ -14,6 +14,7 @@
 
 using System.IO;
 using System.Text;
+using ModMaker.Lua.Parser.Items;
 
 namespace ModMaker.Lua.Parser {
   /// <summary>
@@ -28,13 +29,13 @@ namespace ModMaker.Lua.Parser {
     /// <param name="encoding">The encoding that the stream uses.</param>
     /// <param name="name">The name of the chunk, used for exceptions.</param>
     /// <returns>The code as an IParseItem tree.</returns>
-    IParseItem Parse(Stream input, Encoding? encoding, string name);
+    GlobalItem Parse(Stream input, Encoding? encoding, string name);
     /// <summary>
     /// Parses the given Lua code into a IParseItem tree.
     /// </summary>
     /// <param name="input">The Lua code to parse.</param>
     /// <param name="name">The name of the chunk, used for exceptions.</param>
     /// <returns>The code as an IParseItem tree.</returns>
-    IParseItem Parse(string input, string name);
+    GlobalItem Parse(string input, string name);
   }
 }

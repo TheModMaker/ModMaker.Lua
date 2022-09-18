@@ -23,15 +23,15 @@ using NUnit.Framework;
 namespace UnitTests.Parser {
   [TestFixture]
   public class PlainParserTest {
-    static IParseItem _parseBlock(string input, string name = "") {
+    static BlockItem _parseBlock(string input, string name = "") {
       PlainParser target = new PlainParser();
       var encoding = Encoding.UTF8;
       var stream = new MemoryStream(encoding.GetBytes(input));
-      return target.Parse(stream, encoding, name);
+      return target.Parse(stream, encoding, name).Block;
     }
 
     static IParseItem _parseStatement(string input) {
-      var block = _parseBlock(input) as BlockItem;
+      var block = _parseBlock(input);
       Assert.IsNotNull(block);
       Assert.AreEqual(1, block!.Children.Length);
       return block.Children[0];

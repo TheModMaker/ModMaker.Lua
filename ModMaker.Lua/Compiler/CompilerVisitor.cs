@@ -510,6 +510,10 @@ namespace ModMaker.Lua.Compiler {
 
       return target;
     }
+    public IParseItem Visit(GlobalItem target) {
+      target.Block.Accept(this);
+      return target;
+    }
     public IParseItem Visit(GotoItem target) {
       if (target.Target == null) {
         throw new InvalidOperationException(Resources.ErrorResolveLabel);

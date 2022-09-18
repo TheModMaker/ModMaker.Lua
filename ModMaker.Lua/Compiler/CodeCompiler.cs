@@ -18,6 +18,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Reflection.Emit;
 using ModMaker.Lua.Parser;
+using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 using ModMaker.Lua.Runtime.LuaValues;
 
@@ -59,7 +60,7 @@ namespace ModMaker.Lua.Compiler {
 #endif
     }
 
-    public ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name) {
+    public ILuaValue Compile(ILuaEnvironment env, GlobalItem item, string name) {
       if (name.Length == 0)
         name = "<>_func_" + (_tid++);
       if (_types.Contains(name)) {
@@ -71,12 +72,14 @@ namespace ModMaker.Lua.Compiler {
         name += i;
       }
 
-      var info = GetInfoVisitor.Resolve(item);
+      GetInfoVisitor.Resolve(item);
 
       TypeBuilder tb = _mb.DefineType(
           name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed,
           typeof(LuaValueBase), Type.EmptyTypes);
-      ChunkBuilder cb = new ChunkBuilder(_settings, _mb, tb, info.CapturedLocals, info.HasNested);
+      ChunkBuilder cb = new ChunkBuilder(_settings, _mb, tb,
+                                         item.FunctionInformation!.CapturedLocals,
+                                         item.FunctionInformation!.HasNested);
 
       CompilerVisitor cVisitor = new CompilerVisitor(cb);
       item.Accept(cVisitor);

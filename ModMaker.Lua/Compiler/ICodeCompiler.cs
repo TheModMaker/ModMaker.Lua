@@ -13,6 +13,7 @@
 // limitations under the License.
 
 using ModMaker.Lua.Parser;
+using ModMaker.Lua.Parser.Items;
 using ModMaker.Lua.Runtime;
 
 namespace ModMaker.Lua.Compiler {
@@ -29,6 +30,6 @@ namespace ModMaker.Lua.Compiler {
     /// <param name="item">The item to compile.</param>
     /// <param name="name">The name to given the module, can be empty to auto-generate.</param>
     /// <returns>A compiled version of the object.</returns>
-    ILuaValue Compile(ILuaEnvironment env, IParseItem item, string name);
+    ILuaValue Compile(ILuaEnvironment env, GlobalItem item, string name);
   }
 }

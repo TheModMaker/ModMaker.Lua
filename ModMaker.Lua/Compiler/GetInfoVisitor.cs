@@ -39,9 +39,9 @@ namespace ModMaker.Lua.Compiler {
     /// </summary>
     /// <param name="target">The IParseItem tree to traverse.</param>
     /// <returns>The function info describing the item.</returns>
-    public static FuncDefItem.FunctionInfo Resolve(IParseItem target) {
+    public static void Resolve(GlobalItem target) {
       var visitor = new GetInfoVisitor(target);
-      return visitor._info;
+      target.FunctionInformation = visitor._info;
     }
 
     public IParseItem Visit(BinOpItem target) {
@@ -121,6 +121,10 @@ namespace ModMaker.Lua.Compiler {
         target.FunctionInformation = _handler.GetFunctionInfo();
       }
 
+      return target;
+    }
+    public IParseItem Visit(GlobalItem target) {
+      target.Block.Accept(this);
       return target;
     }
     public IParseItem Visit(GotoItem target) {

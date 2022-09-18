@@ -63,6 +63,12 @@ namespace ModMaker.Lua.Parser {
     /// <returns>The passed target or a modification of it.</returns>
     IParseItem Visit(FuncDefItem target);
     /// <summary>
+    /// Called when the item is the global code.
+    /// </summary>
+    /// <param name="target">The object that was passed to IParseItem.Visit.</param>
+    /// <returns>The passed target or a modification of it.</returns>
+    IParseItem Visit(GlobalItem target);
+    /// <summary>
     /// Called when the item is a goto item.
     /// </summary>
     /// <param name="target">The object that was passed to IParseItem.Visit.</param>

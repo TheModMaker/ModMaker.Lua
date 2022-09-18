@@ -54,27 +54,27 @@ namespace ModMaker.Lua.Parser {
       _functions.Add(TokenType.While, _readWhile);
     }
 
-    public IParseItem Parse(Stream input, Encoding? encoding, string name) {
+    public GlobalItem Parse(Stream input, Encoding? encoding, string name) {
       return ParseCommon(new BufferedStringReader(input, encoding), name);
     }
 
-    public IParseItem Parse(string input, string name) {
+    public GlobalItem Parse(string input, string name) {
       return ParseCommon(new BufferedStringReader(input), name);
     }
 
-    public IParseItem ParseCommon(BufferedStringReader input, string name) {
+    public GlobalItem ParseCommon(BufferedStringReader input, string name) {
       var messages = new CompilerMessageCollection(MessageLevel.Error);
       var lexer = new Lexer(messages, input, name);
 
       // parse the chunk
-      IParseItem read = _readBlock(lexer);
+      BlockItem read = _readBlock(lexer);
       if (!lexer.PeekType(TokenType.None)) {
         lexer.SyntaxError(MessageId.ExpectingEof);
       }
 
       if (messages.ShouldThrow())
         throw messages.MakeException();
-      return read;
+      return new GlobalItem(read);
     }
 
     #region Read Functions
