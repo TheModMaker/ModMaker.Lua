@@ -130,7 +130,7 @@ namespace ModMaker.Lua {
         MessageId.FunctionNameWhenStatement =>
             "Function name must be provided when used as a statement",
         MessageId.TableKeyMustBeName => "Table keys must be identifiers",
-        MessageId.LabelNotFound => "Label for goto wasn't found",
+        MessageId.LabelNotFound => "Label for goto not found or not visible",
         MessageId.LocalInstanceName => "Local functions cannot have member names",
         MessageId.LocalMethodIndexer => "Local functions cannot use indexers",
 

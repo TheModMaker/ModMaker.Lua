@@ -23,14 +23,15 @@ namespace ModMaker.Lua.Compiler {
   /// compiler.
   /// </summary>
   public sealed class GetInfoVisitor : IParseItemVisitor {
-    readonly GetInfoTree _tree;
+    readonly LocalsResolver _handler;
     readonly FuncDefItem.FunctionInfo _info;
 
     GetInfoVisitor(IParseItem target) {
-      _tree = new GetInfoTree();
-      target.Accept(this);
-      _tree.Resolve();
-      _info = _tree.EndFunc();
+      _handler = new LocalsResolver();
+      using (_handler.DefineFunction()) {
+        target.Accept(this);
+        _info = _handler.GetFunctionInfo();
+      }
     }
 
     /// <summary>
@@ -49,7 +50,7 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(BlockItem target) {
-      using (_tree.Block(true)) {
+      using (_handler.DefineBlock()) {
         foreach (var item in target.Children) {
           item.Accept(this);
         }
@@ -68,9 +69,9 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForGenItem target) {
-      using (_tree.Block(true)) {
-        _tree.DefineLocal(target.Names);
-        _tree.DefineLabel(target.Break);
+      using (_handler.DefineBlock()) {
+        _handler.DefineLocals(target.Names);
+        _handler.DefineLabel(target.Break);
 
         target.Block.Accept(this);
         foreach (var item in target.Expressions) {
@@ -81,9 +82,9 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(ForNumItem target) {
-      using (_tree.Block(true)) {
-        _tree.DefineLocal(new[] { target.Name });
-        _tree.DefineLabel(target.Break);
+      using (_handler.DefineBlock()) {
+        _handler.DefineLocals(new[] { target.Name });
+        _handler.DefineLabel(target.Break);
 
         target.Block.Accept(this);
         if (target.Start != null) {
@@ -111,37 +112,37 @@ namespace ModMaker.Lua.Compiler {
     }
     public IParseItem Visit(FuncDefItem target) {
       if (target.Local) {
-        _tree.DefineLocal(new[] { (NameItem)target.Prefix! });
+        _handler.DefineLocals(new[] { (NameItem)target.Prefix! });
       }
 
-      using (_tree.DefineFunc()) {
-        _tree.DefineLocal(target.Arguments);
+      using (_handler.DefineFunction()) {
+        _handler.DefineLocals(target.Arguments);
         target.Block.Accept(this);
+        target.FunctionInformation = _handler.GetFunctionInfo();
       }
-      target.FunctionInformation = _tree.EndFunc();
 
       return target;
     }
     public IParseItem Visit(GotoItem target) {
-      _tree.DefineGoto(target);
+      _handler.DefineGoto(target);
       return target;
     }
     public IParseItem Visit(IfItem target) {
       target.Expression.Accept(this);
 
-      using (_tree.Block(true)) {
+      using (_handler.DefineBlock()) {
         target.Block.Accept(this);
       }
 
       foreach (IfItem.ElseInfo info in target.Elses) {
-        using (_tree.Block(true)) {
+        using (_handler.DefineBlock()) {
           info.Expression.Accept(this);
           info.Block.Accept(this);
         }
       }
 
       if (target.ElseBlock != null) {
-        using (_tree.Block(true)) {
+        using (_handler.DefineBlock()) {
           target.ElseBlock.Accept(this);
         }
       }
@@ -155,7 +156,7 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(LabelItem target) {
-      _tree.DefineLabel(target);
+      _handler.DefineLabel(target);
 
       return target;
     }
@@ -164,15 +165,15 @@ namespace ModMaker.Lua.Compiler {
       return target;
     }
     public IParseItem Visit(NameItem target) {
-      _tree.GetName(target);
+      _handler.ResolveName(target.Name);
 
       return target;
     }
     public IParseItem Visit(RepeatItem target) {
       target.Expression.Accept(this);
 
-      using (_tree.Block(true)) {
-        _tree.DefineLabel(target.Break);
+      using (_handler.DefineBlock()) {
+        _handler.DefineLabel(target.Break);
         target.Block.Accept(this);
       }
 
@@ -200,7 +201,7 @@ namespace ModMaker.Lua.Compiler {
     }
     public IParseItem Visit(AssignmentItem target) {
       if (target.Local) {
-        _tree.DefineLocal(target.Names.Cast<NameItem>());
+        _handler.DefineLocals(target.Names.Cast<NameItem>());
       } else {
         foreach (var item in target.Names) {
           item.Accept(this);
@@ -216,8 +217,8 @@ namespace ModMaker.Lua.Compiler {
     public IParseItem Visit(WhileItem target) {
       target.Expression.Accept(this);
 
-      using (_tree.Block(true)) {
-        _tree.DefineLabel(target.Break);
+      using (_handler.DefineBlock()) {
+        _handler.DefineLabel(target.Break);
         target.Block.Accept(this);
       }
 
