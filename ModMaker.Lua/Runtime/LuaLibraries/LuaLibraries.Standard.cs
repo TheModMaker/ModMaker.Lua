@@ -43,8 +43,8 @@ namespace ModMaker.Lua.Runtime {
         Register(env, table, (Func<ILuaTable, string>)type);
         Register(env, table, (Func<LuaFunction, int, ILuaValue>)overload);
 
-        table.SetItemRaw(new LuaString("pcall"), new pcall(env));
-        table.SetItemRaw(new LuaString("print"), new print(env));
+        Register(env, table, (Func<LuaFunction, ILuaValue[], IEnumerable<object>>)pcall);
+        Register(env, table, (Action<LuaMultiValue>)print);
 
         table.SetItemRaw(new LuaString("_VERSION"), new LuaString(_version));
         table.SetItemRaw(new LuaString("_NET"), new LuaString(_net));
@@ -235,53 +235,36 @@ namespace ModMaker.Lua.Runtime {
         }
       }
 
-      sealed class pcall : LuaFunction {
-        public pcall(ILuaEnvironment env) : base(env, "pcall") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (args.Count < 1) {
-            throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
-          }
-
-          ILuaValue func = args[0];
-          if (func.ValueType == LuaValueType.Function) {
-            try {
-              var ret = func.Invoke(new LuaMultiValue(args.Skip(1).ToArray()));
-              return new LuaMultiValue(new ILuaValue[] { LuaBoolean.True }.Concat(ret).ToArray());
-            } catch (ThreadAbortException) {
-              throw;
-            } catch (ThreadInterruptedException) {
-              throw;
-            } catch (Exception e) {
-              return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
-            }
-          } else {
-            throw new ArgumentException("First argument to 'pcall' must be a function.");
-          }
+      [MultipleReturn]
+      static IEnumerable<object> pcall(LuaFunction func, params ILuaValue[] args) {
+        try {
+          var ret = func.Invoke(new LuaMultiValue(args));
+          return new ILuaValue[] { LuaBoolean.True }.Concat(ret);
+        } catch (ThreadAbortException) {
+          throw;
+        } catch (ThreadInterruptedException) {
+          throw;
+        } catch (Exception e) {
+          return new object[] { false, e.Message, e };
         }
       }
-      sealed class print : LuaFunction {
-        public print(ILuaEnvironment env) : base(env, "print") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          StringBuilder str = new StringBuilder();
-          if (args != null) {
-            for (int i = 0; i < args.Count; i++) {
-              ILuaValue temp = args[i];
-              str.Append(temp.ToString());
-              str.Append('\t');
-            }
-            str.Append('\n');
+      static void print(LuaMultiValue args) {
+        StringBuilder str = new StringBuilder();
+        if (args != null) {
+          for (int i = 0; i < args.Count; i++) {
+            ILuaValue temp = args[i];
+            str.Append(temp.ToString());
+            str.Append('\t');
           }
-
-          Stream? s = Environment.Settings.Stdout;
-          if (s == null)
-            throw new Exception("No standard out given");
-          byte[] txt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
-          s.Write(txt, 0, txt.Length);
-
-          return LuaMultiValue.Empty;
+          str.Append('\n');
         }
+
+        var E = LuaEnvironment.CurrentEnvironment;
+        Stream? s = E.Settings.Stdout;
+        if (s == null)
+          throw new Exception("No standard out given");
+        byte[] txt = (E.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
+        s.Write(txt, 0, txt.Length);
       }
 
       [MultipleReturn]

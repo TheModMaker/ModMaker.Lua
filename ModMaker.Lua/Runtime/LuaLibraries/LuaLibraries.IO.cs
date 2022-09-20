@@ -40,24 +40,24 @@ namespace ModMaker.Lua.Runtime {
 
       public static void Initialize(ILuaEnvironment env) {
         ILuaTable io = new LuaTable();
-        io.SetItemRaw(new LuaString("close"), new close(env));
-        io.SetItemRaw(new LuaString("flush"), new flush(env));
-        io.SetItemRaw(new LuaString("input"), new input(env));
-        io.SetItemRaw(new LuaString("lines"), new lines(env));
-        io.SetItemRaw(new LuaString("open"), new open(env));
-        io.SetItemRaw(new LuaString("output"), new output(env));
-        io.SetItemRaw(new LuaString("read"), new read(env));
-        io.SetItemRaw(new LuaString("tmpfile"), new tmpfile(env));
-        io.SetItemRaw(new LuaString("type"), new type(env));
-        io.SetItemRaw(new LuaString("write"), new write(env));
+        Register(env, io, (Func<ILuaValue, LuaMultiValue>)close);
+        Register(env, io, (Func<ILuaValue, LuaMultiValue>)flush);
+        Register(env, io, (Func<ILuaValue, ILuaTable?>)input);
+        Register(env, io, (Func<LuaMultiValue, object>)lines);
+        Register(env, io, (Func<string, string, object?>)open);
+        Register(env, io, (Func<ILuaValue, ILuaTable?>)output);
+        Register(env, io, (Func<LuaMultiValue, LuaMultiValue>)read);
+        Register(env, io, (Func<ILuaTable>)tmpfile);
+        Register(env, io, (Func<ILuaValue, string?>)type);
+        Register(env, io, (Func<LuaMultiValue, LuaMultiValue>)write);
 
         _input = env.Settings.Stdin;
         _output = env.Settings.Stdout;
         var globals = env.GlobalsTable;
         globals.SetItemRaw(new LuaString("io"), io);
-        globals.SetItemRaw(new LuaString("dofile"), new dofile(env));
-        globals.SetItemRaw(new LuaString("load"), new load(env));
-        globals.SetItemRaw(new LuaString("loadfile"), new loadfile(env));
+        Register(env, globals, (Func<string, LuaMultiValue>)dofile);
+        Register(env, globals, (Func<ILuaValue, string, string, ILuaTable?, LuaMultiValue>)load);
+        Register(env, globals, (Func<string, string, ILuaTable?, LuaMultiValue>)loadfile);
       }
 
       sealed class LinesHelper : LuaFunction {
@@ -92,299 +92,229 @@ namespace ModMaker.Lua.Runtime {
       }
 
       // io functions
-      sealed class close : LuaFunction {
-        public close(ILuaEnvironment env) : base(env, "io.close") { }
+      static LuaMultiValue close(ILuaValue file) {
+        if (!_getStream(file, kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
+          return ret;
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (!_getStream(args[0],kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
-            return ret;
-
-          try {
-            s.Close();
-            return new LuaMultiValue(_createFile(s, Environment));
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-          }
+        try {
+          s.Close();
+          return new LuaMultiValue(_createFile(s, LuaEnvironment.CurrentEnvironment));
+        } catch (Exception e) {
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
         }
       }
-      sealed class flush : LuaFunction {
-        public flush(ILuaEnvironment env) : base(env, "io.flush") { }
+      static LuaMultiValue flush(ILuaValue file) {
+        if (!_getStream(file, kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
+          return ret;
 
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (!_getStream(args[0], kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
-            return ret;
-
-          try {
-            s.Flush();
-            return new LuaMultiValue(_createFile(s, Environment));
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-          }
+        try {
+          s.Flush();
+          return new LuaMultiValue(_createFile(s, LuaEnvironment.CurrentEnvironment));
+        } catch (Exception e) {
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
         }
       }
-      sealed class input : LuaFunction {
-        public input(ILuaEnvironment env) : base(env, "io.input") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          ILuaValue obj = args[0];
-
-          if (obj != null) {
-            if (obj.ValueType == LuaValueType.String) {
-              Stream s = File.OpenRead((string)obj.GetValue()!);
-              _input = s;
-            } else if (obj.ValueType == LuaValueType.Table) {
-              Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
-              if (s == null) {
-                throw new InvalidOperationException(
-                    "First argument to function 'io.input' must be a file-stream or a string " +
-                    "path.");
-              }
-
-              _input = s;
-            } else if (obj is Stream st) {
-              _input = st;
-            } else {
-              throw new InvalidOperationException(
-                  "First argument to function 'io.input' must be a file-stream or a string path.");
-            }
-          } else if (_input == null) {
-            return LuaMultiValue.Empty;
-          }
-
-          return new LuaMultiValue(_createFile(_input, Environment));
-        }
-      }
-      sealed class lines : LuaFunction {
-        public lines(ILuaEnvironment env) : base(env, "io.lines") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          Stream? s;
-          bool close;
-          int start;
-          if (args[0].GetValue() is string oString) {
-            s = File.OpenRead(oString);
-            close = true;
-            start = 1;
-          } else {
-            if (!_getStream(args[0], kInput, kAnyValue, out s, out LuaMultiValue? ret))
-              return ret;
-            close = false;
-            start = s == _input ? 0 : 1;
-          }
-
-          int[] a = _parse(args.Skip(start), "io.lines");
-          return new LuaMultiValue(new LinesHelper(Environment, close, s, a));
-        }
-      }
-      sealed class open : LuaFunction {
-        public open(ILuaEnvironment env) : base(env, "io.open") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          string? s = args[0].GetValue() as string;
-          string? mode = args[1].GetValue() as string;
-          FileMode fileMode;
-          FileAccess access;
-          bool seek = false;
-          mode = mode?.ToLowerInvariant();
-
-          if (string.IsNullOrWhiteSpace(s)) {
-            return LuaMultiValue.CreateMultiValueFromObj(
-                null, "First argument must be a string filename.");
-          }
-
-          switch (mode) {
-            case "r":
-            case "rb":
-            case "":
-            case null:
-              fileMode = FileMode.Open;
-              access = FileAccess.Read;
-              break;
-            case "w":
-            case "wb":
-              fileMode = FileMode.Create;
-              access = FileAccess.Write;
-              break;
-            case "a":
-            case "ab":
-              fileMode = FileMode.OpenOrCreate;
-              access = FileAccess.ReadWrite;
-              seek = true;
-              break;
-            case "r+":
-            case "r+b":
-              fileMode = FileMode.Open;
-              access = FileAccess.ReadWrite;
-              break;
-            case "w+":
-            case "w+b":
-              fileMode = FileMode.Create;
-              access = FileAccess.ReadWrite;
-              break;
-            case "a+":
-            case "a+b":
-              fileMode = FileMode.OpenOrCreate;
-              access = FileAccess.ReadWrite;
-              seek = true;
-              break;
-            default:
-              return LuaMultiValue.CreateMultiValueFromObj(
-                  null, "Second argument must be a valid string mode.");
-          }
-
-          try {
-            using (Stream stream = File.Open(s, fileMode, access)) {
-              if (seek && stream.CanSeek) {
-                stream.Seek(0, SeekOrigin.End);
-              }
-
-              return new LuaMultiValue(_createFile(stream, Environment));
-            }
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-          }
-        }
-      }
-      sealed class output : LuaFunction {
-        public output(ILuaEnvironment env) : base(env, "io.output") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          ILuaValue obj = args[0];
-          if (obj != LuaNil.Nil) {
-            if (obj.ValueType == LuaValueType.String) {
-              Stream s = File.OpenRead((string)obj.GetValue()!);
-              _output = s;
-            } else if (obj.ValueType == LuaValueType.Table) {
-              Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
-              if (s == null) {
-                throw new InvalidOperationException("First argument to function 'io.output' must " +
-                                                    "be a file-stream or a string path.");
-              }
-
-              _output = s;
-            } else if (obj is Stream st) {
-              _output = st;
-            } else {
-              throw new InvalidOperationException(
-                  "First argument to function 'io.output' must be a file-stream or a string path.");
-            }
-          } else if (_output == null) {
-            return LuaMultiValue.Empty;
-          }
-
-          return new LuaMultiValue(_createFile(_output, Environment));
-        }
-      }
-      sealed class read : LuaFunction {
-        public read(ILuaEnvironment env) : base(env, "io.read") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (!_getStream(args[0], kInput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
-            return ret;
-          int start = s == _input ? 0 : 1;
-
-          int[] a = _parse(args.Skip(start), "io.read");
-          return _read(a, new StreamReader(s));
-        }
-      }
-      sealed class seek : LuaFunction {
-        public seek(ILuaEnvironment env) : base(env, "io.seek") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (!_getStream(args[0], kInput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
-            return ret;
-          SeekOrigin origin = SeekOrigin.Current;
-          long off = 0;
-
-          if (args.Count > 1) {
-            string? str = args[1].GetValue() as string;
-            if (str == "set") {
-              origin = SeekOrigin.Begin;
-            } else if (str == "cur") {
-              origin = SeekOrigin.Current;
-            } else if (str == "end") {
-              origin = SeekOrigin.End;
-            } else {
-              throw new ArgumentException("First argument to function file:seek must be a string.");
-            }
-
-            if (args.Count > 2) {
-              object? obj = args[2].GetValue();
-              if (obj is double dbl) {
-                off = Convert.ToInt64(dbl);
-              } else {
-                throw new ArgumentException(
-                    "Second argument to function file:seek must be a number.");
-              }
-            }
-          }
-
-          if (!s.CanSeek) {
-            return LuaMultiValue.CreateMultiValueFromObj(
-                null, "Specified stream cannot be seeked.");
-          }
-
-          try {
-            return LuaMultiValue.CreateMultiValueFromObj(Convert.ToDouble(s.Seek(off, origin)));
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-          }
-        }
-      }
-      sealed class tmpfile : LuaFunction {
-        public tmpfile(ILuaEnvironment env) : base(env, "io.tmpfile") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          string str = Path.GetTempFileName();
-          Stream s = File.Open(str, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-          return new LuaMultiValue(_createFile(s, Environment));
-        }
-      }
-      sealed class type : LuaFunction {
-        public type(ILuaEnvironment env) : base(env, "io.type") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          ILuaValue obj = args[0];
-
-          if (obj.GetValue() is Stream) {
-            return LuaMultiValue.CreateMultiValueFromObj("file");
+      static ILuaTable? input(ILuaValue obj) {
+        if (obj != null) {
+          if (obj.ValueType == LuaValueType.String) {
+            Stream s = File.OpenRead((string)obj.GetValue()!);
+            _input = s;
           } else if (obj.ValueType == LuaValueType.Table) {
             Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
-            return LuaMultiValue.CreateMultiValueFromObj(s == null ? null : "file");
-          } else {
-            return LuaMultiValue.Empty;
-          }
-        }
-      }
-      sealed class write : LuaFunction {
-        public write(ILuaEnvironment env) : base(env, "io.write") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (!_getStream(args[0], kOutput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
-            return ret;
-          int start = s == _output ? 0 : 1;
-
-          try {
-            for (int i = start; i < args.Count; i++) {
-              var temp = args[i].GetValue();
-              if (temp is double dbl) {
-                var bt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(
-                    dbl.ToString(CultureInfo.InvariantCulture));
-                s.Write(bt, 0, bt.Length);
-              } else if (temp is string str) {
-                var bt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str);
-                s.Write(bt, 0, bt.Length);
-              } else {
-                throw new ArgumentException("Arguments to io.write must be a string or number.");
-              }
+            if (s == null) {
+              throw new InvalidOperationException(
+                  "First argument to function 'io.input' must be a file-stream or a string " +
+                  "path.");
             }
 
-            return new LuaMultiValue(_createFile(s, Environment));
-          } catch (ArgumentException) {
-            throw;
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
+            _input = s;
+          } else if (obj is Stream st) {
+            _input = st;
+          } else {
+            throw new InvalidOperationException(
+                "First argument to function 'io.input' must be a file-stream or a string path.");
           }
+        } else if (_input == null) {
+          return null;
+        }
+
+        return _createFile(_input, LuaEnvironment.CurrentEnvironment);
+      }
+      static object lines(LuaMultiValue args) {
+        Stream? s;
+        bool close;
+        int start;
+        if (args[0].GetValue() is string oString) {
+          s = File.OpenRead(oString);
+          close = true;
+          start = 1;
+        } else {
+          if (!_getStream(args[0], kInput, kAnyValue, out s, out LuaMultiValue? ret))
+            return ret;
+          close = false;
+          start = s == _input ? 0 : 1;
+        }
+
+        int[] a = _parse(args.Skip(start), "io.lines");
+        return new LinesHelper(LuaEnvironment.CurrentEnvironment, close, s, a);
+      }
+      [MultipleReturn]
+      static object?[] open(string s, string mode = "r") {
+        FileMode fileMode;
+        FileAccess access;
+        bool seek = false;
+        mode = mode.ToLowerInvariant();
+
+        switch (mode) {
+          case "r":
+          case "rb":
+          case "":
+          case null:
+            fileMode = FileMode.Open;
+            access = FileAccess.Read;
+            break;
+          case "w":
+          case "wb":
+            fileMode = FileMode.Create;
+            access = FileAccess.Write;
+            break;
+          case "a":
+          case "ab":
+            fileMode = FileMode.OpenOrCreate;
+            access = FileAccess.ReadWrite;
+            seek = true;
+            break;
+          case "r+":
+          case "r+b":
+            fileMode = FileMode.Open;
+            access = FileAccess.ReadWrite;
+            break;
+          case "w+":
+          case "w+b":
+            fileMode = FileMode.Create;
+            access = FileAccess.ReadWrite;
+            break;
+          case "a+":
+          case "a+b":
+            fileMode = FileMode.OpenOrCreate;
+            access = FileAccess.ReadWrite;
+            seek = true;
+            break;
+          default:
+            return new object?[] { null, "Second argument must be a valid string mode." };
+        }
+
+        try {
+          using (Stream stream = File.Open(s, fileMode, access)) {
+            if (seek && stream.CanSeek) {
+              stream.Seek(0, SeekOrigin.End);
+            }
+
+            return new[] { _createFile(stream, LuaEnvironment.CurrentEnvironment) };
+          }
+        } catch (Exception e) {
+          return new object?[] { null, e.Message, e };
+        }
+      }
+      static ILuaTable? output(ILuaValue obj) {
+        if (obj != LuaNil.Nil) {
+          if (obj.ValueType == LuaValueType.String) {
+            Stream s = File.OpenRead((string)obj.GetValue()!);
+            _output = s;
+          } else if (obj.ValueType == LuaValueType.Table) {
+            Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
+            if (s == null) {
+              throw new InvalidOperationException("First argument to function 'io.output' must " +
+                                                  "be a file-stream or a string path.");
+            }
+
+            _output = s;
+          } else if (obj is Stream st) {
+            _output = st;
+          } else {
+            throw new InvalidOperationException(
+                "First argument to function 'io.output' must be a file-stream or a string path.");
+          }
+        } else if (_output == null) {
+          return null;
+        }
+
+        return _createFile(_output, LuaEnvironment.CurrentEnvironment);
+      }
+      static LuaMultiValue read(LuaMultiValue args) {
+        if (!_getStream(args[0], kInput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
+          return ret;
+        int start = s == _input ? 0 : 1;
+
+        int[] a = _parse(args.Skip(start), "io.read");
+        return _read(a, new StreamReader(s));
+      }
+      static LuaMultiValue seek(ILuaValue file, string originStr = "cur", long off = 0) {
+        if (!_getStream(file, kInput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
+          return ret;
+        SeekOrigin origin;
+        if (originStr == "set") {
+          origin = SeekOrigin.Begin;
+        } else if (originStr == "cur") {
+          origin = SeekOrigin.Current;
+        } else if (originStr == "end") {
+          origin = SeekOrigin.End;
+        } else {
+          throw new ArgumentException("First argument to function file:seek must be a string.");
+        }
+
+        if (!s.CanSeek) {
+          return LuaMultiValue.CreateMultiValueFromObj(
+              null, "Specified stream cannot be seeked.");
+        }
+
+        try {
+          return LuaMultiValue.CreateMultiValueFromObj(Convert.ToDouble(s.Seek(off, origin)));
+        } catch (Exception e) {
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
+        }
+      }
+      static ILuaTable tmpfile() {
+        string str = Path.GetTempFileName();
+        Stream s = File.Open(str, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+        return _createFile(s, LuaEnvironment.CurrentEnvironment);
+      }
+      static string? type(ILuaValue obj) {
+        if (obj.GetValue() is Stream) {
+          return "file";
+        } else if (obj.ValueType == LuaValueType.Table) {
+          Stream? s = ((ILuaTable)obj).GetItemRaw(_stream) as Stream;
+          return s == null ? null : "file";
+        } else {
+          return null;
+        }
+      }
+      static LuaMultiValue write(LuaMultiValue args) {
+        if (!_getStream(args[0], kOutput, kAnyValue, out Stream? s, out LuaMultiValue? ret))
+          return ret;
+        int start = s == _output ? 0 : 1;
+
+        var E = LuaEnvironment.CurrentEnvironment;
+        try {
+          for (int i = start; i < args.Count; i++) {
+            var temp = args[i].GetValue();
+            if (temp is double dbl) {
+              var bt = (E.Settings.Encoding ?? Encoding.UTF8).GetBytes(
+                  dbl.ToString(CultureInfo.InvariantCulture));
+              s.Write(bt, 0, bt.Length);
+            } else if (temp is string str) {
+              var bt = (E.Settings.Encoding ?? Encoding.UTF8).GetBytes(str);
+              s.Write(bt, 0, bt.Length);
+            } else {
+              throw new ArgumentException("Arguments to io.write must be a string or number.");
+            }
+          }
+
+          return new LuaMultiValue(_createFile(s, E));
+        } catch (ArgumentException) {
+          throw;
+        } catch (Exception e) {
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
         }
       }
 
@@ -461,12 +391,12 @@ namespace ModMaker.Lua.Runtime {
       static ILuaTable _createFile(Stream backing, ILuaEnvironment env) {
         ILuaTable ret = new LuaTable();
         ret.SetItemRaw(_stream, new LuaUserData<Stream>(backing));
-        ret.SetItemRaw(new LuaString("close"), new close(env));
-        ret.SetItemRaw(new LuaString("flush"), new flush(env));
-        ret.SetItemRaw(new LuaString("lines"), new lines(env));
-        ret.SetItemRaw(new LuaString("read"), new read(env));
-        ret.SetItemRaw(new LuaString("seek"), new seek(env));
-        ret.SetItemRaw(new LuaString("write"), new write(env));
+        Register(env, ret, (Func<ILuaValue, LuaMultiValue>)close);
+        Register(env, ret, (Func<ILuaValue, LuaMultiValue>)flush);
+        Register(env, ret, (Func<LuaMultiValue, object>)lines);
+        Register(env, ret, (Func<LuaMultiValue, LuaMultiValue>)read);
+        Register(env, ret, (Func<ILuaValue, string, long, LuaMultiValue>)seek);
+        Register(env, ret, (Func<LuaMultiValue, LuaMultiValue>)write);
 
         return ret;
       }
@@ -505,104 +435,56 @@ namespace ModMaker.Lua.Runtime {
       }
 
       // global functions
-      sealed class dofile : LuaFunction {
-        public dofile(ILuaEnvironment env) : base(env, "io.dofile") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (args.Count < 1) {
-            throw new ArgumentException("Expecting one argument to function 'dofile'.");
-          }
-
-          string? file = args[0].GetValue() as string;
-
-          if (string.IsNullOrEmpty(file)) {
-            throw new ArgumentException("First argument to 'loadfile' must be a file path.");
-          }
-
-          if (!File.Exists(file)) {
-            throw new FileNotFoundException("Unable to locate file at '" + file + "'.");
-          }
-
-          string chunk = File.ReadAllText(file);
-          var parsed = Environment.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
-          var r = Environment.CodeCompiler.Compile(Environment, parsed, "");
-          return r.Invoke(LuaMultiValue.Empty);
+      static LuaMultiValue dofile(string file) {
+        if (!File.Exists(file)) {
+          throw new FileNotFoundException("Unable to locate file at '" + file + "'.");
         }
+
+        string chunk = File.ReadAllText(file);
+        var E = LuaEnvironment.CurrentEnvironment;
+        var parsed = E.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
+        var r = E.CodeCompiler.Compile(E, parsed, "");
+        return r.Invoke(LuaMultiValue.Empty);
       }
-      sealed class load : LuaFunction {
-        public load(ILuaEnvironment env) : base(env, "io.load") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (args.Count < 1) {
-            throw new ArgumentException("Expecting at least one argument to function 'load'.");
-          }
-
-          ILuaValue ld = args[0];
-          string chunk;
-
-          if (ld.ValueType == LuaValueType.Function) {
-            chunk = "";
-            while (true) {
-              var ret = ld.Invoke(LuaMultiValue.Empty);
-              if (ret[0].ValueType == LuaValueType.String) {
-                if (string.IsNullOrEmpty(ret[0].GetValue() as string)) {
-                  break;
-                } else {
-                  chunk += ret[0].GetValue() as string;
-                }
-              } else {
+      static LuaMultiValue load(ILuaValue ld, string source = "", string mode = "bt",
+                                ILuaTable? env = null) {
+        string chunk;
+        if (ld.ValueType == LuaValueType.Function) {
+          chunk = "";
+          while (true) {
+            var ret = ld.Invoke(LuaMultiValue.Empty);
+            if (ret[0].ValueType == LuaValueType.String) {
+              var str = ret[0].GetValue() as string;
+              if (string.IsNullOrEmpty(str)) {
                 break;
+              } else {
+                chunk += str;
               }
+            } else {
+              break;
             }
-          } else if (ld.ValueType == LuaValueType.String) {
-            chunk = ld.GetValue() as string ?? "";
-          } else {
-            throw new ArgumentException("First argument to 'load' must be a string or a method.");
           }
+        } else if (ld.ValueType == LuaValueType.String) {
+          chunk = (string)ld.GetValue()!;
+        } else {
+          throw new ArgumentException("First argument to 'load' must be a string or a method.");
+        }
 
-          try {
-            var parsed = Environment.Parser.Parse(chunk, "");
-            return new LuaMultiValue(Environment.CodeCompiler.Compile(Environment, parsed, ""));
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);
-          }
+        if (mode != "t" && mode != "bt")
+          throw new NotSupportedException("The only mode supported by load is 't' or 'bt'.");
+        if (env != null)
+          throw new NotSupportedException("Custom environment not supported");
+
+        try {
+          var E = LuaEnvironment.CurrentEnvironment;
+          var parsed = E.Parser.Parse(chunk, source);
+          return new LuaMultiValue(E.CodeCompiler.Compile(E, parsed, source));
+        } catch (Exception e) {
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);
         }
       }
-      sealed class loadfile : LuaFunction {
-        public loadfile(ILuaEnvironment env) : base(env, "io.loadfile") { }
-
-        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
-          if (args.Count < 1) {
-            throw new ArgumentException("Expecting at least one argument to function 'loadfile'.");
-          }
-
-          string? file = args[0].GetValue() as string;
-          string? mode = args[1].GetValue() as string;
-
-          if (string.IsNullOrEmpty(file)) {
-            throw new ArgumentException("First argument to 'loadfile' must be a file path.");
-          }
-
-          if (!File.Exists(file)) {
-            throw new FileNotFoundException("Unable to locate file at '" + file + "'.");
-          }
-
-          if (string.IsNullOrEmpty(mode) && args.Count > 1) {
-            throw new ArgumentException("Second argument to 'loadfile' must be a string mode.");
-          }
-
-          if (mode != "type") {
-            throw new ArgumentException("The only mode supported by loadfile is 'type'.");
-          }
-
-          string chunk = File.ReadAllText(file);
-          try {
-            var parsed = Environment.Parser.Parse(chunk, Path.GetFileNameWithoutExtension(file));
-            return new LuaMultiValue(Environment.CodeCompiler.Compile(Environment, parsed, ""));
-          } catch (Exception e) {
-            return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);
-          }
-        }
+      static LuaMultiValue loadfile(string file, string mode = "bt", ILuaTable? env = null) {
+        return load(new LuaString(File.ReadAllText(file)), Path.GetFileName(file), mode, env);
       }
     }
   }
