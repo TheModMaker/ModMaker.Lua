@@ -36,16 +36,16 @@ namespace ModMaker.Lua.Runtime {
         Bit32.Initialize(env);
       }
       if ((libraries & LuaLibraries.Table) == LuaLibraries.Table) {
-        new Table(env).Initialize();
+        Table.Initialize(env);
       }
       if ((libraries & LuaLibraries.OS) == LuaLibraries.OS) {
-        new OS(env).Initialize();
+        OS.Initialize(env);
       }
       if ((libraries & LuaLibraries.Modules) == LuaLibraries.Modules) {
-        new Module(env).Initialize();
+        Module.Initialize(env);
       }
       if ((libraries & LuaLibraries.Coroutine) == LuaLibraries.Coroutine) {
-        new Coroutine(env).Initialize();
+        Coroutine.Initialize(env);
       }
     }
 
@@ -65,12 +65,6 @@ namespace ModMaker.Lua.Runtime {
         return max;
       } else {
         return i;
-      }
-    }
-
-    static void CheckNotNull(string name, object? o) {
-      if (o == null) {
-        throw new ArgumentNullException($"Argument to function '{name}' cannot be nil.");
       }
     }
   }

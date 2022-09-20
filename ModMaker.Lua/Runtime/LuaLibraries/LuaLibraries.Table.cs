@@ -21,25 +21,19 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Table {
-      public Table(ILuaEnvironment env) {
-        _env = env;
-      }
-
-      public void Initialize() {
+      public static void Initialize(ILuaEnvironment env) {
         ILuaValue table = new LuaTable();
-        Register(_env, table, (Func<ILuaTable, string, int, int, string>)concat);
-        Register(_env, table, (Action<ILuaTable, ILuaValue, ILuaValue>)insert);
-        Register(_env, table, (Func<ILuaValue[], ILuaValue>)pack);
-        Register(_env, table, (Func<ILuaTable, int?, ILuaValue>)remove);
-        Register(_env, table, (Action<ILuaTable, ILuaValue>)sort);
-        Register(_env, table, (Func<ILuaTable, int, int?, IEnumerable<ILuaValue>>)unpack);
+        Register(env, table, (Func<ILuaTable, string, int, int, string>)concat);
+        Register(env, table, (Action<ILuaTable, ILuaValue, ILuaValue>)insert);
+        Register(env, table, (Func<ILuaValue[], ILuaValue>)pack);
+        Register(env, table, (Func<ILuaTable, int?, ILuaValue>)remove);
+        Register(env, table, (Action<ILuaTable, LuaFunction?>)sort);
+        Register(env, table, (Func<ILuaTable, int, int?, IEnumerable<ILuaValue>>)unpack);
 
-        _env.GlobalsTable.SetItemRaw(new LuaString("table"), table);
+        env.GlobalsTable.SetItemRaw(new LuaString("table"), table);
       }
 
-      readonly ILuaEnvironment _env;
-
-      string concat(ILuaTable table, string? sep = null, int i = 1, int j = -1) {
+      static string concat(ILuaTable table, string? sep = null, int i = 1, int j = -1) {
         int len = (int)(table.Length().AsDouble() ?? 0);
         if (i >= len) {
           return "";
@@ -65,7 +59,7 @@ namespace ModMaker.Lua.Runtime {
 
         return str.ToString();
       }
-      void insert(ILuaTable table, ILuaValue pos, ILuaValue? value = null) {
+      static void insert(ILuaTable table, ILuaValue pos, ILuaValue? value = null) {
         double i;
         double len = table.Length().AsDouble() ?? 0;
         if (value == null) {
@@ -88,7 +82,7 @@ namespace ModMaker.Lua.Runtime {
         }
         table.SetItemRaw(pos, value);
       }
-      ILuaValue pack(params ILuaValue[] args) {
+      static ILuaValue pack(params ILuaValue[] args) {
         ILuaTable ret = new LuaTable();
         for (int i = 0; i < args.Length; i++) {
           ret.SetItemRaw(LuaNumber.Create(i + 1), args[i]);
@@ -96,7 +90,7 @@ namespace ModMaker.Lua.Runtime {
         ret.SetItemRaw(new LuaString("n"), LuaNumber.Create(args.Length));
         return ret;
       }
-      ILuaValue remove(ILuaTable table, int? pos = null) {
+      static ILuaValue remove(ILuaTable table, int? pos = null) {
         double len = table.Length().AsDouble() ?? 0;
         pos ??= (int)len;
         if (pos > len + 1 || pos < 1) {
@@ -113,11 +107,7 @@ namespace ModMaker.Lua.Runtime {
         }
         return prev;
       }
-      void sort(ILuaTable table, ILuaValue? comp = null) {
-        if (comp != null && comp.ValueType != LuaValueType.Function) {
-          throw new ArgumentException(
-              $"Invalid '{comp.ValueType}' value for function 'table.sort'.");
-        }
+      static void sort(ILuaTable table, LuaFunction? comp = null) {
         var comparer = comp != null ? (IComparer<ILuaValue>)new SortComparer(comp)
                                     : Comparer<ILuaValue>.Default;
 
@@ -129,7 +119,7 @@ namespace ModMaker.Lua.Runtime {
         }
       }
       [MultipleReturn]
-      IEnumerable<ILuaValue> unpack(ILuaTable table, int i = 1, int? jOrNull = null) {
+      static IEnumerable<ILuaValue> unpack(ILuaTable table, int i = 1, int? jOrNull = null) {
         int len = (int)(table.Length().AsDouble() ?? 0);
         int j = jOrNull ?? len;
         for (; i <= j; i++) {

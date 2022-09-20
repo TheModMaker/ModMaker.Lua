@@ -17,18 +17,13 @@ using System;
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Module {
-      readonly ILuaEnvironment _env;
-
-      public Module(ILuaEnvironment env) {
-        _env = env;
+      public static void Initialize(ILuaEnvironment env) {
+        env.RegisterDelegate((Func<string, ILuaValue>)require, "require");
       }
 
-      public void Initialize() {
-        _env.RegisterDelegate((Func<string, ILuaValue>)require, "require");
-      }
-
-      ILuaValue require(string name) {
-        return _env.ModuleBinder.Load(_env, name);
+      static ILuaValue require(string name) {
+        return LuaEnvironment.CurrentEnvironment.ModuleBinder.Load(
+            LuaEnvironment.CurrentEnvironment, name);
       }
     }
   }

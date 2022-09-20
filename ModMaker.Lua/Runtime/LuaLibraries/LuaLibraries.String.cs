@@ -44,7 +44,6 @@ namespace ModMaker.Lua.Runtime {
 
       [MultipleReturn]
       static IEnumerable<int> byte_(string source, int i = 1, int? j = null) {
-        CheckNotNull("string.byte", source);
         return sub(source, i, j ?? i).Select(c => (int)c);
       }
       static string char_(params int[] chars) {

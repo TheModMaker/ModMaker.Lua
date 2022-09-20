@@ -20,69 +20,49 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Coroutine {
-      readonly ILuaEnvironment _env;
-
-      public Coroutine(ILuaEnvironment E) {
-        _env = E;
-      }
-
-      public void Initialize() {
+      public static void Initialize(ILuaEnvironment env) {
         ILuaTable coroutine = new LuaTable();
-        Register(_env, coroutine, (Func<ILuaValue, ILuaValue>)create);
-        Register(_env, coroutine, (Func<ILuaThread, ILuaValue[], IEnumerable<ILuaValue>>)resume);
-        Register(_env, coroutine, (Func<object[]>)running);
-        Register(_env, coroutine, (Func<ILuaThread, string>)status);
-        Register(_env, coroutine, (Func<ILuaValue, object>)wrap);
-        Register(_env, coroutine, (Func<ILuaValue[], LuaMultiValue>)yield);
+        Register(env, coroutine, (Func<LuaFunction, ILuaValue>)create);
+        Register(env, coroutine, (Func<ILuaThread, ILuaValue[], IEnumerable<ILuaValue>>)resume);
+        Register(env, coroutine, (Func<object[]>)running);
+        Register(env, coroutine, (Func<ILuaThread, string>)status);
+        Register(env, coroutine, (Func<LuaFunction, object>)wrap);
+        Register(env, coroutine, (Func<ILuaValue[], LuaMultiValue>)yield);
 
-        _env.GlobalsTable.SetItemRaw(new LuaString("coroutine"), coroutine);
+        env.GlobalsTable.SetItemRaw(new LuaString("coroutine"), coroutine);
       }
 
-      ILuaValue create(ILuaValue method) {
-        CheckNotNull("coroutine.create", method);
-        if (method.ValueType != LuaValueType.Function) {
-          throw new ArgumentException(
-              "First argument to function 'coroutine.create' must be a function.");
-        }
-
-        return _env.Runtime.CreateThread(method);
+      static ILuaValue create(LuaFunction method) {
+        return LuaEnvironment.CurrentEnvironment.Runtime.CreateThread(method);
       }
       [MultipleReturn]
-      IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
+      static IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
+        if (thread.Status == LuaThreadStatus.Complete)
+          return LuaMultiValue.CreateMultiValueFromObj(false, "cannot resume dead coroutine");
         try {
           LuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
           return new[] { LuaBoolean.True }.Concat(ret);
         } catch (Exception e) {
-          if (e.Message == "Cannot resume a dead thread.") {
-            return LuaMultiValue.CreateMultiValueFromObj(false, "cannot resume dead coroutine");
-          } else {
-            return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
-          }
+          return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
         }
       }
       [MultipleReturn]
-      object[] running() {
-        ILuaThread thread = _env.Runtime.CurrentThread;
+      static object[] running() {
+        ILuaThread thread = LuaEnvironment.CurrentEnvironment.Runtime.CurrentThread;
         return new object[] { thread, !thread.IsLua };
       }
-      [IgnoreExtraArguments]
-      string status(ILuaThread thread) {
+      static string status(ILuaThread thread) {
         if (thread.Status == LuaThreadStatus.Complete)
           return "dead";
         else
           return thread.Status.ToString().ToLowerInvariant();
       }
-      object wrap(ILuaValue func) {
-        if (func.ValueType != LuaValueType.Function) {
-          throw new ArgumentException(
-              "First argument to function 'coroutine.wrap' must be a function.");
-        }
-
-        var thread = _env.Runtime.CreateThread(func);
+      static object wrap(LuaFunction func) {
+        var thread = LuaEnvironment.CurrentEnvironment.Runtime.CreateThread(func);
         return (Func<LuaMultiValue, LuaMultiValue>)thread.Resume;
       }
-      LuaMultiValue yield(params ILuaValue[] args) {
-        ILuaThread thread = _env.Runtime.CurrentThread;
+      static LuaMultiValue yield(params ILuaValue[] args) {
+        ILuaThread thread = LuaEnvironment.CurrentEnvironment.Runtime.CurrentThread;
         if (!thread.IsLua) {
           throw new InvalidOperationException("Cannot yield the main thread.");
         }

@@ -24,33 +24,28 @@ using ModMaker.Lua.Runtime.LuaValues;
 namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class OS {
-      readonly Stopwatch _stop = Stopwatch.StartNew();
-      readonly ILuaEnvironment _env;
+      static readonly Stopwatch _stop = Stopwatch.StartNew();
 
-      public OS(ILuaEnvironment env) {
-        _env = env;
-      }
-
-      public void Initialize() {
+      public static void Initialize(ILuaEnvironment env) {
         ILuaTable os = new LuaTable();
-        Register(_env, os, (Func<double>)clock);
-        Register(_env, os, (Func<string, object, object>)date);
-        Register(_env, os, (Func<double, double, double>)difftime);
-        Register(_env, os, (Action<object>)exit);
-        Register(_env, os, (Func<string, string?>)getenv);
-        Register(_env, os, (Func<string, object?[]>)remove);
-        Register(_env, os, (Func<string, string, object?[]>)rename);
-        Register(_env, os, (Func<string, string?>)setlocale);
-        Register(_env, os, (Func<object, double>)time);
-        Register(_env, os, (Func<string>)tmpname);
+        Register(env, os, (Func<double>)clock);
+        Register(env, os, (Func<string, object, object>)date);
+        Register(env, os, (Func<double, double, double>)difftime);
+        Register(env, os, (Action<object>)exit);
+        Register(env, os, (Func<string, string?>)getenv);
+        Register(env, os, (Func<string, object?[]>)remove);
+        Register(env, os, (Func<string, string, object?[]>)rename);
+        Register(env, os, (Func<string, string?>)setlocale);
+        Register(env, os, (Func<object, double>)time);
+        Register(env, os, (Func<string>)tmpname);
 
-        _env.GlobalsTable.SetItemRaw(new LuaString("os"), os);
+        env.GlobalsTable.SetItemRaw(new LuaString("os"), os);
       }
 
-      double clock() {
+      static double clock() {
         return _stop.Elapsed.TotalSeconds;
       }
-      object date(string format = "%c", object? source = null) {
+      static object date(string format = "%c", object? source = null) {
         DateTime time;
 
         if (source is double d) {
@@ -184,10 +179,10 @@ namespace ModMaker.Lua.Runtime {
         }
         return ret.ToString();
       }
-      double difftime(double time1, double time2) {
+      static double difftime(double time1, double time2) {
         return time2 - time1;
       }
-      void exit(object? code = null) {
+      static void exit(object? code = null) {
         int icode;
         if (code != null) {
           if (code as bool? == true) {
@@ -200,13 +195,14 @@ namespace ModMaker.Lua.Runtime {
         } else {
           icode = 0;
         }
-        _env.Settings._callQuit(_env, icode);
+        LuaEnvironment.CurrentEnvironment.Settings._callQuit(LuaEnvironment.CurrentEnvironment,
+                                                             icode);
       }
-      string? getenv(string name) {
+      static string? getenv(string name) {
         return Environment.GetEnvironmentVariable(name);
       }
       [MultipleReturn]
-      object?[] remove(string path) {
+      static object?[] remove(string path) {
         if (File.Exists(path)) {
           try {
             File.Delete(path);
@@ -230,7 +226,7 @@ namespace ModMaker.Lua.Runtime {
         }
       }
       [MultipleReturn]
-      object?[] rename(string old, string new_) {
+      static object?[] rename(string old, string new_) {
         if (File.Exists(old)) {
           try {
             File.Move(old, new_);
@@ -249,7 +245,7 @@ namespace ModMaker.Lua.Runtime {
           return new object?[] { null, "Specified path does not exist." };
         }
       }
-      string? setlocale(string? name) {
+      static string? setlocale(string? name) {
         if (name == null) {
           return Thread.CurrentThread.CurrentCulture.Name;
         }
@@ -265,7 +261,7 @@ namespace ModMaker.Lua.Runtime {
           return null;
         }
       }
-      double time(object source) {
+      static double time(object source) {
         DateTime time;
 
         if (source is ILuaTable table) {
@@ -304,7 +300,7 @@ namespace ModMaker.Lua.Runtime {
 
         return time.Ticks;
       }
-      string tmpname() {
+      static string tmpname() {
         return Path.GetTempFileName();
       }
     }
