@@ -356,7 +356,8 @@ namespace ModMaker.Lua {
           throw new InvalidOperationException($"Cannot call special method '{method.Name}'.");
         }
 
-        return new LuaOverloadFunction(method.Name, members.Cast<MethodInfo>(),
+        return new LuaOverloadFunction(LuaEnvironment.CurrentEnvironment, method.Name,
+                                       members.Cast<MethodInfo>(),
                                        Enumerable.Repeat(target, members.Length));
       } else {
         throw new InvalidOperationException("Unrecognized member type " + members[0]);

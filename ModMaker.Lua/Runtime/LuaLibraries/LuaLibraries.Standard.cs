@@ -235,10 +235,10 @@ namespace ModMaker.Lua.Runtime {
         }
       }
 
-      sealed class pcall : LuaFrameworkFunction {
+      sealed class pcall : LuaFunction {
         public pcall(ILuaEnvironment env) : base(env, "pcall") { }
 
-        public override LuaMultiValue Invoke(LuaMultiValue args) {
+        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
           if (args.Count < 1) {
             throw new ArgumentException("Expecting at least one argument to function 'pcall'.");
           }
@@ -260,10 +260,10 @@ namespace ModMaker.Lua.Runtime {
           }
         }
       }
-      sealed class print : LuaFrameworkFunction {
+      sealed class print : LuaFunction {
         public print(ILuaEnvironment env) : base(env, "print") { }
 
-        public override LuaMultiValue Invoke(LuaMultiValue args) {
+        protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
           StringBuilder str = new StringBuilder();
           if (args != null) {
             for (int i = 0; i < args.Count; i++) {
@@ -274,10 +274,10 @@ namespace ModMaker.Lua.Runtime {
             str.Append('\n');
           }
 
-          Stream? s = _environment.Settings.Stdout;
+          Stream? s = Environment.Settings.Stdout;
           if (s == null)
             throw new Exception("No standard out given");
-          byte[] txt = (_environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
+          byte[] txt = (Environment.Settings.Encoding ?? Encoding.UTF8).GetBytes(str.ToString());
           s.Write(txt, 0, txt.Length);
 
           return LuaMultiValue.Empty;

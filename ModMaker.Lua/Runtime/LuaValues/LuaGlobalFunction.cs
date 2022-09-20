@@ -23,23 +23,18 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// The dynamic Lua type.
     /// </summary>
     readonly Type _type;
-    /// <summary>
-    /// The current environment.
-    /// </summary>
-    readonly ILuaEnvironment _env;
 
     /// <summary>
     /// Creates a new instance of LuaChunk with the given backing type.
     /// </summary>
     /// <param name="env">The current environment.</param>
     /// <param name="type">The generated type, must implement IMethod.</param>
-    public LuaGlobalFunction(ILuaEnvironment env, Type type) : base(type.Name) {
+    public LuaGlobalFunction(ILuaEnvironment env, Type type) : base(env, type.Name) {
       _type = type;
-      _env = env;
     }
 
-    public override LuaMultiValue Invoke(LuaMultiValue args) {
-      ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, new[] { _env })!;
+    protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
+      ILuaValue method = (ILuaValue)Activator.CreateInstance(_type, null)!;
       return method.Invoke(args);
     }
   }

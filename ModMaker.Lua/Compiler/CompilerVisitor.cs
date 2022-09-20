@@ -146,9 +146,9 @@ namespace ModMaker.Lua.Compiler {
         }
 
         // enumerable = E.Runtime.GenericLoop(E, new LuaMultiValue(temp));
-        gen.Emit(OpCodes.Ldarg_1);
+        gen.Emit(OpCodes.Call, ReflectionMembers.LuaEnvironment.get_CurrentEnvironment);
         gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaEnvironment.get_Runtime);
-        gen.Emit(OpCodes.Ldarg_1);
+        gen.Emit(OpCodes.Call, ReflectionMembers.LuaEnvironment.get_CurrentEnvironment);
         gen.Emit(OpCodes.Ldloc, temp);
         gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaMultiValue.Constructor);
         gen.Emit(OpCodes.Callvirt, ReflectionMembers.ILuaRuntime.GenericLoop);

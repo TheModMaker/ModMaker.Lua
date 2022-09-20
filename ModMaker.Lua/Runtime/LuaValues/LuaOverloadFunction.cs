@@ -36,8 +36,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// <param name="name">The name of the method, used for errors.</param>
     /// <param name="methods">The method choices, cannot be null.</param>
     /// <param name="targets">The targets for the methods, cannot be null.</param>
-    public LuaOverloadFunction(string name, IEnumerable<MethodInfo> methods,
-                               IEnumerable<object?> targets) : base(name) {
+    public LuaOverloadFunction(ILuaEnvironment e, string name, IEnumerable<MethodInfo> methods,
+                               IEnumerable<object?> targets) : base(e, name) {
       _methods = methods.Zip(targets, Tuple.Create).ToList();
       for (int i = 0; i < _methods.Count; i++) {
         var param = _methods[i].Item1.GetParameters();
@@ -69,11 +69,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       if (index < 0 || index >= _methods.Count)
         throw new ArgumentException("Overload index outside range");
 
-      return new LuaOverloadFunction(Name, new[] { _methods[index].Item1 },
+      return new LuaOverloadFunction(Environment, Name, new[] { _methods[index].Item1 },
                                      new[] { _methods[index].Item2 });
     }
 
-    public override LuaMultiValue Invoke(LuaMultiValue args) {
+    protected override LuaMultiValue _invokeInternal(LuaMultiValue args) {
       int index = OverloadSelector.FindOverload(_choices.ToArray(), args);
       object?[] realArgs;
       Tuple<MethodInfo, object?> method;

@@ -45,7 +45,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       }
       if (value is Delegate delegate_) {
         return new LuaOverloadFunction(
-            delegate_.Method.Name, new[] { delegate_.Method }, new[] { delegate_.Target });
+            LuaEnvironment.CurrentEnvironment, delegate_.Method.Name, new[] { delegate_.Method },
+            new[] { delegate_.Target });
       }
 
       bool? boolValue = value as bool?;

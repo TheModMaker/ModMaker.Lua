@@ -33,8 +33,9 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// Creates a new LuaFunction.
     /// </summary>
     /// <param name="name">The name of the method</param>
-    protected LuaFunction(string name) {
+    protected LuaFunction(ILuaEnvironment e, string name) {
       Name = name;
+      Environment = e;
     }
 
     /// <summary>
@@ -42,7 +43,15 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     /// </summary>
     public string Name { get; }
 
-    public abstract LuaMultiValue Invoke(LuaMultiValue args);
+    public ILuaEnvironment Environment { get; private set; }
+
+    public LuaMultiValue Invoke(LuaMultiValue args) {
+      using (LuaEnvironment._setEnvironment(Environment)) {
+        return _invokeInternal(args);
+      }
+    }
+
+    protected abstract LuaMultiValue _invokeInternal(LuaMultiValue args);
 
     public bool Equals(ILuaValue? other) {
       return ReferenceEquals(this, other);

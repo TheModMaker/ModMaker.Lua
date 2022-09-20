@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Reflection;
+using System.Threading;
 using ModMaker.Lua.Compiler;
 using ModMaker.Lua.Parser;
 using ModMaker.Lua.Runtime.LuaValues;
@@ -60,6 +61,9 @@ namespace ModMaker.Lua.Runtime {
   /// </summary>
   [LuaIgnore]
   public class LuaEnvironment : DynamicObject, ILuaEnvironment {
+    static readonly ThreadLocal<ILuaEnvironment?> _environment =
+        new ThreadLocal<ILuaEnvironment?>();
+
     /// <summary>
     /// Creates a new LuaEnvironment without initializing the state, for use with a derived type.
     /// </summary>
@@ -111,6 +115,36 @@ namespace ModMaker.Lua.Runtime {
       RegisterType(typeof(Boolean), "Boolean");
     }
 
+    /// <summary>
+    /// Gets the current Environment object for the current thread.  This is only valid while Lua
+    /// code is being executed; this throws an exception if Lua code isn't running.
+    /// </summary>
+    public static ILuaEnvironment CurrentEnvironment {
+      get {
+        return _environment.Value ??
+               throw new InvalidOperationException("No current environment set");
+      }
+    }
+
+    /// <summary>
+    /// Sets the current thread's environment to the given object.  This MUST be used in a "using"
+    /// statement to restore the old environment at the end of the block.
+    /// </summary>
+    /// <param name="e">The environment to set to.</param>
+    /// <returns>An object to use in a "using" statement to restore the environment.</returns>
+    internal static IDisposable _setEnvironment(ILuaEnvironment? e) {
+      if (e != null && _environment.Value != null && _environment.Value != e)
+        throw new InvalidOperationException("Cannot invoke Lua code from a different environment");
+
+      var prev = _environment.Value;
+      _environment.Value = e;
+      return Helpers.Disposable(() => {
+        if (_environment.Value != e)
+          throw new InvalidOperationException("Environment changed out of order");
+        _environment.Value = prev;
+      });
+    }
+
     public virtual ILuaValue this[string name] {
       get { return GlobalsTable.GetIndex(new LuaString(name)); }
       set { GlobalsTable.SetIndex(new LuaString(name), value); }
@@ -136,7 +170,7 @@ namespace ModMaker.Lua.Runtime {
         } else {
           GlobalsTable.SetItemRaw(
               new LuaString(name),
-              new LuaOverloadFunction(name, new[] { d.Method }, new[] { d.Target }));
+              new LuaOverloadFunction(this, name, new[] { d.Method }, new[] { d.Target }));
         }
       }
     }

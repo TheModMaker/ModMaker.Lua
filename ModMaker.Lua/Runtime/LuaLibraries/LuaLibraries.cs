@@ -50,7 +50,8 @@ namespace ModMaker.Lua.Runtime {
     }
 
     static void Register(ILuaEnvironment env, ILuaValue table, Delegate func, string? name = null) {
-      var funcValue = LuaValueBase.CreateValue(func);
+      var funcValue = new LuaOverloadFunction(env, name ?? func.Method.Name, new[] { func.Method },
+                                              new[] { func.Target });
       var nameValue = new LuaString(name ?? func.Method.Name);
       table.SetIndex(nameValue, funcValue);
     }

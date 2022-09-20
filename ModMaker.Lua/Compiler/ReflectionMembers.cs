@@ -133,6 +133,11 @@ namespace ModMaker.Lua.Compiler {
       public static MethodInfo CreateThread;
     }
 
+    [ReflectFieldsFor(typeof(Runtime.LuaEnvironment))]
+    public static class LuaEnvironment {
+      public static MethodInfo get_CurrentEnvironment;
+    }
+
     [ReflectFieldsFor(typeof(Runtime.LuaValues.LuaMultiValue))]
     public static class LuaMultiValue {
       public static ConstructorInfo Constructor;
