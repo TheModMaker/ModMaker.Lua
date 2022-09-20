@@ -34,9 +34,9 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public IParseExp Expression { get; set; }
     /// <summary>
-    /// Gets a label that represents a break from the loop.
+    /// Gets or sets a label that represents a break from the loop.
     /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
+    public LabelItem Break { get; set; } = new LabelItem("<break>");
 
     /// <summary>
     /// Contains the DebugInfo for the whole block.

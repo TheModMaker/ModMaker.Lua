@@ -58,9 +58,9 @@ namespace ModMaker.Lua.Parser.Items {
     /// </summary>
     public BlockItem Block { get; set; }
     /// <summary>
-    /// Gets the label that represents a break from the loop.
+    /// Gets or sets the label that represents a break from the loop.
     /// </summary>
-    public LabelItem Break { get; } = new LabelItem("<break>");
+    public LabelItem Break { get; set; } = new LabelItem("<break>");
 
     /// <summary>
     /// Contains the DebugInfo for the whole block.

@@ -941,8 +941,15 @@ namespace UnitTests.Parser {
     [Test]
     public void Goto() {
       ParseItemEquals.CheckEquals(
-          new GotoItem("foo"),
-          _parseStatement("goto foo"));
+          new BlockItem(new IParseStatement[] { new LabelItem("foo"), new GotoItem("foo") }) {
+            Return = new ReturnItem(),
+          },
+          _parseBlock("::foo:: goto foo"));
+    }
+
+    [Test]
+    public void Goto_NoLabel() {
+      Assert.That(() => _parseStatement("goto foo"), Throws.TypeOf<CompilerException>());
     }
 
     [Test]

@@ -72,8 +72,6 @@ namespace ModMaker.Lua.Compiler {
         name += i;
       }
 
-      GetInfoVisitor.Resolve(item);
-
       TypeBuilder tb = _mb.DefineType(
           name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.Sealed,
           typeof(LuaValueBase), Type.EmptyTypes);
