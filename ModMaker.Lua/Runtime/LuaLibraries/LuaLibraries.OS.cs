@@ -16,7 +16,6 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
@@ -33,8 +32,8 @@ namespace ModMaker.Lua.Runtime {
         Register(env, os, (Func<double, double, double>)difftime);
         Register(env, os, (Action<object>)exit);
         Register(env, os, (Func<string, string?>)getenv);
-        Register(env, os, (Func<string, object?[]>)remove);
-        Register(env, os, (Func<string, string, object?[]>)rename);
+        Register(env, os, (Func<string, LuaMultiValue>)remove);
+        Register(env, os, (Func<string, string, LuaMultiValue>)rename);
         Register(env, os, (Func<string, string?>)setlocale);
         Register(env, os, (Func<object, double>)time);
         Register(env, os, (Func<string>)tmpname);
@@ -202,47 +201,23 @@ namespace ModMaker.Lua.Runtime {
         return Environment.GetEnvironmentVariable(name);
       }
       [MultipleReturn]
-      static object?[] remove(string path) {
+      static LuaMultiValue remove(string path) {
         if (File.Exists(path)) {
-          try {
-            File.Delete(path);
-            return new object?[] { true };
-          } catch (Exception e) {
-            return new object?[] { null, e.Message, e };
-          }
+          return _pcallInternal(() => File.Delete(path));
         } else if (Directory.Exists(path)) {
-          if (Directory.EnumerateFileSystemEntries(path).Any()) {
-            return new object?[] { null, "Specified directory is not empty." };
-          }
-
-          try {
-            Directory.Delete(path);
-            return new object?[] { true };
-          } catch (Exception e) {
-            return new object?[] { null, e.Message, e };
-          }
+          return _pcallInternal(() => Directory.Delete(path));
         } else {
-          return new object?[] { null, "Specified filename does not exist." };
+          return LuaMultiValue.CreateMultiValueFromObj(false, "Specified filename does not exist.");
         }
       }
       [MultipleReturn]
-      static object?[] rename(string old, string new_) {
+      static LuaMultiValue rename(string old, string new_) {
         if (File.Exists(old)) {
-          try {
-            File.Move(old, new_);
-            return new object?[] { true };
-          } catch (Exception e) {
-            return new object?[] { null, e.Message, e };
-          }
+          return _pcallInternal(() => File.Move(old, new_));
         } else if (Directory.Exists(old)) {
-          try {
-            Directory.Move(old, new_);
-            return new object?[] { true };
-          } catch (Exception e) {
-            return new object?[] { null, e.Message, e };
-          }
+          return _pcallInternal(() => Directory.Move(old, new_));
         } else {
-          return new object?[] { null, "Specified path does not exist." };
+          return LuaMultiValue.CreateMultiValueFromObj(false, "Specified path does not exist.");
         }
       }
       static string? setlocale(string? name) {

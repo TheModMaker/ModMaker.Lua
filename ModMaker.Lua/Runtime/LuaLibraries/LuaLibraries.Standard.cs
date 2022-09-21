@@ -43,7 +43,7 @@ namespace ModMaker.Lua.Runtime {
         Register(env, table, (Func<ILuaTable, string>)type);
         Register(env, table, (Func<LuaFunction, int, ILuaValue>)overload);
 
-        Register(env, table, (Func<LuaFunction, ILuaValue[], IEnumerable<object>>)pcall);
+        Register(env, table, (Func<LuaFunction, ILuaValue[], LuaMultiValue>)pcall);
         Register(env, table, (Action<LuaMultiValue>)print);
 
         table.SetItemRaw(new LuaString("_VERSION"), new LuaString(_version));
@@ -236,17 +236,10 @@ namespace ModMaker.Lua.Runtime {
       }
 
       [MultipleReturn]
-      static IEnumerable<object> pcall(LuaFunction func, params ILuaValue[] args) {
-        try {
-          var ret = func.Invoke(new LuaMultiValue(args));
-          return new ILuaValue[] { LuaBoolean.True }.Concat(ret);
-        } catch (ThreadAbortException) {
-          throw;
-        } catch (ThreadInterruptedException) {
-          throw;
-        } catch (Exception e) {
-          return new object[] { false, e.Message, e };
-        }
+      static LuaMultiValue pcall(LuaFunction func, params ILuaValue[] args) {
+        return _pcallInternal(
+            () => new LuaMultiValue(LuaBoolean.True, func.Invoke(new LuaMultiValue(args))),
+            pcall: true);
       }
       static void print(LuaMultiValue args) {
         StringBuilder str = new StringBuilder();

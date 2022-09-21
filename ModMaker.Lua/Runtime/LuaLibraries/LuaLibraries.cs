@@ -14,6 +14,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
@@ -54,6 +55,24 @@ namespace ModMaker.Lua.Runtime {
                                               new[] { func.Target });
       var nameValue = new LuaString(name ?? func.Method.Name);
       table.SetIndex(nameValue, funcValue);
+    }
+
+    static LuaMultiValue _pcallInternal(Action cb, bool pcall = false) {
+      return _pcallInternal(() => { cb(); return LuaMultiValue.Empty; }, pcall);
+    }
+    static LuaMultiValue _pcallInternal(Func<LuaMultiValue> cb, bool pcall = false) {
+      try {
+        return cb();
+      } catch (ThreadAbortException) {
+        throw;
+      } catch (ThreadInterruptedException) {
+        throw;
+      } catch (Exception e) {
+        if (pcall)
+          return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
+        else
+          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e.HResult, e);
+      }
     }
 
     static int normalizeIndex_(int max, int i) {

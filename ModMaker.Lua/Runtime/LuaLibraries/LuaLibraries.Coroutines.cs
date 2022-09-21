@@ -13,8 +13,6 @@
 // limitations under the License.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
@@ -23,7 +21,7 @@ namespace ModMaker.Lua.Runtime {
       public static void Initialize(ILuaEnvironment env) {
         ILuaTable coroutine = new LuaTable();
         Register(env, coroutine, (Func<LuaFunction, ILuaValue>)create);
-        Register(env, coroutine, (Func<ILuaThread, ILuaValue[], IEnumerable<ILuaValue>>)resume);
+        Register(env, coroutine, (Func<ILuaThread, ILuaValue[], LuaMultiValue>)resume);
         Register(env, coroutine, (Func<object[]>)running);
         Register(env, coroutine, (Func<ILuaThread, string>)status);
         Register(env, coroutine, (Func<LuaFunction, object>)wrap);
@@ -35,16 +33,12 @@ namespace ModMaker.Lua.Runtime {
       static ILuaValue create(LuaFunction method) {
         return LuaEnvironment.CurrentEnvironment.Runtime.CreateThread(method);
       }
-      [MultipleReturn]
-      static IEnumerable<ILuaValue> resume(ILuaThread thread, params ILuaValue[] args) {
+      static LuaMultiValue resume(ILuaThread thread, params ILuaValue[] args) {
         if (thread.Status == LuaThreadStatus.Complete)
           return LuaMultiValue.CreateMultiValueFromObj(false, "cannot resume dead coroutine");
-        try {
-          LuaMultiValue ret = thread.Resume(new LuaMultiValue(args));
-          return new[] { LuaBoolean.True }.Concat(ret);
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
-        }
+        return _pcallInternal(
+            () => new LuaMultiValue(LuaBoolean.True, thread.Resume(new LuaMultiValue(args))),
+            pcall: true);
       }
       [MultipleReturn]
       static object[] running() {

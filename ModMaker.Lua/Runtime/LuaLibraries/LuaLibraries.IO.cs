@@ -96,23 +96,19 @@ namespace ModMaker.Lua.Runtime {
         if (!_getStream(file, kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
           return ret;
 
-        try {
+        return _pcallInternal(() => {
           s.Close();
           return new LuaMultiValue(_createFile(s, LuaEnvironment.CurrentEnvironment));
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-        }
+        });
       }
       static LuaMultiValue flush(ILuaValue file) {
         if (!_getStream(file, kOutput, kRequireStream, out Stream? s, out LuaMultiValue? ret))
           return ret;
 
-        try {
+        return _pcallInternal(() => {
           s.Flush();
           return new LuaMultiValue(_createFile(s, LuaEnvironment.CurrentEnvironment));
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-        }
+        });
       }
       static ILuaTable? input(ILuaValue obj) {
         if (obj != null) {
@@ -158,8 +154,7 @@ namespace ModMaker.Lua.Runtime {
         int[] a = _parse(args.Skip(start), "io.lines");
         return new LinesHelper(LuaEnvironment.CurrentEnvironment, close, s, a);
       }
-      [MultipleReturn]
-      static object?[] open(string s, string mode = "r") {
+      static LuaMultiValue open(string s, string mode = "r") {
         FileMode fileMode;
         FileAccess access;
         bool seek = false;
@@ -201,20 +196,19 @@ namespace ModMaker.Lua.Runtime {
             seek = true;
             break;
           default:
-            return new object?[] { null, "Second argument must be a valid string mode." };
+            return LuaMultiValue.CreateMultiValueFromObj(
+                null, "Second argument must be a valid string mode.");
         }
 
-        try {
+        return _pcallInternal(() => {
           using (Stream stream = File.Open(s, fileMode, access)) {
             if (seek && stream.CanSeek) {
               stream.Seek(0, SeekOrigin.End);
             }
 
-            return new[] { _createFile(stream, LuaEnvironment.CurrentEnvironment) };
+            return new LuaMultiValue(_createFile(stream, LuaEnvironment.CurrentEnvironment));
           }
-        } catch (Exception e) {
-          return new object?[] { null, e.Message, e };
-        }
+        });
       }
       static ILuaTable? output(ILuaValue obj) {
         if (obj != LuaNil.Nil) {
@@ -268,11 +262,9 @@ namespace ModMaker.Lua.Runtime {
               null, "Specified stream cannot be seeked.");
         }
 
-        try {
+        return _pcallInternal(() => {
           return LuaMultiValue.CreateMultiValueFromObj(Convert.ToDouble(s.Seek(off, origin)));
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-        }
+        });
       }
       static ILuaTable tmpfile() {
         string str = Path.GetTempFileName();
@@ -295,7 +287,7 @@ namespace ModMaker.Lua.Runtime {
         int start = s == _output ? 0 : 1;
 
         var E = LuaEnvironment.CurrentEnvironment;
-        try {
+        return _pcallInternal(() => {
           for (int i = start; i < args.Count; i++) {
             var temp = args[i].GetValue();
             if (temp is double dbl) {
@@ -311,11 +303,7 @@ namespace ModMaker.Lua.Runtime {
           }
 
           return new LuaMultiValue(_createFile(s, E));
-        } catch (ArgumentException) {
-          throw;
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message, e);
-        }
+        });
       }
 
       // helper functions
@@ -475,13 +463,11 @@ namespace ModMaker.Lua.Runtime {
         if (env != null)
           throw new NotSupportedException("Custom environment not supported");
 
-        try {
+        return _pcallInternal(() => {
           var E = LuaEnvironment.CurrentEnvironment;
           var parsed = E.Parser.Parse(chunk, source);
           return new LuaMultiValue(E.CodeCompiler.Compile(E, parsed, source));
-        } catch (Exception e) {
-          return LuaMultiValue.CreateMultiValueFromObj(null, e.Message);
-        }
+        });
       }
       static LuaMultiValue loadfile(string file, string mode = "bt", ILuaTable? env = null) {
         return load(new LuaString(File.ReadAllText(file)), Path.GetFileName(file), mode, env);
