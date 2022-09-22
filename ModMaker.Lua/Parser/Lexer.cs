@@ -255,7 +255,7 @@ namespace ModMaker.Lua.Parser {
         return _readString();
       }
 
-      SyntaxError(MessageId.UnknownToken);
+      SyntaxError(MessageId.UnknownToken, null, $"Unknown token '{first}' (0x{(int)first[0]:X})");
       throw MakeException();
     }
 
