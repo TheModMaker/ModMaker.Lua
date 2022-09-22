@@ -123,7 +123,7 @@ namespace ModMaker.Lua.Runtime {
     /// <exception cref="System.InvalidArgumentException">
     /// If the argument is an invalid value.
     /// </exception>
-    ILuaValue Arithmetic(BinaryOperationType type, LuaValues.LuaThread self);
+    ILuaValue Arithmetic(BinaryOperationType type, LuaValues.LuaCoroutine self);
     /// <summary>
     /// Performs a binary arithmetic operation and returns the result.
     /// </summary>

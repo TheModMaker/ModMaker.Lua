@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using ModMaker.Lua.Runtime;
 using NUnit.Framework;
 
@@ -110,6 +111,21 @@ namespace UnitTests.Runtime.LuaLibraries {
     [Test]
     public void Yield_Main() {
       _lua.DoText(@"assertThrows('yield error', function() coroutine.yield(co) end)");
+    }
+
+    [Test]
+    public void Yield_AbortPcall() {
+      _lua.DoText(@"
+        local function f(x)
+          pcall(function()
+            coroutine.yield()
+          end)
+          fail('Should not return from yield here')
+        end
+        local co = coroutine.create(f)
+        coroutine.resume(co)
+      ");
+      GC.Collect();
     }
 
     [Test]

@@ -13,7 +13,6 @@
 // limitations under the License.
 
 using System.Collections.Generic;
-using ModMaker.Lua.Runtime.LuaValues;
 
 namespace ModMaker.Lua.Runtime {
   /// <summary>
@@ -21,7 +20,7 @@ namespace ModMaker.Lua.Runtime {
   /// framework.  This object must be disposed prior to closing the application or it will
   /// not close.  Do not store in a static variable.
   /// </summary>
-  public sealed class ThreadPool {
+  sealed class ThreadPool {
     /// <summary>
     /// The minimum number of waiting threads.
     /// </summary>
@@ -31,7 +30,7 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     const double _waitingThreadTarget = 0.75;
 
-    readonly SortedList<int, WorkerThread> _threads = new SortedList<int, WorkerThread>();
+    readonly HashSet<WorkerThread> _threads = new HashSet<WorkerThread>();
     readonly Queue<WorkerThread> _waitingThreads = new Queue<WorkerThread>();
     readonly object _lock = new object();
 
@@ -45,22 +44,13 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="action">The method to invoke.</param>
     /// <returns>A new LuaThread object that will invoke the given method.</returns>
-    public ILuaThread Create(ILuaValue action) {
+    public ILuaCoroutineImpl Create(ILuaValue action) {
       lock (_lock) {
         _resizePool();
         WorkerThread thread = _waitingThreads.Dequeue();
 
-        thread.DoWork(action);
-        return thread.Target!;
+        return thread.DoWork(action);
       }
-    }
-    /// <summary>
-    /// Searches the factory for the thread that executes on the given ManagedThreadId.
-    /// </summary>
-    /// <param name="managedId">The ManagedThreadId of the thread to search.</param>
-    /// <returns>The thread for that Id or a new object if not found.</returns>
-    public LuaThread Search(int managedId) {
-      return LuaThread.Search(managedId);
     }
     /// <summary>
     /// Called when a thread is done working.
@@ -77,7 +67,7 @@ namespace ModMaker.Lua.Runtime {
     /// <param name="thread">The thread that is shutting down.</param>
     internal void _shutdownThread(WorkerThread thread) {
       lock (_lock) {
-        _threads.Remove(thread.ID);
+        _threads.Remove(thread);
 
         // Search the waiting threads, remove the given thread.  Can stop early because order
         // does not matter.
@@ -102,13 +92,13 @@ namespace ModMaker.Lua.Runtime {
         if (_waitingThreads.Count == 0) {
           var temp = new WorkerThread(this);
           _waitingThreads.Enqueue(temp);
-          _threads.Add(temp.ID, temp);
+          _threads.Add(temp);
         }
 
         // Remove extra threads.
         while (_waitingThreads.Count > (_threads.Count * _waitingThreadTarget + _minThreadCount)) {
           var temp = _waitingThreads.Dequeue();
-          _threads.Remove(temp.ID);
+          _threads.Remove(temp);
         }
       }
     }

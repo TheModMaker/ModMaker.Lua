@@ -24,11 +24,6 @@ namespace ModMaker.Lua.Runtime {
     // TODO: Consider replacing GenericLoop.
 
     /// <summary>
-    /// Gets the Lua thread object for the current thread.
-    /// </summary>
-    ILuaThread CurrentThread { get; }
-
-    /// <summary>
     /// Starts a generic for loop and returns an enumerator object used to get the values.
     /// </summary>
     /// <param name="args">The input arguments.</param>
@@ -44,6 +39,6 @@ namespace ModMaker.Lua.Runtime {
     /// </summary>
     /// <param name="method">The method to call.</param>
     /// <returns>The new Lua thread object.</returns>
-    ILuaThread CreateThread(ILuaValue method);
+    LuaCoroutine CreateThread(ILuaValue method);
   }
 }

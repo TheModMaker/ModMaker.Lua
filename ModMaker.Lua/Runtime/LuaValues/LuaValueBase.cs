@@ -284,7 +284,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
 
       throw new InvalidOperationException(Errors.CannotArithmetic(LuaValueType.Table));
     }
-    public virtual ILuaValue Arithmetic(BinaryOperationType type, LuaThread self) {
+    public virtual ILuaValue Arithmetic(BinaryOperationType type, LuaCoroutine self) {
       var ret = _attemptMetamethod(type, self, this);
       if (ret != null) {
         return ret;

@@ -36,9 +36,6 @@ namespace ModMaker.Lua.Runtime {
     /// Gets or sets whether to use a thread pool for Lua threads.
     /// </summary>
     public bool UseThreadPool { get; set; }
-    public ILuaThread CurrentThread {
-      get { return _threadPool.Search(Environment.CurrentManagedThreadId); }
-    }
 
     public virtual IEnumerable<LuaMultiValue> GenericLoop(ILuaEnvironment env,
                                                            LuaMultiValue args) {
@@ -72,8 +69,8 @@ namespace ModMaker.Lua.Runtime {
       }
     }
 
-    public ILuaThread CreateThread(ILuaValue method) {
-      return _threadPool.Create(method);
+    public LuaCoroutine CreateThread(ILuaValue method) {
+      return new LuaCoroutine(_threadPool.Create(method));
     }
   }
 }

@@ -48,6 +48,7 @@ namespace ModMaker.Lua.Runtime {
     readonly object _lock = new object();
     readonly ThreadPool _owner;
     readonly Thread _backing;
+    WeakReference<LuaCoroutineThread>? _target;
     Status _status;
 
     /// <summary>
@@ -61,33 +62,33 @@ namespace ModMaker.Lua.Runtime {
       _backing.Start();
     }
     ~WorkerThread() {
-      _backing.Abort();
+      lock (_lock) {
+        _status = Status.Shutdown;
+        if (_target?.TryGetTarget(out LuaCoroutineThread? target) ?? false)
+          target.Shutdown();
+        Monitor.Pulse(_lock);
+      }
+      _backing.Join();
     }
 
-    /// <summary>
-    /// Gets the current target of the thread.
-    /// </summary>
-    public LuaThread? Target { get; private set; }
-    /// <summary>
-    /// Gets the ID for the worker thread.
-    /// </summary>
-    public int ID { get { return _backing.ManagedThreadId; } }
 
     /// <summary>
     /// Makes the current thread execute the given method.
     /// </summary>
     /// <param name="target">The method to execute.</param>
-    public void DoWork(ILuaValue target) {
+    public LuaCoroutineThread DoWork(ILuaValue target) {
       if (_status != Status.Waiting) {
         throw new InvalidOperationException(
             "The worker thread must be waiting to get a new task.");
       }
 
-      Target = new LuaThread(target, _backing);
+      var ret = new LuaCoroutineThread(target, _backing);
+      _target = new WeakReference<LuaCoroutineThread>(ret);
       _status = Status.Working;
       lock (_lock) {
         Monitor.Pulse(_lock);
       }
+      return ret;
     }
 
     /// <summary>
@@ -103,11 +104,13 @@ namespace ModMaker.Lua.Runtime {
           }
 
           if (_status == Status.Shutdown) {
-            _owner._shutdownThread(this);
+            if (_owner != null)
+              _owner._shutdownThread(this);
             return;
           }
 
-          Target!._do();
+          _target!.TryGetTarget(out LuaCoroutineThread? target);
+          target!.Run();
 
           _status = Status.Waiting;
           _owner._doneWorking(this);

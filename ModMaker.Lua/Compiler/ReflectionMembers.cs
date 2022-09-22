@@ -127,8 +127,6 @@ namespace ModMaker.Lua.Compiler {
 
     [ReflectFieldsFor(typeof(Runtime.ILuaRuntime))]
     public static class ILuaRuntime {
-      public static MethodInfo get_CurrentThread;
-
       public static MethodInfo GenericLoop;
       public static MethodInfo CreateThread;
     }

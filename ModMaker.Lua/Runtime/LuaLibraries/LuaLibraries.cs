@@ -63,11 +63,8 @@ namespace ModMaker.Lua.Runtime {
     static LuaMultiValue _pcallInternal(Func<LuaMultiValue> cb, bool pcall = false) {
       try {
         return cb();
-      } catch (ThreadAbortException) {
-        throw;
-      } catch (ThreadInterruptedException) {
-        throw;
-      } catch (Exception e) {
+      } catch (Exception e) when (!(e is ThreadAbortException) && !(e is LuaAbortException) &&
+                                  !(e is ThreadInterruptedException)) {
         if (pcall)
           return LuaMultiValue.CreateMultiValueFromObj(false, e.Message, e);
         else

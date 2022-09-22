@@ -67,7 +67,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public ILuaValue ArithmeticFrom(BinaryOperationType type, LuaTable self) {
       throw new NotImplementedException();
     }
-    public ILuaValue ArithmeticFrom(BinaryOperationType type, LuaThread self) {
+    public ILuaValue ArithmeticFrom(BinaryOperationType type, LuaCoroutine self) {
       throw new NotImplementedException();
     }
     public ILuaValue ArithmeticFrom<T2>(BinaryOperationType type, LuaUserData<T2> self) {
