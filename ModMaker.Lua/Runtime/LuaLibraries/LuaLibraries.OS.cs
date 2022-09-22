@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Runtime {
       static readonly Stopwatch _stop = Stopwatch.StartNew();
 
       public static void Initialize(ILuaEnvironment env) {
-        ILuaTable os = new LuaTable();
+        ILuaTable os = new LuaTable(env);
         Register(env, os, (Func<double>)clock);
         Register(env, os, (Func<string, object, object>)date);
         Register(env, os, (Func<double, double, double>)difftime);
@@ -61,7 +61,7 @@ namespace ModMaker.Lua.Runtime {
         }
 
         if (format == "*t") {
-          ILuaTable table = new LuaTable();
+          ILuaTable table = new LuaTable(LuaEnvironment.CurrentEnvironment);
           void set(string a, int b) {
             table.SetItemRaw(new LuaString(a), LuaNumber.Create(b));
           }

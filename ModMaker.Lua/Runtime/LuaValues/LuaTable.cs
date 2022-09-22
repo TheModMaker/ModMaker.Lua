@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using ModMaker.Lua.Parser.Items;
@@ -23,14 +24,19 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// <remarks>
   /// As this implements two IEnumerable&lt;T&gt;, IEnumerable returns the KeyValuePair values.
   /// </remarks>
-  public sealed class LuaTable : LuaValueBase, ILuaTable {
+  public sealed class LuaTable : LuaValueBase, ILuaTable, ILuaBoundValue {
     static readonly LuaString _index = new LuaString("__index");
     static readonly LuaString _newindex = new LuaString("__newindex");
     static readonly LuaString _len = new LuaString("__len");
     readonly Dictionary<ILuaValue, ILuaValue> _values = new Dictionary<ILuaValue, ILuaValue>();
 
+    public LuaTable(ILuaEnvironment env) {
+      Environment = env;
+    }
+
     public override LuaValueType ValueType { get { return LuaValueType.Table; } }
 
+    public ILuaEnvironment Environment { get; private set; }
     public ILuaTable? MetaTable { get; set; }
     public ILuaValue this[ILuaValue index] {
       get { return GetIndex(index); }
@@ -93,6 +99,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       return _values.TryGetValue(index, out ILuaValue? ret) ? ret : LuaNil.Nil;
     }
     public void SetItemRaw(ILuaValue index, ILuaValue value) {
+      if ((index is ILuaBoundValue indexB && indexB.Environment != Environment) ||
+          (value is ILuaBoundValue valueB && valueB.Environment != Environment)) {
+        throw new InvalidOperationException("Cannot pass bound values between environments");
+      }
+
       if (value == LuaNil.Nil) {
         if (_values.ContainsKey(index)) {
           _values.Remove(index);
@@ -100,6 +111,38 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       } else {
         _values[index] = value;
       }
+    }
+
+    public object CloneIntoEnvironment(ILuaEnvironment env) {
+      var dict = new Dictionary<object, ILuaValue>(new ReferenceEqualsComparer<object>());
+      return _cloneInternal(env, dict);
+    }
+    ILuaValue _cloneInternal(ILuaEnvironment env, Dictionary<object, ILuaValue> existing) {
+      if (existing.TryGetValue(this, out var e))
+        return e;
+
+      ILuaValue clone(ILuaValue val) {
+        if (!(val is ILuaBoundValue bound))
+          return val;
+
+        if (existing.TryGetValue(val, out var e))
+          return e;
+        ILuaValue ret;
+        if (val is LuaTable table)
+          ret = table._cloneInternal(env, existing);
+        else
+          ret = (ILuaValue)bound.CloneIntoEnvironment(env);
+        existing.Add(val, ret);
+        return ret;
+      }
+      var ret = new LuaTable(env);
+      existing.Add(this, ret);
+      if (MetaTable != null)
+        ret.MetaTable = (ILuaTable)clone(MetaTable);
+      foreach (var item in _values) {
+        ret._values.Add(clone(item.Key), clone(item.Value));
+      }
+      return ret;
     }
 
     public IEnumerator<KeyValuePair<ILuaValue, ILuaValue>> GetEnumerator() {

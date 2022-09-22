@@ -51,6 +51,11 @@ namespace ModMaker.Lua.Runtime.LuaValues {
       _choices = _methods.Select(p => new OverloadSelector.Choice(p.Item1)).ToList();
     }
 
+    public override object CloneIntoEnvironment(ILuaEnvironment environment) {
+      return new LuaOverloadFunction(environment, Name, _methods.Select(v => v.Item1),
+                                     _methods.Select(v => v.Item2));
+    }
+
     /// <summary>
     /// Adds the given overload to the possible set of functions to call.
     /// </summary>
@@ -88,13 +93,27 @@ namespace ModMaker.Lua.Runtime.LuaValues {
             $"No overload of method '{Name}' could be found with specified parameters.");
       }
 
+      ILuaValue convertValue(object? val) {
+        if (val is ILuaBoundValue bound) {
+          if (bound.Environment != Environment)
+            throw new InvalidOperationException("Cannot pass bound values between environments");
+        }
+        // If the value maps to an input arg, use the input instead.  If the input value was a
+        // LuaUserData, this will keep that wrapped value.
+        foreach (var arg in args) {
+          if (ReferenceEquals(arg.GetValue(), val))
+            return arg;
+        }
+        return LuaValueBase.CreateValue(val);
+      }
+
       // Invoke the selected method
       object? retObj = Helpers.DynamicInvoke(method.Item1, method.Item2, realArgs);
 
       // Restore by-reference variables.
       int min = Math.Min(realArgs.Length, args.Count);
       for (int i = 0; i < min; i++) {
-        args[i] = LuaValueBase.CreateValue(realArgs[i]);
+        args[i] = convertValue(realArgs[i]);
       }
 
       if (retObj is LuaMultiValue ret) {
@@ -107,14 +126,14 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         if (typeof(IEnumerable).IsAssignableFrom(returnType)) {
           // TODO: Support restricted variables.
           IEnumerable tempE = (IEnumerable)retObj!;
-          return LuaMultiValue.CreateMultiValueFromObj(tempE.Cast<object>().ToArray());
+          return new LuaMultiValue(tempE.Cast<object>().Select(convertValue).ToArray());
         } else {
           throw new InvalidOperationException(
             "Methods marked with MultipleReturnAttribute must return a type compatible with " +
             "IEnumerable.");
         }
       } else {
-        return LuaMultiValue.CreateMultiValueFromObj(retObj);
+        return new LuaMultiValue(convertValue(retObj));
       }
     }
   }

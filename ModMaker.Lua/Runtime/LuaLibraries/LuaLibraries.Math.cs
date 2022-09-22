@@ -19,7 +19,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class Math {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaValue math = new LuaTable();
+        ILuaValue math = new LuaTable(env);
         Register(env, math, (Func<double, double>)System.Math.Abs, "abs");
         Register(env, math, (Func<double, double>)System.Math.Asin, "asin");
         Register(env, math, (Func<double, double>)System.Math.Atan, "atan");

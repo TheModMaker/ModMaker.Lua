@@ -24,12 +24,14 @@ namespace ModMaker.Lua.Runtime {
   /// </summary>
   public class LuaRuntime : ILuaRuntime {
     readonly ThreadPool _threadPool;
+    readonly ILuaEnvironment _env;
 
     /// <summary>
     /// Creates a new instance of the default LuaRuntime.
     /// </summary>
-    public LuaRuntime() {
+    public LuaRuntime(ILuaEnvironment env) {
       _threadPool = new ThreadPool();
+      _env = env;
     }
 
     /// <summary>
@@ -70,7 +72,7 @@ namespace ModMaker.Lua.Runtime {
     }
 
     public LuaCoroutine CreateThread(ILuaValue method) {
-      return new LuaCoroutine(_threadPool.Create(method));
+      return new LuaCoroutine(_env, _threadPool.Create(method));
     }
   }
 }

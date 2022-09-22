@@ -39,7 +39,7 @@ namespace ModMaker.Lua.Runtime {
       static Stream? _output = null;
 
       public static void Initialize(ILuaEnvironment env) {
-        ILuaTable io = new LuaTable();
+        ILuaTable io = new LuaTable(env);
         Register(env, io, (Func<ILuaValue, LuaMultiValue>)close);
         Register(env, io, (Func<ILuaValue, LuaMultiValue>)flush);
         Register(env, io, (Func<ILuaValue, ILuaTable?>)input);
@@ -377,7 +377,7 @@ namespace ModMaker.Lua.Runtime {
         return new LuaMultiValue(ret.ToArray());
       }
       static ILuaTable _createFile(Stream backing, ILuaEnvironment env) {
-        ILuaTable ret = new LuaTable();
+        ILuaTable ret = new LuaTable(env);
         ret.SetItemRaw(_stream, new LuaUserData<Stream>(backing));
         Register(env, ret, (Func<ILuaValue, LuaMultiValue>)close);
         Register(env, ret, (Func<ILuaValue, LuaMultiValue>)flush);

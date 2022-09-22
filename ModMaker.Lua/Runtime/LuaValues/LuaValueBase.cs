@@ -40,6 +40,8 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         return LuaNil.Nil;
       }
 
+      if (value is LuaMultiValue multi)
+        return multi.Single();
       if (value is ILuaValue luaValue) {
         return luaValue;
       }

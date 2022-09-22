@@ -24,7 +24,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class String {
       public static void Initialize(ILuaEnvironment env) {
-        var str = new LuaTable();
+        var str = new LuaTable(env);
         Register(env, str, (Func<string, int, int?, IEnumerable<int>>)byte_, "byte");
         Register(env, str, (Func<int[], string>)char_, "char");
         Register(env, str, (Func<string, string, int, bool, object[]>)find);

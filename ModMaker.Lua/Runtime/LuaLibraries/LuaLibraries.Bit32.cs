@@ -20,7 +20,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     static class Bit32 {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaValue bit32 = new LuaTable();
+        ILuaValue bit32 = new LuaTable(env);
         Register(env, bit32, (Func<double, int, uint>)arshift);
         Register(env, bit32, (Func<double[], uint>)band);
         Register(env, bit32, (Func<double, uint>)bnot);

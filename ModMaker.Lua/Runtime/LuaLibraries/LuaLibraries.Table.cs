@@ -22,7 +22,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Table {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaValue table = new LuaTable();
+        ILuaValue table = new LuaTable(env);
         Register(env, table, (Func<ILuaTable, string, int, int, string>)concat);
         Register(env, table, (Action<ILuaTable, ILuaValue, ILuaValue>)insert);
         Register(env, table, (Func<ILuaValue[], ILuaValue>)pack);
@@ -83,7 +83,7 @@ namespace ModMaker.Lua.Runtime {
         table.SetItemRaw(pos, value);
       }
       static ILuaValue pack(params ILuaValue[] args) {
-        ILuaTable ret = new LuaTable();
+        ILuaTable ret = new LuaTable(LuaEnvironment.CurrentEnvironment);
         for (int i = 0; i < args.Length; i++) {
           ret.SetItemRaw(LuaNumber.Create(i + 1), args[i]);
         }

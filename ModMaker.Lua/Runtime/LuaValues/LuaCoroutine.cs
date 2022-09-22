@@ -22,14 +22,16 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// Defines a coroutine in Lua.  Cannot be created in C#, use the coroutine library in Lua to
   /// create a thread.  Threads in Lua execute synchronously.
   /// </summary>
-  public sealed class LuaCoroutine : LuaValueBase {
+  public sealed class LuaCoroutine : LuaValueBase, ILuaBoundValue {
     static readonly ConditionalWeakTable<ILuaEnvironment, Stack<LuaCoroutine>> _coroutines =
         new ConditionalWeakTable<ILuaEnvironment, Stack<LuaCoroutine>>();
-    static readonly LuaCoroutine _main = new LuaCoroutine(null);
+    static readonly ConditionalWeakTable<ILuaEnvironment, LuaCoroutine> _main =
+        new ConditionalWeakTable<ILuaEnvironment, LuaCoroutine>();
     readonly ILuaCoroutineImpl? _impl;
 
-    internal LuaCoroutine(ILuaCoroutineImpl? impl) {
+    internal LuaCoroutine(ILuaEnvironment env, ILuaCoroutineImpl? impl) {
       _impl = impl;
+      Environment = env;
     }
     ~LuaCoroutine() {
       _impl?.Shutdown();
@@ -40,21 +42,19 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         if (result.Count > 0)
           return result.Peek();
       }
-      return _main;
+      return _main.GetValue(env, (e) => new LuaCoroutine(e, null));
     }
 
     public override LuaValueType ValueType { get { return LuaValueType.Thread; } }
+    public ILuaEnvironment Environment { get; private set; }
 
     public LuaCoroutineStatus Status {
       get {
         if (_impl != null)
           return _impl.Status;
         // Get the status of the "main" thread for a Lua instance.
-        // TODO: Should be bound object, so we should use that environment.
-        try {
-          if (_coroutines.TryGetValue(LuaEnvironment.CurrentEnvironment, out var stack))
-            return stack.Count > 0 ? LuaCoroutineStatus.Waiting : LuaCoroutineStatus.Running;
-        } catch (InvalidOperationException) { }
+        if (_coroutines.TryGetValue(Environment, out var stack))
+          return stack.Count > 0 ? LuaCoroutineStatus.Waiting : LuaCoroutineStatus.Running;
         return LuaCoroutineStatus.Running;
       }
     }
@@ -63,15 +63,17 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public LuaMultiValue Resume(LuaMultiValue args) {
       if (_impl == null)
         throw new InvalidOperationException("Cannot resume the main coroutine");
-      var stack = _coroutines.GetOrCreateValue(LuaEnvironment.CurrentEnvironment);
-      stack.Push(this);
-      LuaMultiValue ret;
-      try {
-        ret = _impl.Resume(args);
-      } finally {
-        stack.Pop();
+      using (LuaEnvironment._setEnvironment(Environment)) {
+        var stack = _coroutines.GetOrCreateValue(Environment);
+        stack.Push(this);
+        LuaMultiValue ret;
+        try {
+          ret = _impl.Resume(args);
+        } finally {
+          stack.Pop();
+        }
+        return ret;
       }
-      return ret;
     }
     public static LuaMultiValue Yield(LuaMultiValue args) {
       ILuaCoroutineImpl impl;
@@ -82,6 +84,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
         impl = stack.Peek()._impl!;
       }
       return impl.Yield(args);
+    }
+
+    object ILuaBoundValue.CloneIntoEnvironment(ILuaEnvironment env) {
+      throw new NotImplementedException();
     }
 
     public override ILuaValue Arithmetic(BinaryOperationType type, ILuaValue other) {

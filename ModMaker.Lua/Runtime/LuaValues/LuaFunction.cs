@@ -26,7 +26,7 @@ namespace ModMaker.Lua.Runtime.LuaValues {
   /// implementation of LuaValues.Function.  See LuaOverloadFunction and LuaDefinedFunction for more
   /// info.
   /// </remarks>
-  public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaValueVisitor {
+  public abstract class LuaFunction : DynamicObject, ILuaValue, ILuaBoundValue, ILuaValueVisitor {
     static readonly DelegateBuilder _builder = new DelegateBuilder();
 
     /// <summary>
@@ -44,6 +44,10 @@ namespace ModMaker.Lua.Runtime.LuaValues {
     public string Name { get; }
 
     public ILuaEnvironment Environment { get; private set; }
+
+    public virtual object CloneIntoEnvironment(ILuaEnvironment environment) {
+      throw new NotSupportedException();
+    }
 
     public LuaMultiValue Invoke(LuaMultiValue args) {
       using (LuaEnvironment._setEnvironment(Environment)) {

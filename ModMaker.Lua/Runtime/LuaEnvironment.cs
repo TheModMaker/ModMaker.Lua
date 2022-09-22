@@ -70,6 +70,8 @@ namespace ModMaker.Lua.Runtime {
     protected LuaEnvironment() {
       Settings = new LuaSettings().AsReadOnly();
       CodeCompiler = new CodeCompiler(Settings);
+      GlobalsTable = new LuaTable(this);
+      Runtime = new LuaRuntime(this);
     }
     /// <summary>
     /// Creates a new environment with the given settings.
@@ -78,6 +80,8 @@ namespace ModMaker.Lua.Runtime {
     public LuaEnvironment(LuaSettings settings) {
       Settings = settings.AsReadOnly();
       CodeCompiler = new CodeCompiler(Settings);
+      GlobalsTable = new LuaTable(this);
+      Runtime = new LuaRuntime(this);
 
       // initialize the global variables.
       LuaStaticLibraries.Initialize(this);
@@ -151,8 +155,8 @@ namespace ModMaker.Lua.Runtime {
     }
 
     public LuaSettings Settings { get; protected set; }
-    public ILuaRuntime Runtime { get; set; } = new LuaRuntime();
-    public ILuaTable GlobalsTable { get; set; } = new LuaTable();
+    public ILuaRuntime Runtime { get; set; }
+    public ILuaTable GlobalsTable { get; set; }
     public ICodeCompiler CodeCompiler { get; set; }
     public IParser Parser { get; set; } = new PlainParser();
     public IModuleBinder ModuleBinder { get; set; } = new ModuleBinder();

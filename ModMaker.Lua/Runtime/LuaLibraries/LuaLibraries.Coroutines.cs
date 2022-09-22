@@ -19,7 +19,7 @@ namespace ModMaker.Lua.Runtime {
   static partial class LuaStaticLibraries {
     class Coroutine {
       public static void Initialize(ILuaEnvironment env) {
-        ILuaTable coroutine = new LuaTable();
+        ILuaTable coroutine = new LuaTable(env);
         Register(env, coroutine, (Func<LuaFunction, ILuaValue>)create);
         Register(env, coroutine, (Func<LuaCoroutine, ILuaValue[], LuaMultiValue>)resume);
         Register(env, coroutine, (Func<object[]>)running);

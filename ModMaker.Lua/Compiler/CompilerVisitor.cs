@@ -679,7 +679,8 @@ namespace ModMaker.Lua.Compiler {
       var gen = _compiler.CurrentGenerator;
       var loc = _compiler.CreateTemporary(typeof(ILuaValue));
 
-      // loc = new LuaTable();
+      // loc = new LuaTable(LuaEnvironment.CurrentEnvironment);
+      gen.Emit(OpCodes.Call, ReflectionMembers.LuaEnvironment.get_CurrentEnvironment);
       gen.Emit(OpCodes.Newobj, ReflectionMembers.LuaTable.Constructor);
       gen.Emit(OpCodes.Stloc, loc);
 

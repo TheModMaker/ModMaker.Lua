@@ -106,7 +106,7 @@ namespace UnitTests {
         LuaNumber.Create(0),
         LuaBoolean.True,
         new LuaString("a"),
-        new LuaTable(),
+        new LuaTable(LuaEnvironment.CurrentEnvironment),
         func,
         LuaCoroutine.Current(LuaEnvironment.CurrentEnvironment),
         new LuaUserData<object>(new object()),
