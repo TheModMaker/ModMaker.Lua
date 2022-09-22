@@ -130,6 +130,15 @@
   <data name="Library_Math" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>LuaTests\Library_Math.lua;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Library_Standard" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>LuaTests\Library_Standard.lua;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Library_String" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>LuaTests\Library_String.lua;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="Library_Table" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>LuaTests\Library_Table.lua;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="Misc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>LuaTests\Misc.lua;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>

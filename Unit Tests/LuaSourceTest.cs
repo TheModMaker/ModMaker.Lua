@@ -30,6 +30,15 @@ namespace UnitTests {
         new List<Tuple<string, LuaFunction, string>>();
     static string _prefix = "";
 
+    class OverloadType {
+      public int Call(double _) {
+        return 1;
+      }
+      public int Call(long _) {
+        return 2;
+      }
+    }
+
     static LuaSourceTest() {
       _lua52 = new Lua();
 
@@ -50,6 +59,9 @@ namespace UnitTests {
         lua.Register(getType, "getType");
         lua.Register(getMethod, "getMethod");
         lua.Register(getObj, "getObj");
+        lua.Register((Func<double, double>)((a) => 1), "overloadGetNumber");
+        lua.Register((Func<long, double>)((a) => 2), "overloadGetNumber");
+        lua.Register(typeof(OverloadType));
       }
     }
 
@@ -64,6 +76,9 @@ namespace UnitTests {
         Tuple.Create("Library_Bit32", TestResources.Library_Bit32),
         Tuple.Create("Library_Coroutine", TestResources.Library_Coroutine),
         Tuple.Create("Library_Math", TestResources.Library_Math),
+        Tuple.Create("Library_Standard", TestResources.Library_Standard),
+        Tuple.Create("Library_String", TestResources.Library_String),
+        Tuple.Create("Library_Table", TestResources.Library_Table),
         Tuple.Create("Misc", TestResources.Misc),
       };
       foreach (var info in sources) {

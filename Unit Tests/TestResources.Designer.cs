@@ -103,6 +103,36 @@ namespace UnitTests {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] Library_Standard {
+            get {
+                object obj = ResourceManager.GetObject("Library_Standard", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Library_String {
+            get {
+                object obj = ResourceManager.GetObject("Library_String", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Library_Table {
+            get {
+                object obj = ResourceManager.GetObject("Library_Table", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] Misc {
             get {
                 object obj = ResourceManager.GetObject("Misc", resourceCulture);
